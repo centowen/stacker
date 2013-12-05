@@ -13,20 +13,21 @@ using casa::ImageInterface;
 class PrimaryBeam
 {
 	private:
-		ImageInterface<float>* interface;
-		Array<float> data, *buff_array;
-		float** internaldata;
+// 		ImageInterface<float>* interface;
+// 		Array<float> data, *buff_array;
+		float** data;
 		CoordinateSystem cs;
 		IPosition shape;
 		static const double pi = 3.141592653589793238462;
-		double x0, y0, dx, dy, px_x0, px_y0;
-		double freq0;
+		int nx, ny;
+		float x0, y0, dx, dy, px_x0, px_y0;
+		float freq0;
 
 	public:
 		PrimaryBeam(const char fileName[]);
 		~PrimaryBeam();
 // 		void load(const char fileName[]);
-		double calc(double x, double y, double freq = 0.);
+		float calc(float x, float y, float freq = 0.);
 };
 
 #endif

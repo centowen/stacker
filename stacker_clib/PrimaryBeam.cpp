@@ -21,53 +21,85 @@ using casa::COWPtr;
 using casa::Slicer;
 using casa::Array;
 using casa::Vector;
-using casa::Double;
+// using casa::float;
 using casa::Vector;
 using casa::Quantum;
 using casa::Unit;
+using casa::uInt;
 
 PrimaryBeam::PrimaryBeam(const char fileName[]) 
 {
-	interface = (ImageInterface<float>*)ImageOpener::openImage(fileName);
+	ImageInterface<float>* interface = (ImageInterface<float>*)ImageOpener::openImage(fileName);
 	cs = interface->coordinates();
 	shape = interface->shape();
-	const IPosition inputSliceShape(4,shape(0),shape(1),1,1);
-	buff_array = new Array<float>(inputSliceShape.nonDegenerate());
-	COWPtr<Array<float> > inputArrPtr(buff_array);
+	nx = shape(0);
+	ny = shape(1);
+
 	IPosition start(4,0);
+	IPosition dx(4,1,0,0,0);
+	IPosition dy(4,0,1,0,0);
 
-	interface->getSlice(inputArrPtr, Slicer(start, inputSliceShape), true);
-	data = *inputArrPtr;
+	const IPosition inputSliceShape(4,nx,1,1,1);
+	Array<float> *buff_array = new Array<float>(inputSliceShape.nonDegenerate());
+	Array<float> rowdata;
+	COWPtr<Array<float> > inputArrPtr(buff_array);
 
-	x0 = cs.referenceValue()(0);
-	y0 = cs.referenceValue()(1);
+	data = new float*[ny];
+
+	for(uInt row = 0; row < ny; row++)
+	{
+		start(1) = row;
+		interface->getSlice(inputArrPtr, Slicer(start, inputSliceShape), true);
+		rowdata = *inputArrPtr;
+
+		data[row] = new float[nx];
+
+		for(uInt col = 0; col < nx; col++)
+		{
+			IPosition curpos = start+col*dx;
+			data[row][col] = rowdata(curpos);
+		}
+	}
+
+	x0 = float(cs.referenceValue()(0));
+	y0 = float(cs.referenceValue()(1));
 
 	if(cs.hasSpectralAxis())
-		freq0 = cs.referenceValue()(cs.spectralAxisNumber());
+		freq0 = float(cs.referenceValue()(cs.spectralAxisNumber()));
 	else
-		freq0 = 0.;
+		freq0 = float(0.);
 
 	std::cout << "spectral: " << freq0 << std::endl;
 
-	px_x0 = cs.referencePixel()(0);
-	px_y0 = cs.referencePixel()(1);
-	dx = cs.increment()(0);
-	dy = cs.increment()(1);
+	px_x0 = float(cs.referencePixel()(0));
+	px_y0 = float(cs.referencePixel()(1));
+	dx = float(cs.increment()(0));
+	dy = float(cs.increment()(1));
 
+	delete interface;
 }
 
 PrimaryBeam::~PrimaryBeam()
 {
-	delete interface;
+	for(uInt row = 0; row < ny; row++)
+		delete[] data[row];
+
+	delete[] data;
 }
 
-double PrimaryBeam::calc(double x, double y, double freq)
+
+float PrimaryBeam::calc(float x, float y, float freq)
 {
-	double freqcomp = 1.;
+	float freqcomp = 1.;
 	if(freq > tol && freq0 > tol)
 		freqcomp = freq0/freq;
 
-	if(int(freqcomp*(x-x0)/dx+px_x0) < 0 || int(freqcomp*(x-x0)/dx+px_x0) > shape(0)) return 0.;
-	if(int(freqcomp*(y-y0)/dy+px_y0) < 0 || int(freqcomp*(y-y0)/dy+px_y0) > shape(1)) return 0.;
-	return data(IPosition(4,int(freqcomp*(x-x0)/dx+px_x0),int(freqcomp*(y-y0)/dy+px_y0),0,0));
+	int px_x, px_y;
+	px_x = int(freqcomp*(x-x0)/dx+px_x0);
+	px_y = int(freqcomp*(y-y0)/dy+px_y0);
+
+	if(px_x < 0 || px_x > shape(0)) return 0.;
+	if(px_y < 0 || px_y > shape(1)) return 0.;
+	return data[px_y][px_x];
+// 	return data(IPosition(4,int(freqcomp*(x-x0)/dx+px_x0),int(freqcomp*(y-y0)/dy+px_y0),0,0));
 }
