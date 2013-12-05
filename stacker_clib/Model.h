@@ -40,16 +40,16 @@ public:
 
 public:
 	int nPointings;
-	double** omega_x;
-	double** omega_y;
-	double** omega_z;
-	double** omega_size;
-	double** dx;
-	double** dy;
-	double** x;
-	double** y;
-	double** flux;
-	double** size;
+	float** omega_x;
+	float** omega_y;
+	float** omega_z;
+	float** omega_size;
+	float** dx;
+	float** dy;
+	float** x;
+	float** y;
+	float** flux;
+	float** size;
 	int* nStackPoints;
 };
 
