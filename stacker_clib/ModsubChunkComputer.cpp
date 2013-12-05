@@ -50,7 +50,7 @@ void ModsubChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 				float dd_real = 0., dd_imag = 0.;
 				float weightNorm = 0.;
 				float d;
-				float freq = inVis.freq[j];
+				float freq = float(inVis.freq[j]);
 
 				for(int i_p = 0; i_p < model->nStackPoints[inVis.fieldID]; i_p++)
 				{
@@ -63,8 +63,11 @@ void ModsubChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 					if( model->size[inVis.fieldID][i_p] > 1e-10)
 						extent = exp(-freq*freq*(u*u + v*v)*model->omega_size[inVis.fieldID][i_p]);
 
- 					dd_real += pb->calc(model->dx[inVis.fieldID][i_p], model->dy[inVis.fieldID][i_p], freq)*model->flux[fieldID][i_p]*extent*cos(d);
- 					dd_imag += pb->calc(model->dx[inVis.fieldID][i_p], model->dy[inVis.fieldID][i_p], freq)*model->flux[fieldID][i_p]*extent*sin(d);
+					float pbcor = float(pb->calc(model->dx[fieldID][i_p], 
+								                 model->dy[fieldID][i_p], 
+												 freq));
+ 					dd_real += pbcor*model->flux[fieldID][i_p]*extent*cos(d);
+ 					dd_imag += pbcor*model->flux[fieldID][i_p]*extent*sin(d);
 
 				}
 

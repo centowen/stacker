@@ -40,6 +40,7 @@ public:
 
 public:
 	int nPointings;
+	int* nStackPoints;
 	float** omega_x;
 	float** omega_y;
 	float** omega_z;
@@ -50,7 +51,6 @@ public:
 	float** y;
 	float** flux;
 	float** size;
-	int* nStackPoints;
 };
 
 #endif

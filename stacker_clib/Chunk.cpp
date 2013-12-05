@@ -9,7 +9,8 @@ Chunk::Chunk(int size)
 }
 Chunk::~Chunk()
 {
-	delete[] inVis, outVis;
+	delete[] inVis;
+	delete[] outVis;
 	nvis = 0;
 }
 

@@ -66,10 +66,12 @@ void MSComputer::run()/*{{{*/
 		freeChunks.push(i);
 	}
 
+	cout << "Initiate cc" << endl;
 	cc->preCompute(ms);
 
 	pthread_t threads[N_THREAD];
 
+	cout << "Starting threads" << endl;
 	for(int i = 0; i < N_THREAD; i++)
 	{
 		pthread_create(&threads[i], NULL, startComputerThread, (void*)this);
@@ -155,6 +157,7 @@ void MSComputer::run()/*{{{*/
 		usleep(2000);
 	}
 
+	cout << "clean up cc" << endl;
 	cc->postCompute(ms);
 }/*}}}*/
 

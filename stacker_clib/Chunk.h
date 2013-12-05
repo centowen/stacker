@@ -15,6 +15,11 @@ struct Visibility
 	float u,v,w;
 	double* freq;
 	int fieldID, index, spw;
+
+// 	float** data_real;
+// 	float** data_imag;
+// 	float* weight;
+
 	Matrix<Complex> data;
 	Vector<float> weight;
 
