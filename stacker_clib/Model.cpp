@@ -103,6 +103,12 @@ void Model::compute(msio* ms, PrimaryBeam* pb)
 
 	double totFlux = 0.;
 	std::cout << "Number of components in cl: " << cl.nelements() << std::endl;
+
+	cout << "Some PrimaryBeam examples:" << endl;
+	cout << "(0, 0): " << pb->calc(0, 0, 222e9) << endl;;
+	cout << "(50, 0): " << pb->calc(1e-5, 0, 222e9) << endl;;
+	cout << "(100, 0): " << pb->calc(3e-5, 0, 222e9) << endl;;
+
 	for(int i = 0; i < cl.nelements(); i++)
 	{
 		SkyComponent sc(cl.component(i));

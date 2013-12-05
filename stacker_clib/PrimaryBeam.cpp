@@ -70,11 +70,12 @@ PrimaryBeam::PrimaryBeam(const char fileName[])
 		freq0 = float(0.);
 
 	std::cout << "spectral: " << freq0 << std::endl;
+	std::cout << "n: " << nx << ", " << ny << std::endl;
 
 	px_x0 = float(cs.referencePixel()(0));
 	px_y0 = float(cs.referencePixel()(1));
-	dx = float(cs.increment()(0));
-	dy = float(cs.increment()(1));
+	this->dx = float(cs.increment()(0));
+	this->dy = float(cs.increment()(1));
 
 	delete interface;
 }
@@ -98,8 +99,8 @@ float PrimaryBeam::calc(float x, float y, float freq)
 	px_x = int(freqcomp*(x-x0)/dx+px_x0);
 	px_y = int(freqcomp*(y-y0)/dy+px_y0);
 
-	if(px_x < 0 || px_x > shape(0)) return 0.;
-	if(px_y < 0 || px_y > shape(1)) return 0.;
+	if(px_x < 0 || px_x > nx) return 0.;
+	if(px_y < 0 || px_y > ny) return 0.;
 	return data[px_y][px_x];
 // 	return data(IPosition(4,int(freqcomp*(x-x0)/dx+px_x0),int(freqcomp*(y-y0)/dy+px_y0),0,0));
 }

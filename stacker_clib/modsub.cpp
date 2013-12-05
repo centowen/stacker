@@ -57,6 +57,8 @@ void cpp_modsub(const char* msinfile, const char* msoutfile,
 		        const char* modelfile, const char* pbfile) /*{{{*/
 {
 	PrimaryBeam pb(pbfile);
+
+
 	Model model(modelfile);
 	ModsubChunkComputer* cc = new ModsubChunkComputer(&model, &pb);
 	MSComputer* computer = new MSComputer(cc, msinfile, msoutfile);
