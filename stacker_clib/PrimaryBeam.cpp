@@ -92,15 +92,19 @@ PrimaryBeam::~PrimaryBeam()
 float PrimaryBeam::calc(float x, float y, float freq)
 {
 	float freqcomp = 1.;
+// 	std::cout << freq << std::flush;
+// 	std::cout << " - " << nx << ", " << ny << std::flush;
 	if(freq > tol && freq0 > tol)
 		freqcomp = freq0/freq;
 
 	int px_x, px_y;
 	px_x = int(freqcomp*(x-x0)/dx+px_x0);
 	px_y = int(freqcomp*(y-y0)/dy+px_y0);
+// 	std::cout << " - " << px_x << ", " << px_y << std::endl;
 
-	if(px_x < 0 || px_x > nx) return 0.;
-	if(px_y < 0 || px_y > ny) return 0.;
+
+	if(px_x < 0 || px_x >= nx) return 0.;
+	if(px_y < 0 || px_y >= ny) return 0.;
 	return data[px_y][px_x];
 // 	return data(IPosition(4,int(freqcomp*(x-x0)/dx+px_x0),int(freqcomp*(y-y0)/dy+px_y0),0,0));
 }

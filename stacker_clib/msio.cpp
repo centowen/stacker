@@ -179,6 +179,9 @@ int msio::readChunkSimple(Chunk& chunk)
 		chunk.inVis[i].w = float(uvw[2]);
 		chunk.inVis[i].fieldID = msincols->fieldId()(uvrow);
 		chunk.inVis[i].weight  = msincols->weight()(uvrow);
+		chunk.inVis[i].data.unique();
+		chunk.inVis[i].weight.unique();
+
 
 		chunk.inVis[i].spw = msincols->dataDescId()(chunk.inVis[i].index);
 		chunk.inVis[i].freq = freq[chunk.inVis[i].spw];

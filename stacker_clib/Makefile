@@ -33,6 +33,7 @@ default:
 
 clean:
 	rm -f *.o *.last *.log *.log~ *.pyc
+
 debug:
 # 	g++ -fPIC -c $(CPPFLAGS) -o test.o stack.cpp
 # 	g++ -O3 -fPIC -c $(CPPFLAGS) -o PrimaryBeam.o PrimaryBeam.cpp

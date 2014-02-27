@@ -111,6 +111,10 @@ void Model::compute(msio* ms, PrimaryBeam* pb)
 
 	for(int i = 0; i < cl.nelements(); i++)
 	{
+// 		cout << "Comp " << i << endl;
+
+		// Seems to crash on some point sources, why?
+
 		SkyComponent sc(cl.component(i));
 		MDirection dir(sc.shape().refDirection());
 		float x, y, flux, size;
@@ -119,25 +123,33 @@ void Model::compute(msio* ms, PrimaryBeam* pb)
 		y = float(dir.getAngle().getValue("rad")[1]);
 		flux = float(sc.flux().value(casa::Stokes::I, false).getValue(Unit("Jy")));
 		size = float(0.);
+// 		cout << "shape is " << sc.shape().type() << endl;
 		if(sc.shape().type() == 1)
 			size = float(sc.shape().parameters()[0]);
+// 		cout << "size: " << size << endl;
 		totFlux += flux;
 
 		for(int fieldID = 0; fieldID < nPointings; fieldID++)
 		{
+// 			cout << fieldID << std::flush;
 			float dx = 1.*((x - float(ms->xPhaseCentre(fieldID)))*cos(y));
 			float dy = 1.*(asin(sin(y)/cos(dx)) - float(ms->yPhaseCentre(fieldID)));
+// 			cout << " (" << dx << ", " << dy << ")"  << std::flush;
 
 
 			if(pb->calc(dx,  dy )> 0.01)
 			{
+// 				cout << "+" << std::flush;
 				cx[fieldID].push_back(x);
 				cy[fieldID].push_back(y);
 				cflux[fieldID].push_back(flux);
 				csize[fieldID].push_back(size);
 				nStackPoints[fieldID] ++;
+// 				cout << "*" << std::flush;
 			}
+// 			cout << ", " << std::flush;
 		}
+// 		cout << endl;
 	}
 
 

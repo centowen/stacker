@@ -15,7 +15,10 @@ c_stack.argtype = [c_char_p, c_char_p, c_char_p,
 #                    c_int, c_int, c_double]
 
 
-def stack_random(vis, npos, imagenames, outvis, 
+#  WARNING DO NOT USE THIS FUNCTION!!!!!!
+# Only left for convience if a new function is to be implemented
+# Will not produce proper results in current form (will probably crash)
+def ___DANGER___stack_random(vis, npos, imagenames, outvis, 
                  flux = {'unit': 'Jy', 'value': 1.0}, 
                  stampsize = 32, psfmode='point',
                  model = 'mcmodel.cl'):

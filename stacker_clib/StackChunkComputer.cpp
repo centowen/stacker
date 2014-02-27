@@ -102,7 +102,10 @@ void StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 			}
 		}
 
-		outVis.fieldID = 0;
+		if(coords->nStackPoints[inVis.fieldID] > 0)
+			outVis.fieldID = 0;
+		else
+			outVis.fieldID = 1;
 		outVis.index = inVis.index;
 	}
 }/*}}}*/

@@ -77,6 +77,8 @@ void ModsubChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 		}
 
 		outVis.weight = inVis.weight;
+		outVis.data.unique();
+		outVis.weight.unique();
 		outVis.fieldID = inVis.fieldID;
 		outVis.index = inVis.index;
 
