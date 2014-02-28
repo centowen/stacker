@@ -48,10 +48,10 @@ def ___DANGER___stack_random(vis, npos, imagenames, outvis,
     stacker.coordsTocl(model, flux, coords)
     modsub(model, vis, outvis)
     coords = stacker.image.calculate_sigma2_weights(coords, imagenames, stampsize)
-    stack(coords, outvis, outvis, stampsize=stampsize, psfmode=psfmode)
+    stack(coords, outvis, outvis, stampsize=stampsize)
 
 
-def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32, psfmode='point'):
+def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32):
     import shutil
     import os
 
@@ -71,7 +71,6 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
     pbfile = '{0}-{1}GHz.pb'.format(telescope, freq)
     if not os.access(pbfile, os.F_OK):
         stacker.make_pbfile(vis, pbfile)
-#     stacker.
     
 
     x = [p.x for p in coords]
@@ -81,51 +80,18 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
     x = (c_double*len(x))(*x)
     y = (c_double*len(y))(*y)
     weight = (c_double*len(weight))(*weight)
-#     flux = c_stack(c_char_p(vis), c_char_p(outvis), c_char_p('/data2/lindroos/alma_primary_beam.image'), x, y, 
-#                    weight, c_int(len(coords)))
 
     from taskinit import qa
-#     if psfmode == 'point':
-#         psfmode_c = 0
-#     elif psfmode == 'star':
-#         psfmode_c = 1
-#     elif psfmode == 'twopoint':
-#         psfmode_c = 2
-#     elif psfmode == 'ring':
-#         psfmode_c = 3
-#     else:
-#         psfmode_c = 0
-
-#     if stampsize is not None and stampsize > 0:
-#         # Should use qa convert
-#         beam = stampsize*qa.getvalue(qa.convert(cell, 'rad'))/2.
-#     else:
-#         beam = 0.
 
     flux = c_stack(c_char_p(vis), c_char_p(outvis), c_char_p(pbfile), x, y, 
                    weight, c_int(len(coords)))
-#     flux = c_stack(c_char_p(vis), c_char_p(outvis), c_char_p(pbfile), x, y, 
-#                    weight, c_int(len(coords)), c_int(psfmode_c), c_double(beam))
-
-#     flux = 2.
 
     if imagename != '':
         import clean
         import clearcal
         clearcal.clearcal(vis=outvis)
-        clean.clean(vis=outvis, imagename = imagename, mode='mfs', cell=cell, 
-                    imsize=stampsize, weighting='natural')
-#         clean.clean(vis=outvis, imagename = imagename, imagermode='mosaic',
-#                 mode='mfs', cell=cell, imsize=stampsize)
-
-#         tb.open(os.path.join(outvis, 'FIELD'))
-#         n_fields = int(tb.nrows())
-#         tb.done()
-#         for field in range(n_fields):
-#             print imagename+'_f{0}'.format(field)
-#             clean.clean(vis=outvis, imagename = imagename+'_f{0}'.format(field), 
-#                     selectdata=True, field=str(field), weighting='uniform',
-#                     mode='mfs', cell=cell, imsize=stampsize)
+        clean.clean(vis=outvis, imagename = imagename, field='0', mode='mfs',
+                    cell=cell, imsize=stampsize, weighting='natural')
 
     return flux
 
@@ -138,9 +104,6 @@ def noise(coords, vis, imagenames, weighting = 'sigma2', nrand = 50, stampsize =
     ia.open(imagenames[0])
     beam = qa.convert(ia.restoringbeam()['major'], 'rad')['value']
     ia.done()
-#     ia.open(imagename)
-#     beam = qa.convert(ia.restoringbeam()['major'], 'deg')['value']
-#     imshape = ia.shape()
 
     dist = []
     for i in range(nrand):
