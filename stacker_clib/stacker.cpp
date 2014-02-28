@@ -36,7 +36,19 @@ double cpp_stack(const char* msinfile, const char* msoutfile, const char* pbfile
 void cpp_modsub(const char* msinfile, const char* msoutfile, 
 	        const char* modelfile, const char* pbfile);
 
+// Functions to interface with python module.
 extern "C"{
+	// Stacking function
+	// Input arguments:
+	// - msinfile: The input ms file.
+	// - msoutfile: The output ms file, can be the same as input ms file.
+	// - pbfile: A casa image of the primary beam, used to calculate primary beam correction.
+	// - x: x coordinate of each stacking position (in radian).
+	// - y: y coordinate of each stacking position (in radian).
+	// - weight: weight of each stacking position.
+	// - nstack: length of x, y and weight lists.
+	// Returns average of all visibilities. Estimate of flux for point sources.
+	//
 	double stack(char* msinfile, char* msoutfile, char* pbfile, double* x, 
 			     double* y, double* weight, int nstack)
 	{
@@ -45,6 +57,12 @@ extern "C"{
 		return flux;
 	};
 
+	// Function to subtract model from uvdata
+	// Input arguments:
+	// - msinfile: The input ms file.
+	// - msoutfile: The output ms file, can be the same as input ms file.
+	// - msinfile: cl file with the model to be subtracted
+	// - pbfile: A casa image of the primary beam, used to calculate primary beam correction.
 	void modsub(char* msinfile, char* msoutfile, char* modelfile, char* pbfile)
 	{
 		cpp_modsub(msinfile, msoutfile, modelfile, pbfile);

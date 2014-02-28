@@ -103,6 +103,8 @@ double cpp_stack(const char* msinfile, const char* msoutfile, const char* pbfile
 //  - inStackingMode: Allows multiply each visibility with a psf function.
 //  - inBeam: Parameter for inStackingMode psf function.
 //  Returns average of all visibilities. Only useful is the case of simple data.
+//
+//  inStackingMode and inBeam are ignored in the current implementation
 extern "C"{
 	double stack(char* msinfile, char* msoutfile, char* pbfile, double* x, 
 			     double* y, double* weight, int nstack, int inStackingMode, 
