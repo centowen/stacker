@@ -17,8 +17,6 @@ LDFLAGS=-L$(CASACORE_LIBPATH) $(ROOT_LIBS) -lcasacore $(CASACORE_LIBPATH)/libgfo
 
 default:
 	g++ -O3 -fPIC -c $(CPPFLAGS) $(DEBUG) -o stacker.o stacker.cpp
-	g++ -O3 -fPIC -c $(CPPFLAGS) $(DEBUG) -o modsub.o modsub.cpp
-	g++ -O3 -fPIC -c $(CPPFLAGS) $(DEBUG) -o stack.o stack.cpp
 	g++ -O3 -fPIC -c $(CPPFLAGS) -o Model.o Model.cpp
 	g++ -O3 -fPIC -c $(CPPFLAGS) -o MSComputer.o MSComputer.cpp
 	g++ -O3 -fPIC -c $(CPPFLAGS) -o StackChunkComputer.o StackChunkComputer.cpp
@@ -27,8 +25,6 @@ default:
 	g++ -O3 -fPIC -c $(CPPFLAGS) -o Chunk.o Chunk.cpp
 	g++ -O3 -fPIC -c $(CPPFLAGS) -o msio.o msio.cpp
 	g++ -O3 -fPIC -c $(CPPFLAGS) -o Coords.o Coords.cpp
-	g++ -shared Coords.o msio.o Chunk.o PrimaryBeam.o StackChunkComputer.o MSComputer.o stack.o -Wl,-soname,libuvstack.so $(LDFLAGS) -o libuvstack.so
-	g++ -shared Model.o msio.o Chunk.o PrimaryBeam.o ModsubChunkComputer.o MSComputer.o modsub.o -Wl,-soname,libmodsub.so $(LDFLAGS) -o libmodsub.so
 	g++ -shared Coords.o Model.o msio.o Chunk.o PrimaryBeam.o ModsubChunkComputer.o StackChunkComputer.o MSComputer.o stacker.o -Wl,-soname,libstacker.so $(LDFLAGS) -o libstacker.so
 
 clean:
