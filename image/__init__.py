@@ -39,7 +39,6 @@ def calculate_sigma2_weights(coords, imagenames=[], stampsize=32, maxmaskradius=
     _load_stack(pixcoords)
     pixcoords =  _calculate_sigma2_weights(pixcoords, maxmaskradius)
 
-#     for i in range(len(coords)):
     for coord in coords:
         coord.weight = 0.
         for pixcoord in pixcoords:
@@ -280,7 +279,6 @@ def _calculate_sigma2_weights(coords, maxmaskradius=None):
         ia.done()
     if maxmaskradius and maxmaskradius < masksize:
         masksize = maxmaskradius
-    print 'masksize set: {0}'.format(masksize)
 
     X = np.arange(0, stampsize)-int(stampsize/2)
     Y = np.arange(0, stampsize)-int(stampsize/2)
@@ -290,7 +288,7 @@ def _calculate_sigma2_weights(coords, maxmaskradius=None):
         tmpdata = np.copy(data[i,:,:,:,:])
         for j in range(tmpdata.shape[2]):
             for k in range(tmpdata.shape[3]):
-                tmpdata[:,:,j,k]  = (tmpdata[:,:,j,k]*np.double( np.sqrt(X**2+Y**2)>masksize))
+                tmpdata[:,:,j,k]  = (tmpdata[:,:,j,k]*np.double( X**2+Y**2>masksize**2))
         sigma = np.std(tmpdata[np.nonzero(tmpdata)])
         if sigma == 0:
             coord.weight = 0.
