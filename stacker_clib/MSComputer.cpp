@@ -47,8 +47,11 @@ MSComputer::~MSComputer()/*{{{*/
 	delete ms;
 }/*}}}*/
 
-void MSComputer::run()/*{{{*/
+float MSComputer::run()/*{{{*/
 {
+	sumvis = 0.;
+	nvis = 0.;
+
 	totalChunks = int(ms->nvis()/CHUNK_SIZE)+1;
 	//
 	// Generate a queue of messages related to progress.
@@ -176,6 +179,10 @@ void MSComputer::run()/*{{{*/
 
 	cout << "clean up cc" << endl;
 	cc->postCompute(ms);
+
+	cout << "sums: " << sumvis << ", " << nvis << endl;
+
+	return sumvis/nvis;
 }/*}}}*/
 
 void* MSComputer::startComputerThread(void* computer)
@@ -204,12 +211,18 @@ void MSComputer::computerThread()/*{{{*/
 
 		pthread_mutex_unlock(&mutex);
 
+		float sumvis_chunk = 0.;
 		// Time to get to work if we found a chunk.
 		if(chunkid>=0)
 		{
-			cc->computeChunk(chunks[chunkid]);
+			sumvis_chunk = cc->computeChunk(chunks[chunkid]);
 
 			pthread_mutex_lock(&mutex);
+			if(abs(sumvis_chunk) > 0)
+			{
+				sumvis += sumvis_chunk;
+				nvis += chunks[chunkid]->size();
+			}
 			chunksToWrite.push(chunkid);
 			pthread_mutex_unlock(&mutex);
 		}

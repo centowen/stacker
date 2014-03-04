@@ -27,6 +27,7 @@ using casa::Matrix;
 using casa::Complex;
 using casa::Float;
 using std::cout;
+using std::real;
 
 StackChunkComputer::StackChunkComputer(Coords* coords, PrimaryBeam* pb)
 {
@@ -40,8 +41,9 @@ void StackChunkComputer::setStackingMode(int mode)
 	stackingMode = mode;
 }
 
-void StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
+float StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 {
+	float sum = 0., normsum = 0.;
 	for(int uvrow = 0; uvrow < chunk->size(); uvrow++)
 	{
 		// Shorthands to make code more readable.
@@ -109,6 +111,7 @@ void StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 			{
 				outVis.data(i,j) = dd*inVis.data(i,j);
 
+
 				if(redoWeights)
 					if(weightNorm < 1e30)
 						outVis.weight(i) = float(weightNorm)*inVis.weight(i);
@@ -116,6 +119,9 @@ void StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 						outVis.weight(i) = float(0.0)*inVis.weight(i);
 				else
 					outVis.weight(i) = inVis.weight(i);
+
+				sum += float(real(outVis.data(i,j))*outVis.weight(i));
+				normsum += outVis.weight(i);
 			}
 		}
 
@@ -125,6 +131,12 @@ void StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 			outVis.fieldID = 1;
 		outVis.index = inVis.index;
 	}
+	float retval = 0;
+	cout << "sums_in " << sum << ", " << normsum << endl;
+	if( normsum > 0)
+		retval = sum/normsum*chunk->size();
+	return retval;
+// 	return 1.;
 }/*}}}*/
 
 void StackChunkComputer::preCompute(msio* ms)

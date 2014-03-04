@@ -26,7 +26,7 @@ class Chunk;
 class ChunkComputer
 {
 	public:
-		virtual void computeChunk(Chunk* chunk) = 0;
+		virtual float computeChunk(Chunk* chunk) = 0;
 
 		// Called before and after actual computation.
 		// Allows full access to all data,
@@ -48,6 +48,10 @@ class MSComputer
 		queue<int> chunksToWrite, chunksToCompute, freeChunks;
 		queue<pair<int,string> > printQueue;
 		int chunksDone, totalChunks;
+
+		float sumvis;
+		float nvis;
+
 		string to_string(int x)
 		{
 			return dynamic_cast< std::ostringstream & >( \
@@ -58,7 +62,7 @@ class MSComputer
 		MSComputer(ChunkComputer* cc, const char* msinfile, const char* msoutfile);
 		~MSComputer();
 
-		void run();
+		float run();
 		static void* startComputerThread(void* data);
 		void computerThread();
 		msio* getMS();

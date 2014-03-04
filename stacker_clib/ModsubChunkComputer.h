@@ -20,7 +20,7 @@ class ModsubChunkComputer: public ChunkComputer
 		// unlike normal constructor which is called before computer
 		// is created.
 		void preCompute(msio* ms);
-		virtual void computeChunk(Chunk* chunk);
+		virtual float computeChunk(Chunk* chunk);
 		void postCompute(msio* ms);
 };
 

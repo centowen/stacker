@@ -38,7 +38,7 @@ ModsubChunkComputer::ModsubChunkComputer(Model* model, PrimaryBeam* pb)
 
 ModsubChunkComputer::~ModsubChunkComputer() {}
 
-void ModsubChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
+float ModsubChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 {
 	for(int uvrow = 0; uvrow < chunk->size(); uvrow++)
 	{
@@ -109,6 +109,7 @@ void ModsubChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 // 		visWeightit->next();
 // 		datait->next();
 	}
+	return 0.;
 }/*}}}*/
 
 void ModsubChunkComputer::preCompute(msio* ms)

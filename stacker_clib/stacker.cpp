@@ -77,7 +77,7 @@ double cpp_stack(const char* msinfile, const char* msoutfile, const char* pbfile
 	StackChunkComputer* cc = new StackChunkComputer(&coords, pb);
 	MSComputer* computer = new MSComputer(cc, msinfile, msoutfile);
 
-	computer->run();
+	float retval = computer->run();
 
 	delete computer;
 	delete cc;
@@ -85,7 +85,7 @@ double cpp_stack(const char* msinfile, const char* msoutfile, const char* pbfile
 
 // 	Complex averageFlux =  float(1. / normSumVis) * sumVis;
 
-	return 0.0;
+	return retval;
 }/*}}}*/
 
 // Subtract a cl model from measurement set.
