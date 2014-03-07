@@ -24,7 +24,7 @@ stampsize = 0
 imagesizes = []
 
 
-def calculate_sigma2_weights(coords, imagenames=[], stampsize=32, maxmaskradius=None):
+def calculate_sigma2_weights(coords, imagenames=[], stampsize=32, maskradius=None):
     import stacker
 
     for i, coord in enumerate(coords):
@@ -37,13 +37,16 @@ def calculate_sigma2_weights(coords, imagenames=[], stampsize=32, maxmaskradius=
 
     _allocate_buffers(pixcoords.imagenames, stampsize, len(pixcoords))
     _load_stack(pixcoords)
-    pixcoords =  _calculate_sigma2_weights(pixcoords, maxmaskradius)
+    pixcoords =  _calculate_sigma2_weights(pixcoords, maskradius)
 
-    for coord in coords:
-        coord.weight = 0.
-        for pixcoord in pixcoords:
-            if coord.index == pixcoord.index and pixcoord.weight > coord.weight:
-                coord.weight = pixcoord.weight
+    if coords.coord_type == 'physical':
+        for coord in coords:
+            coord.weight = 0.
+            for pixcoord in pixcoords:
+                if coord.index == pixcoord.index and pixcoord.weight > coord.weight:
+                    coord.weight = pixcoord.weight
+    else:
+        coords = pixcoords
 
     return coords
 
@@ -74,12 +77,6 @@ def calculate_flux_weights(coords, imagenames=[]):
             if coord.index == pixcoord.index and pixcoord.weight > coord.weight:
                 coord.weight = pixcoord.weight
 
-#     for coord in pixcoords:
-#         print coord.weight
-# 
-#     for coord in coords:
-#         print coord.weight
-
     return coords
 
 
@@ -95,7 +92,6 @@ def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
 
     global skymap
     global data
-#     global stampsize
     global oldimagenames
 
     if coords.coord_type == 'physical':
@@ -104,7 +100,6 @@ def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
 # Important that len(coords) here is for the pixel coordinates, not physical!
     _allocate_buffers(coords.imagenames, stampsize, len(coords))
 
-#	This is infact not neccessary in many case, just leave it like this for simplicity.
     ia.open(coords.imagenames[0])
     cs = ia.coordsys()
     outnchans = ia.boundingbox()['trc'][2]+1
@@ -115,7 +110,7 @@ def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
     for imagename in coords.imagenames:
             ia.open(imagename)
             if ia.shape()[2] != outnchans or ia.shape()[3] != outnstokes:
-                    print('Channels do not match in all images!')
+                    print('Channels/polarisations do not match in all images! You probably want to stacking do stacking on continuum data and not on spectral cube.')
                     return
             ia.done()
 
