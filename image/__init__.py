@@ -88,7 +88,7 @@ def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
     import os
     import shutil
     import numpy as np
-    from taskinit import ia
+    from taskinit import ia, casalog
 
     global skymap
     global data
@@ -96,6 +96,7 @@ def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
 
     if coords.coord_type == 'physical':
         coords = stacker.getPixelCoords(coords, imagenames)
+
 
 # Important that len(coords) here is for the pixel coordinates, not physical!
     _allocate_buffers(coords.imagenames, stampsize, len(coords))
@@ -105,6 +106,7 @@ def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
     outnchans = ia.boundingbox()['trc'][2]+1
     outnstokes = ia.boundingbox()['trc'][3]+1
     ia.done()
+
 
 
     for imagename in coords.imagenames:
@@ -121,10 +123,12 @@ def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
     elif method == 'mean' and weighting == 'sigma':
         coords = _calculate_sigma_weights(coords, maxmaskradius)
 
-    print 'npos: {0}'.format(len([c.weight for c in coords if c.weight > 1e-6]))
+    npos = len([c.weight for c in coords if c.weight > 1e-6])
+    casalog.post('Number of stacking positions: {0}'.format(npos),
+            priority='INFO')
+    print('peti', method, weighting)
 
     stacked_im  = _stack_stack(method, coords)
-#     print 'peti: {0}'.format(coords[3].weight)
 
 
     _write_stacked_image(outfile, stacked_im, coords.imagenames[0])
