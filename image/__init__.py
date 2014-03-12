@@ -24,6 +24,50 @@ stampsize = 0
 imagesizes = []
 
 
+def calculate_pb_weights(coords, imagenames=[], dishdia='12m'):
+    import stacker
+    from scipy.constants import c
+    from taskinit import ia, qa
+    import numpy as np
+
+    for i, coord in enumerate(coords):
+        coord.index = i
+
+    if coords.coord_type == 'physical':
+        pixcoords = stacker.getPixelCoords(coords, imagenames)
+    else:
+        pixcoords = coords
+
+#     _allocate_buffers(pixcoords.imagenames, stampsize, len(pixcoords))
+#     _load_stack(pixcoords)
+
+    dishdia = qa.convert(dishdia, 'm')['value'] 
+
+    for coord in pixcoords:
+        ia.open(imagenames[coord.image])
+        cs = ia.coordsys()
+        freqaxis = cs.findaxisbyname('freq')
+        restfreq = cs.referencevalue()['numeric'][freqaxis]
+        vp_fwhm = 1.22*c/restfreq/dishdia
+        dx = ((coord.x-cs.referencepixel()['numeric'][0])
+                *cs.increment()['numeric'][0])
+        dy = ((coord.y-cs.referencepixel()['numeric'][1])
+                *cs.increment()['numeric'][1])
+
+        coord.weight = np.exp(-2.*4*np.log(2)*(dx**2+dy**2)/vp_fwhm**2)
+
+    if coords.coord_type == 'physical':
+        for coord in coords:
+            coord.weight = 0.
+            for pixcoord in pixcoords:
+                if coord.index == pixcoord.index and pixcoord.weight > coord.weight:
+                    coord.weight = pixcoord.weight
+    else:
+        coords = pixcoords
+
+    return coords
+
+
 def calculate_sigma2_weights(coords, imagenames=[], stampsize=32, maskradius=None):
     import stacker
 
@@ -131,7 +175,8 @@ def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
     stacked_im  = _stack_stack(method, coords)
 
 
-    _write_stacked_image(outfile, stacked_im, coords.imagenames[0])
+    _write_stacked_image(outfile, stacked_im,
+                         coords.imagenames[0], stampsize)
     return stacked_im[int(stampsize/2+0.5), int(stampsize/2+0.5),0,0]
 
             
@@ -182,12 +227,12 @@ def getFlux(imagename):
     return float(ia.getregion(region=rg.box([x,y], [x,y])))
 
 
-def _write_stacked_image(imagename, pixels, template_image):
+def _write_stacked_image(imagename, pixels, template_image, stampsize):
     import os
     import shutil
     import numpy as np
     from taskinit import ia
-    global stampsize
+#     global stampsize
     if os.access(imagename, os.F_OK): shutil.rmtree(imagename)
 
     ia.open(template_image)
