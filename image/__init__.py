@@ -172,7 +172,6 @@ def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
     npos = len([c.weight for c in coords if c.weight > 1e-6])
     casalog.post('Number of stacking positions: {0}'.format(npos),
             priority='INFO')
-    print('peti', method, weighting)
 
     stacked_im  = _stack_stack(method, coords)
 
