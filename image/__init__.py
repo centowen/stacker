@@ -125,7 +125,7 @@ def calculate_flux_weights(coords, imagenames=[]):
 
 
 def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
-        weighting = 'sigma2', maxmaskradius=None, psfmode = 'point'):
+        weighting = 'sigma2', maxmaskradius=None, psfmode = 'point', dishdia='12m'):
 
     from ..interval import interval
     import stacker
@@ -166,6 +166,8 @@ def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
         coords = _calculate_sigma2_weights(coords, maxmaskradius)
     elif method == 'mean' and weighting == 'sigma':
         coords = _calculate_sigma_weights(coords, maxmaskradius)
+    elif method == 'mean' and weighting == 'pb':
+        coords = calculate_pb_weights(coords, imagenames, dishdia)
 
     npos = len([c.weight for c in coords if c.weight > 1e-6])
     casalog.post('Number of stacking positions: {0}'.format(npos),
