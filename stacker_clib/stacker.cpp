@@ -72,7 +72,7 @@ extern "C"{
 double cpp_stack(const char* msinfile, const char* msoutfile, const char* pbfile,
 		double* x, double* y, double* weight, int nstack)/*{{{*/
 {
-	PrimaryBeam* pb = new PrimaryBeam(pbfile);
+	PrimaryBeam* pb = new ImagePrimaryBeam(pbfile);
 	Coords coords(x, y, weight, nstack);
 	StackChunkComputer* cc = new StackChunkComputer(&coords, pb);
 	MSComputer* computer = new MSComputer(cc, msinfile, msoutfile);
@@ -92,7 +92,7 @@ double cpp_stack(const char* msinfile, const char* msoutfile, const char* pbfile
 void cpp_modsub(const char* msinfile, const char* msoutfile, 
 	        const char* modelfile, const char* pbfile) /*{{{*/
 {
-	PrimaryBeam* pb = new PrimaryBeam(pbfile);
+	PrimaryBeam* pb = new ImagePrimaryBeam(pbfile);
 	Model* model = new Model(modelfile);
 
 	cout << "Pre making computer." << endl;
