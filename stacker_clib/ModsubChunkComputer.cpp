@@ -80,7 +80,7 @@ float ModsubChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 					if( model->size[inVis.fieldID][i_p] > 1e-10)
 						extent = exp(-freq*freq*(u*u + v*v)*model->omega_size[inVis.fieldID][i_p]);
 
-					float pbcor = float(pb->calc(model->dx[fieldID][i_p], 
+					float pbcor = 1./float(pb->calc(model->dx[fieldID][i_p], 
 								                 model->dy[fieldID][i_p], 
 												 freq));
  					dd_real += pbcor*model->flux[fieldID][i_p]*extent*cos(d);
