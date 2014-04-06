@@ -214,7 +214,8 @@ void Model::compute(msio* ms, PrimaryBeam* pb)
 
 			omega_x[fieldID][i] = 2*pi*sin(dx[fieldID][i])/casa::C::c;
 			omega_y[fieldID][i] = 2*pi*sin(dy[fieldID][i])/casa::C::c;
-			omega_z[fieldID][i] = 2*pi*(cos(sqrt(dx[fieldID][i]*dx[fieldID][i]+dy[fieldID][i]*dy[fieldID][i]))-1)/casa::C::c;
+// 			omega_z[fieldID][i] = 2*pi*(cos(sqrt(dx[fieldID][i]*dx[fieldID][i]+dy[fieldID][i]*dy[fieldID][i]))-1)/casa::C::c;
+			omega_z[fieldID][i] = 2*pi*(sqrt(1-dx[fieldID][i]*dx[fieldID][i]-dy[fieldID][i]*dy[fieldID][i])-1)/casa::C::c;
 			omega_size[fieldID][i] = pow(pi*size[fieldID][i]/casa::C::c, 2) / (4 * log(2));
 		}
 	}

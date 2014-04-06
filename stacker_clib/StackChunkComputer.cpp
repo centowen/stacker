@@ -132,7 +132,6 @@ float StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 		outVis.index = inVis.index;
 	}
 	float retval = 0;
-	cout << "sums_in " << sum << ", " << normsum << endl;
 	if( normsum > 0)
 		retval = sum/normsum*chunk->size();
 	return retval;

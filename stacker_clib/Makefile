@@ -1,4 +1,5 @@
 CASABASE=/home/lindroos/sw/casapy
+CASACOREBASE=/home/lindroos/sw/casapy
 #CASABASE=/astro/casa/casapy
 
 # Use this for casa v < 4.2

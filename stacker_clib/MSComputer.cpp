@@ -53,6 +53,7 @@ float MSComputer::run()/*{{{*/
 	nvis = 0.;
 
 	totalChunks = int(ms->nvis()/CHUNK_SIZE)+1;
+	cout << "Total number of chunks should be " << totalChunks << endl;
 	//
 	// Generate a queue of messages related to progress.
 	// Specifies how many chunks needed to print a certain progress.
