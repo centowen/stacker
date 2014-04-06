@@ -82,7 +82,7 @@ float StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 				              w*coords->omega_z[inVis.fieldID][i_p]);
 
 				float weightbuff = coords->weight[fieldID][i_p];
-				float pbcor = 1./float(pb->calc(coords->dx[fieldID][i_p], coords->dy[fieldID][i_p], freq));
+				float pbcor = float(pb->calc(coords->dx[fieldID][i_p], coords->dy[fieldID][i_p], freq));
 
 				dd_real = weightbuff*pbcor*cos(phase);
 				dd_imag = weightbuff*pbcor*sin(phase);
