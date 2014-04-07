@@ -121,10 +121,10 @@ void Model::compute(msio* ms, PrimaryBeam* pb)
 	double totFlux = 0.;
 	std::cout << "Number of components in cl: " << cl.nelements() << std::endl;
 
-	cout << "Some PrimaryBeam examples:" << endl;
-	cout << "(0, 0): " << pb->calc(0, 0, 222e9) << endl;;
-	cout << "(50, 0): " << pb->calc(1e-5, 0, 222e9) << endl;;
-	cout << "(100, 0): " << pb->calc(3e-5, 0, 222e9) << endl;;
+// 	cout << "Some PrimaryBeam examples:" << endl;
+// 	cout << "(0, 0): " << pb->calc(0, 0, 222e9) << endl;;
+// 	cout << "(50, 0): " << pb->calc(1e-5, 0, 222e9) << endl;;
+// 	cout << "(100, 0): " << pb->calc(3e-5, 0, 222e9) << endl;;
 
 	for(int i = 0; i < cl.nelements(); i++)
 	{
@@ -188,7 +188,7 @@ void Model::compute(msio* ms, PrimaryBeam* pb)
 
 	for(int fieldID = 0; fieldID < nPointings; fieldID++)
 	{
-		cout << "field " << fieldID << ": " << endl;
+// 		cout << "field " << fieldID << ": " << endl;
 		x[fieldID] = new float[nStackPoints[fieldID]];
 		y[fieldID] = new float[nStackPoints[fieldID]];
 		dx[fieldID] = new float[nStackPoints[fieldID]];
@@ -212,17 +212,17 @@ void Model::compute(msio* ms, PrimaryBeam* pb)
 			//          cout << "(dx,dy) (" << dx[fieldID][i] << ", " << dy[fieldID][i] << ") " << 180/pi*3600*sqrt(dx[fieldID][i]*dx[fieldID][i]+dy
 			//          dx[fieldID][i] = (x[fieldID][i] - x_phase_centre[fieldID])*cos(y[fieldID][i]);
 			//          dy[fieldID][i] = asin(sin(y[fieldID][i])) - y_phase_centre[fieldID];
-			cout << "(dx, dy) = (" << dx[fieldID][i] << ", " << dy[fieldID][i] << ")" << endl;
+// 			cout << "(dx, dy) = (" << dx[fieldID][i] << ", " << dy[fieldID][i] << ")" << endl;
 
 			omega_x[fieldID][i] = 2*pi*sin(dx[fieldID][i])/casa::C::c;
 			omega_y[fieldID][i] = 2*pi*sin(dy[fieldID][i])/casa::C::c;
 // 			omega_z[fieldID][i] = 2*pi*(cos(sqrt(dx[fieldID][i]*dx[fieldID][i]+dy[fieldID][i]*dy[fieldID][i]))-1)/casa::C::c;
 			omega_z[fieldID][i] = 2*pi*(sqrt(1-dx[fieldID][i]*dx[fieldID][i]-dy[fieldID][i]*dy[fieldID][i])-1)/casa::C::c;
 			omega_size[fieldID][i] = pow(pi*size[fieldID][i]/casa::C::c, 2) / (4 * log(2));
-			cout << "(omega_x, omega_y, omega_z) = (" 
-				 << omega_x[fieldID][i] << ", " 
-				 << omega_y[fieldID][i] << ", " 
-				 << omega_z[fieldID][i] << ")" << endl;
+// 			cout << "(omega_x, omega_y, omega_z) = (" 
+// 				 << omega_x[fieldID][i] << ", " 
+// 				 << omega_y[fieldID][i] << ", " 
+// 				 << omega_z[fieldID][i] << ")" << endl;
 		}
 	}
 

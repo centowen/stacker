@@ -104,7 +104,7 @@ void Coords::computeCoords(msio* ms, PrimaryBeam& pb)
 
     for(int fieldID = 0; fieldID < nPointings; fieldID++)
     {
-		cout << "field " << fieldID << ": " << endl;
+// 		cout << "field " << fieldID << ": " << endl;
         dx[fieldID] = new float[nStackPoints[fieldID]];
         dy[fieldID] = new float[nStackPoints[fieldID]];
         omega_x[fieldID] = new float[nStackPoints[fieldID]];
@@ -125,7 +125,7 @@ void Coords::computeCoords(msio* ms, PrimaryBeam& pb)
 // 			std::cout << "pos " << i << ", dx, dy: " << dx << ", " << dy << endl;
 			while(dx[fieldID][i] > 2*pi) dx[fieldID][i] -= 2*pi;
 			while(dx[fieldID][i] < -2*pi) dx[fieldID][i] += 2*pi;
-			cout << "(dx, dy) = (" << dx[fieldID][i] << ", " << dy[fieldID][i] << ")" << endl;
+// 			cout << "(dx, dy) = (" << dx[fieldID][i] << ", " << dy[fieldID][i] << ")" << endl;
 // 			std::cout << "pos " << i << ", dx, dy: " << dx << ", " << dy << endl;
 // 
 //          dx[fieldID][i] = (x[fieldID][i] - x_phase_centre[fieldID])*cos(y[fieldID][i]);
@@ -135,10 +135,10 @@ void Coords::computeCoords(msio* ms, PrimaryBeam& pb)
             omega_y[fieldID][i] = 2*pi*sin(dy[fieldID][i])/casa::C::c;
 //             omega_z[fieldID][i] = 2*pi*(cos(sqrt(dx[fieldID][i]*dx[fieldID][i]+dy[fieldID][i]*dy[fieldID][i]))-1)/casa::C::c;
             omega_z[fieldID][i] = 2*pi*(sqrt(1-dx[fieldID][i]*dx[fieldID][i]-dy[fieldID][i]*dy[fieldID][i])-1)/casa::C::c;
-			cout << "(omega_x, omega_y, omega_z) = (" 
-				 << omega_x[fieldID][i] << ", " 
-				 << omega_y[fieldID][i] << ", " 
-				 << omega_z[fieldID][i] << ")" << endl;
+// 			cout << "(omega_x, omega_y, omega_z) = (" 
+// 				 << omega_x[fieldID][i] << ", " 
+// 				 << omega_y[fieldID][i] << ", " 
+// 				 << omega_z[fieldID][i] << ")" << endl;
         }
 
     }
