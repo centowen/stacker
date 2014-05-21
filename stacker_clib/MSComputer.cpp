@@ -35,7 +35,7 @@ MSComputer::MSComputer(ChunkComputer* cc, const char* msinfile, const char* msou
 	for( int i =0; i < N_CHUNK; i++)
 		chunks[i] = new Chunk(CHUNK_SIZE);
 
-	ms = new msio(msinfile, msoutfile, &mutex);
+	data = (DataIO*)(new msio(msinfile, msoutfile, &mutex));
 }/*}}}*/
 
 MSComputer::~MSComputer()/*{{{*/
@@ -44,7 +44,7 @@ MSComputer::~MSComputer()/*{{{*/
 		delete chunks[i];
 	delete[] chunks;
 
-	delete ms;
+	delete data;
 }/*}}}*/
 
 float MSComputer::run()/*{{{*/
@@ -52,7 +52,7 @@ float MSComputer::run()/*{{{*/
 	sumvis = 0.;
 	nvis = 0.;
 
-	totalChunks = int(ms->nvis()/CHUNK_SIZE)+1;
+	totalChunks = int(data->nvis()/CHUNK_SIZE)+1;
 	cout << "Total number of chunks should be " << totalChunks << endl;
 	//
 	// Generate a queue of messages related to progress.
@@ -88,7 +88,7 @@ float MSComputer::run()/*{{{*/
 	}
 
 	cout << "Initiate cc" << endl;
-	cc->preCompute(ms);
+	cc->preCompute(data);
 
 	pthread_t threads[N_THREAD];
 
@@ -135,7 +135,7 @@ float MSComputer::run()/*{{{*/
 			// Unlock mutex while reading from disk, 
 			// chunk removed from queues ensure no one else
 			// can access it. 
-			if(ms->readChunk(*chunks[chunkid]))
+			if(data->readChunk(*chunks[chunkid]))
 			{
 				pthread_mutex_lock(&mutex);
 				chunksToCompute.push(chunkid);
@@ -157,7 +157,7 @@ float MSComputer::run()/*{{{*/
 			// chunk removed from queues ensure no one else
 			// can access it.
 // 			calculate_chunk_average(*chunks[chunkid]);
-			ms->writeChunk(*chunks[chunkid]);
+			data->writeChunk(*chunks[chunkid]);
 
 			pthread_mutex_lock(&mutex);
 			freeChunks.push(chunkid);
@@ -179,7 +179,7 @@ float MSComputer::run()/*{{{*/
 	}
 
 	cout << "clean up cc" << endl;
-	cc->postCompute(ms);
+	cc->postCompute(data);
 
 	cout << "sums: " << sumvis << ", " << nvis << endl;
 
@@ -235,8 +235,8 @@ void MSComputer::computerThread()/*{{{*/
 	}
 }/*}}}*/
 
-msio* MSComputer::getMS()
+DataIO* MSComputer::getMS()
 {
-	return ms;
+	return data;
 }
 

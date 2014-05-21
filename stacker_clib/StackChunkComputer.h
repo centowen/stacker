@@ -1,7 +1,7 @@
 #include "MSComputer.h"
 #include "Coords.h"
 #include "PrimaryBeam.h"
-#include "msio.h"
+#include "DataIO.h"
 
 #ifndef __STACK_CHUNK_COMPUTER_H__
 #define __STACK_CHUNK_COMPUTER_H__
@@ -22,9 +22,9 @@ class StackChunkComputer: public ChunkComputer
 		// Called from computer and allows to access data,
 		// unlike normal constructor which is called before computer
 		// is created.
-		void preCompute(msio* ms);
+		void preCompute(DataIO* ms);
 		virtual float computeChunk(Chunk* chunk);
-		void postCompute(msio* ms);
+		void postCompute(DataIO* ms);
 };
 
 #endif // inclusion guard

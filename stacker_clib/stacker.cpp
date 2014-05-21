@@ -75,7 +75,7 @@ double cpp_stack(const char* msinfile, const char* msoutfile, const char* pbfile
 	PrimaryBeam* pb = new ImagePrimaryBeam(pbfile);
 	Coords coords(x, y, weight, nstack);
 	StackChunkComputer* cc = new StackChunkComputer(&coords, pb);
-	MSComputer* computer = new MSComputer(cc, msinfile, msoutfile);
+	MSComputer* computer = new MSComputer((ChunkComputer*)cc, msinfile, msoutfile);
 
 	float retval = computer->run();
 

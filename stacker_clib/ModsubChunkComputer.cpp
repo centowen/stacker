@@ -112,11 +112,11 @@ float ModsubChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 	return 0.;
 }/*}}}*/
 
-void ModsubChunkComputer::preCompute(msio* ms)
+void ModsubChunkComputer::preCompute(DataIO* ms)
 {
 	model->compute(ms, pb);
 }
 
-void ModsubChunkComputer::postCompute(msio* ms)
+void ModsubChunkComputer::postCompute(DataIO* ms)
 {
 }

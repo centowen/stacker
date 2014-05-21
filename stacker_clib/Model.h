@@ -9,7 +9,7 @@
 
 #include "PrimaryBeam.h"
 #include "definitions.h"
-#include "msio.h"
+#include "DataIO.h"
 
 #ifndef __MODEL_H__
 #define __MODEL_H__
@@ -36,7 +36,7 @@ private:
 public:
 	Model(string file);
 	~Model();
-	void compute(msio* ms, PrimaryBeam* pb);
+	void compute(DataIO* ms, PrimaryBeam* pb);
 
 public:
 	int nPointings;

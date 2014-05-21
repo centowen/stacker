@@ -9,6 +9,8 @@
 #include <ms/MeasurementSets/MSColumns.h>
 #include <ms/MeasurementSets/MeasurementSet.h>
 
+#include "DataIO.h"
+
 #ifndef __MSIO_H__
 #define __MSIO_H__
 
@@ -25,7 +27,7 @@ using casa::IPosition;
 
 class Chunk;
 
-class msio
+class msio : public DataIO
 {
 	private:
 		pthread_mutex_t mutex;
@@ -59,7 +61,7 @@ class msio
 		int nPointings();
 		float xPhaseCentre(int id);
 		float yPhaseCentre(int id);
-		void setPhaseCenter(int fieldID, casa::Quantity x, casa::Quantity y);
+		void setPhaseCentre(int fieldID, double x, double y);
 
 };
 

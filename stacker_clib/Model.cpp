@@ -102,7 +102,7 @@ Model::~Model()
 	delete[] size;
 }
 
-void Model::compute(msio* ms, PrimaryBeam* pb)
+void Model::compute(DataIO* ms, PrimaryBeam* pb)
 {
 	nPointings = (int)ms->nPointings();
 	ComponentList cl(Path(clfile.c_str()));

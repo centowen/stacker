@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 
 #include "PrimaryBeam.h"
-#include "msio.h"
+#include "DataIO.h"
 #include "definitions.h"
 
 #ifndef __COORDS_H__
@@ -34,7 +34,7 @@ public:
 	Coords(const char* coordfile);
 	Coords(double* x, double* y, double* weight, int nstack);
 	~Coords();
-	void computeCoords(msio* ms, PrimaryBeam& pb);
+	void computeCoords(DataIO* ms, PrimaryBeam& pb);
 
 public:
 	int nPointings;

@@ -138,24 +138,24 @@ float StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 // 	return 1.;
 }/*}}}*/
 
-void StackChunkComputer::preCompute(msio* ms)
+void StackChunkComputer::preCompute(DataIO* data)
 {
 	// If we only have one field in the data the weights do not need to be 
 	// updated. 
-	if(ms->nPointings() > 1)
+	if(data->nPointings() > 1)
 	{
 		redoWeights = true;
 	}
 
-	coords->computeCoords(ms, *pb);
+	coords->computeCoords(data, *pb);
 }
 
-void StackChunkComputer::postCompute(msio* ms)
+void StackChunkComputer::postCompute(DataIO* data)
 {
 	// After stacking we have all visibilities in field 0.
 	// Set centre to 0., 0. to indicate that coordinates at this point are
 	// arbitrary.
-	ms->setPhaseCenter(0, 0., 0.);
+	data->setPhaseCentre(0, 0., 0.);
 
 	// Maybe it would be nice to also remove all the other fields?
 	// Also should properly flag visibilities that got bad in stacking.

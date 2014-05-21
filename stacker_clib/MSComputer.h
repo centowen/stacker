@@ -11,6 +11,7 @@
 #include <pthread.h>
 
 #include "definitions.h"
+#include "DataIO.h"
 #include "msio.h"
 
 #ifndef __MS_COMPUTER_H__
@@ -30,8 +31,8 @@ class ChunkComputer
 
 		// Called before and after actual computation.
 		// Allows full access to all data,
-		virtual void preCompute(msio* ms) = 0;
-		virtual void postCompute(msio* ms) = 0;
+		virtual void preCompute(DataIO* data) = 0;
+		virtual void postCompute(DataIO* data) = 0;
 };
 
 class MSComputer
@@ -40,7 +41,7 @@ class MSComputer
 		ChunkComputer* cc;
 		Chunk** chunks;
 
-		msio* ms;
+		DataIO* data;
 
 		bool allDataRead;
 		pthread_mutex_t mutex;
@@ -65,7 +66,7 @@ class MSComputer
 		float run();
 		static void* startComputerThread(void* data);
 		void computerThread();
-		msio* getMS();
+		DataIO* getMS();
 
 };
 

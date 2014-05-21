@@ -244,15 +244,15 @@ float msio::yPhaseCentre(int id)
 	return y_phase_centre[id];
 }
 
-void msio::setPhaseCenter(int fieldID, casa::Quantity x, casa::Quantity y)
+void msio::setPhaseCentre(int fieldID, double x, double y)
 {
 	casa::Array<double> newPhaseCentre(casa::IPosition(2,2,1));
 
 	if(!msout)
 		return;
 
-	newPhaseCentre(IPosition(2,0,0)) = x.getValue("rad");
-	newPhaseCentre(IPosition(2,1,0)) = y.getValue("rad");
+	newPhaseCentre(IPosition(2,0,0)) = x;
+	newPhaseCentre(IPosition(2,1,0)) = y;
 
 	msoutcols->field().phaseDir().put(fieldID, newPhaseCentre);
 	msoutcols->field().referenceDir().put(fieldID, newPhaseCentre);

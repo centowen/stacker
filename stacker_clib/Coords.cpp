@@ -42,7 +42,7 @@ Coords::Coords(double* x, double* y, double* weight, int nstack)
 }
 
 
-void Coords::computeCoords(msio* ms, PrimaryBeam& pb)
+void Coords::computeCoords(DataIO* ms, PrimaryBeam& pb)
 {
 	nPointings = ms->nPointings();
 
