@@ -59,8 +59,8 @@ class msio : public DataIO
 		void writeChunk(Chunk& chunk);
 
 		int nPointings();
-		float xPhaseCentre(int fieldID);
-		float yPhaseCentre(int fieldID);
+		float xPhaseCentre(int id);
+		float yPhaseCentre(int id);
 		void setPhaseCentre(int fieldID, double x, double y);
 
 };

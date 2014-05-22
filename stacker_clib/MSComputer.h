@@ -13,7 +13,6 @@
 #include "definitions.h"
 #include "DataIO.h"
 #include "msio.h"
-#include "fitsio.h"
 
 #ifndef __MS_COMPUTER_H__
 #define __MS_COMPUTER_H__
