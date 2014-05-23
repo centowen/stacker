@@ -22,7 +22,7 @@ class DataIOFits : public DataIO
 {
 	private:
 
-		pthread_mutex_t* mutex;
+		pthread_mutex_t mutex;
 		fitsfile *infile, *outfile;
 		int fitsioStatus, anynull;
 		string readKeywordStr(const char* keyword);

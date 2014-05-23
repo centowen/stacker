@@ -30,7 +30,7 @@ const double pi = M_PI;
 DataIOFits::DataIOFits(const char* infilename, const char* outfilename,
     pthread_mutex_t* mutex)
 {
-  this->mutex = mutex;
+  this->mutex = *mutex;
 
   // Initiate status variables
   fitsioStatus = 0, anynull = 0;
