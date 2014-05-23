@@ -3,8 +3,9 @@
 #include <exception>
 #include <stdexcept>
 
-#include "DataIO.h"
 using std::string;
+
+#include "DataIO.h"
 
 #ifndef __DATA_IO_FITSIO__
 #define __DATA_IO_FITSIO__
@@ -36,7 +37,7 @@ class DataIOFits : public DataIO
 	public:
 		DataIOFits(const char* infilename, const char* outfilename,
 				pthread_mutex_t* mutex);
-		~DataIOFits();
+		~DataIOFits() {};
 		int nvis();
 
 		int readChunk(Chunk& chunk);

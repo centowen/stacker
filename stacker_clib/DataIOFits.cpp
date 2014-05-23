@@ -150,3 +150,35 @@ string DataIOFits::readKeywordStr(const char* keyword) {
   return string(value);
 }
 
+int DataIOFits::nvis()
+{
+	return 1;
+}
+
+int DataIOFits::readChunk(Chunk& chunk)
+{
+}
+
+void DataIOFits::writeChunk(Chunk& chunk)
+{
+}
+
+int DataIOFits::nPointings()
+{
+	return nfields;
+}
+
+float DataIOFits::xPhaseCentre(int fieldID)
+{
+	return 0.;
+}
+
+float DataIOFits::yPhaseCentre(int fieldID)
+{
+	return 0.;
+}
+
+void DataIOFits::setPhaseCentre(int fieldID, double x, double y)
+{
+}
+
