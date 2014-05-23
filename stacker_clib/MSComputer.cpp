@@ -25,7 +25,7 @@
 using std::cout;
 using std::endl;
 
-MSComputer::MSComputer(ChunkComputer* cc, const char* msinfile, const char* msoutfile)/*{{{*/
+MSComputer::MSComputer(ChunkComputer* cc, const char* infile, const char* outfile)/*{{{*/
 {
 	this->cc = cc;
 
@@ -35,7 +35,11 @@ MSComputer::MSComputer(ChunkComputer* cc, const char* msinfile, const char* msou
 	for( int i =0; i < N_CHUNK; i++)
 		chunks[i] = new Chunk(CHUNK_SIZE);
 
-	data = (DataIO*)(new msio(msinfile, msoutfile, &mutex));
+	if(strcmp(".ms", infile+strlen(infile)-4) == 0
+			||strcmp(".ms/", infile+strlen(infile)-5) == 0)
+		data = (DataIO*)(new msio(infile, outfile, &mutex));
+	else
+		data = (DataIO*)(new DataIOFits(infile, outfile, &mutex));
 }/*}}}*/
 
 MSComputer::~MSComputer()/*{{{*/

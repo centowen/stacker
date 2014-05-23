@@ -79,6 +79,7 @@ DataIOFits::DataIOFits(const char* infilename, const char* outfilename,
 
   float ra, dec;
 
+  // TODO: Follow aips memo 102, read CRVAL first.
   try {
     if(nfields == 1) { 
       ra = readKeywordFloat("OBSRA");
