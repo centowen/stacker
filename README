@@ -1,0 +1,43 @@
+Python module to stack data in the uv or image domain.
+
+example:
+
+import stacker
+import stacker.uv
+import stacker.image
+import numpy as np
+
+# coord file should be coordinates in a csv file in degree J2000.
+coords = stacker.readCoords('coordfile.list') 
+
+# Path to imaged map of the target field. 
+# Can be list of several images for non-contiguous mosaic.
+imagenames = ['map.image'] 
+
+# The full uv-data.
+vis = 'data.ms'
+
+# Calculate weights for coords.
+# Adjust stampsize depending on target data set.
+coords = stacker.image.calculate_sigma2_weights(coords, imagenames, stampsize=64)
+
+# Stacking in the image domain.
+# weighting=None uses weights supplied in coords object.
+stacker.image.stack(coords, 'stacked_im.image', stampsize=64, imagenames=imagenames, method='mean', weighting=None)
+
+# Stacking in the uv domain.
+stacker.uv.stack(coords, vis, 'stacked_uv.ms')
+
+# stacking done on DATA column, copy to CORRECTED_DATA column and clear out models which don't apply to stacked data.
+clearcal('stacked_uv.ms')
+
+# Calculate stacked flux assuming point source.
+ms.open('stacked_uv.ms')
+data = ms.getdata(['data', 'weight'])
+uvflux = np.sum(np.mean(data['data'], 1)*data['weight'])/np.sum(data['weight'])
+ms.done()
+
+# Produce image of uv-stacked source. Cell should be apropriate for target data set.
+clean('stacked_uv.ms', 'stacked_uv', cell='.25arcsec', imsize=64, mask=[30,30,34,34])
+
+# Stacking code does currently not support uvfits but only ms.
