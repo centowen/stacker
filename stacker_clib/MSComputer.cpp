@@ -37,7 +37,10 @@ MSComputer::MSComputer(ChunkComputer* cc, const char* infile, const char* outfil
 
 	if(strcmp(".ms", infile+strlen(infile)-4) == 0
 			||strcmp(".ms/", infile+strlen(infile)-5) == 0)
+	{
+		cout << "is ms" << endl;
 		data = (DataIO*)(new msio(infile, outfile, &mutex));
+	}
 	else
 		data = (DataIO*)(new DataIOFits(infile, outfile, &mutex));
 }/*}}}*/
