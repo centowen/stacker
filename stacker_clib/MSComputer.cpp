@@ -35,6 +35,7 @@ MSComputer::MSComputer(ChunkComputer* cc, const char* infile, const char* outfil
 	for( int i =0; i < N_CHUNK; i++)
 		chunks[i] = new Chunk(CHUNK_SIZE);
 
+	cout << "suffix " << infile+strlen(infile)-4 << endl;
 	if(strcmp(".ms", infile+strlen(infile)-4) == 0
 			||strcmp(".ms/", infile+strlen(infile)-5) == 0)
 	{
