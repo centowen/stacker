@@ -76,7 +76,7 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
         if not os.access(pbfile, os.F_OK):
             stacker.make_pbfile(vis, pbfile)
     else:
-        stacker.PB_CONST
+        pbtype = stacker.PB_CONST
         pbfile = ''
         pbnpars = 0
         pbpars = None
