@@ -24,7 +24,7 @@ using std::cerr;
 using std::cout;
 using std::endl;
 
-using casa::C::pi;
+#define pi M_PI
 
 class Coords
 {

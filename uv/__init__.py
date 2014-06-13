@@ -51,7 +51,7 @@ def ___DANGER___stack_random(vis, npos, imagenames, outvis,
     stack(coords, outvis, outvis, stampsize=stampsize)
 
 
-def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32):
+def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32, primarybeam='guess'):
     import shutil
     import os
 
@@ -61,16 +61,26 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
 
 
 # primary beam
-    from taskinit import ms,tb,qa
-    ms.open(vis)
-    freq = int(np.mean(ms.range('chan_freq')['chan_freq'])/1e8)/10.
-    ms.done()
-    tb.open(vis+'/OBSERVATION')
-    telescope = tb.getcol('TELESCOPE_NAME')[0]
-    tb.done()
-    pbfile = '{0}-{1}GHz.pb'.format(telescope, freq)
-    if not os.access(pbfile, os.F_OK):
-        stacker.make_pbfile(vis, pbfile)
+    if primarybeam == 'guess':
+        from taskinit import ms,tb,qa
+        ms.open(vis)
+        freq = int(np.mean(ms.range('chan_freq')['chan_freq'])/1e8)/10.
+        ms.done()
+        tb.open(vis+'/OBSERVATION')
+        telescope = tb.getcol('TELESCOPE_NAME')[0]
+        tb.done()
+        pbtype = stacker.PB_MS
+        pbfile = '{0}-{1}GHz.pb'.format(telescope, freq)
+        pbnpars = 0
+        pbpars = None
+        if not os.access(pbfile, os.F_OK):
+            stacker.make_pbfile(vis, pbfile)
+    else:
+        stacker.PB_CONST
+        pbfile = ''
+        pbnpars = 0
+        pbpars = None
+
     
 
     x = [p.x for p in coords]
@@ -83,8 +93,9 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
 
     from taskinit import qa
 
-    flux = c_stack(c_char_p(vis), c_char_p(outvis), c_char_p(pbfile), x, y, 
-                   weight, c_int(len(coords)))
+    flux = c_stack(c_char_p(vis), c_char_p(outvis),
+                   pbtype, c_char_p(pbfile),pbpars, pbnpars,
+                   x, y, weight, c_int(len(coords)))
 
     if imagename != '':
         import clean

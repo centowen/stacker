@@ -6,6 +6,7 @@
 #include <cmath>
 
 #include <sys/stat.h>
+#include <casa/BasicSL/Constants.h>
 
 #include "PrimaryBeam.h"
 #include "definitions.h"

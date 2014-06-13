@@ -20,10 +20,12 @@
 // includes/*{{{*/
 #include "MSComputer.h"
 #include "PrimaryBeam.h"
+#include "MSPrimaryBeam.h"
 #include "Model.h"
 #include "Coords.h"
 #include "ModsubChunkComputer.h"
 #include "StackChunkComputer.h"
+#include "definitions.h"
 /*}}}*/
 
 using std::cout;
@@ -31,8 +33,9 @@ using std::cerr;
 using std::endl;
 
 
-double cpp_stack(const char* infile, const char* outfile, const char* pbfile,
-		double* x, double* y, double* weight, int nstack);
+double cpp_stack(const char* infile, const char* outfile, 
+			     int pbtype, char* pbfile, double* pbpar, int npbpar,
+				 double* x, double* y, double* weight, int nstack);
 void cpp_modsub(const char* infile, const char* outfile, 
 	        const char* modelfile, const char* pbfile);
 
@@ -49,11 +52,12 @@ extern "C"{
 	// - nstack: length of x, y and weight lists.
 	// Returns average of all visibilities. Estimate of flux for point sources.
 	//
-	double stack(char* infile, char* outfile, char* pbfile, double* x, 
-			     double* y, double* weight, int nstack)
+	double stack(char* infile, char* outfile, 
+			     int pbtype, char* pbfile, double* pbpar, int npbpar,
+			     double* x, double* y, double* weight, int nstack)
 	{
 		double flux;
-		flux = cpp_stack(infile, outfile, pbfile, x, y, weight, nstack);
+		flux = cpp_stack(infile, outfile, pbtype, pbfile, pbpar, npbpar, x, y, weight, nstack);
 		return flux;
 	};
 
@@ -69,10 +73,17 @@ extern "C"{
 	};
 };
 
-double cpp_stack(const char* infile, const char* outfile, const char* pbfile,
-		double* x, double* y, double* weight, int nstack)/*{{{*/
+double cpp_stack(const char* infile, const char* outfile,
+			     int pbtype, char* pbfile, double* pbpar, int npbpar,
+				 double* x, double* y, double* weight, int nstack)/*{{{*/
 {
-	PrimaryBeam* pb = new ImagePrimaryBeam(pbfile);
+	PrimaryBeam* pb;
+	if(pbtype == PB_CONST)
+		pb = (PrimaryBeam*)new ConstantPrimaryBeam;
+	else if(pbtype == PB_MS)
+		pb = (PrimaryBeam*)new MSPrimaryBeam(pbfile);
+	else
+		pb = (PrimaryBeam*)new ConstantPrimaryBeam;
 	Coords coords(x, y, weight, nstack);
 	StackChunkComputer* cc = new StackChunkComputer(&coords, pb);
 	MSComputer* computer = new MSComputer((ChunkComputer*)cc, infile, outfile);
