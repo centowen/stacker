@@ -103,7 +103,8 @@ double cpp_stack(const char* infile, const char* outfile,
 void cpp_modsub(const char* infile, const char* outfile, 
 	        const char* modelfile, const char* pbfile) /*{{{*/
 {
-	PrimaryBeam* pb = new ImagePrimaryBeam(pbfile);
+	PrimaryBeam* pb;// = new ImagePrimaryBeam(pbfile);
+	pb = (PrimaryBeam*)new MSPrimaryBeam(pbfile);
 	Model* model = new Model(modelfile);
 
 	cout << "Pre making computer." << endl;
