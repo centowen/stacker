@@ -15,7 +15,6 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 //
-#include <casa/Arrays/Matrix.h>
 #include <iostream>
 
 #include "ModsubChunkComputer.h"
@@ -23,10 +22,6 @@
 #include "Coords.h"
 #include "PrimaryBeam.h"
 
-using casa::Matrix;
-using casa::Vector;
-using casa::Complex;
-using casa::Float;
 using std::cout;
 
 
@@ -42,28 +37,24 @@ float ModsubChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 {
 	for(int uvrow = 0; uvrow < chunk->size(); uvrow++)
 	{
-// 		int fieldID = msc.fieldId()(uvrow);
-
+		// Shorthands to make code more readable.
 		Visibility& inVis = chunk->inVis[uvrow];
 		Visibility& outVis = chunk->outVis[uvrow];
-
-		Matrix<Complex> data = inVis.data;
-		Vector<float> visWeight = inVis.weight;
-		int fieldID = inVis.fieldID;
-
-		outVis.data = Matrix<Complex>(inVis.data.shape());
-		outVis.weight = Vector<Float>(inVis.weight.shape());
-
-
 		float &u = inVis.u;
 		float &v = inVis.v;
 		float &w = inVis.w;
 
-		for(int j = 0; j < inVis.data.ncolumn(); j++)
+		int fieldID = inVis.fieldID;
+
+		float* data_real = inVis.data_real;
+		float* data_imag = inVis.data_imag;
+		float* visWeight = inVis.weight;
+
+
+		for(int j = 0; j < inVis.nchan; j++)
 		{
-			for(int i = 0; i < inVis.data.nrow(); i++)
+			for(int i = 0; i < inVis.nstokes; i++)
 			{
-				Complex dd(0,0);
 				float dd_real = 0., dd_imag = 0.;
 				float weightNorm = 0.;
 				float d;
@@ -88,14 +79,13 @@ float ModsubChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 
 				}
 
-				dd = Complex(dd_real, dd_imag);
-				outVis.data(i,j) = inVis.data(i,j)-dd;
+				outVis.data_real[i*outVis.nchan+j] = inVis.data_real[i*inVis.nchan+j] - dd_real;
+				outVis.data_imag[i*outVis.nchan+j] = inVis.data_imag[i*inVis.nchan+j] - dd_imag;
 			}
 		}
 
-		outVis.weight = inVis.weight;
-		outVis.data.unique();
-		outVis.weight.unique();
+		for(int i = 0; i < inVis.nstokes; i++)
+			outVis.weight[i] = inVis.weight[i];
 		outVis.fieldID = inVis.fieldID;
 		outVis.index = inVis.index;
 

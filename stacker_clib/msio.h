@@ -23,6 +23,7 @@ using casa::Array;
 using casa::Complex;
 using casa::Matrix;
 using casa::Vector;
+using casa::Float;
 using casa::IPosition;
 
 class Chunk;

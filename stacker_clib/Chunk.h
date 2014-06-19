@@ -1,37 +1,26 @@
-#include <casa/complex.h>
-#include <casa/Arrays/Matrix.h>
-#include <casa/Arrays/Vector.h>
+// #include <casa/complex.h>
+// #include <casa/Arrays/Matrix.h>
+// #include <casa/Arrays/Vector.h>
 #include <iostream>
 
 #ifndef __CHUNK_H__
 #define __CHUNK_H__
 
-using casa::Complex;
-using casa::Matrix;
-using casa::Vector;
+// using casa::Complex;
+// using casa::Matrix;
+// using casa::Vector;
 
 struct Visibility
 {
 	float u,v,w;
 	double* freq;
+	float *data_real, *data_imag, *weight;
+	int nstokes, nchan;
 	int fieldID, index, spw;
 
-// 	float** data_real;
-// 	float** data_imag;
-// 	float* weight;
-
-	Matrix<Complex> data;
-	Vector<float> weight;
-
-	public:
-// 	Visibility()
-// 	{
-// 		data.resize(1,1);
-// 		weight.resize(1);
-// 	};
-	~Visibility()
-	{
-	}
+public:
+	Visibility();
+	~Visibility();
 };
 
 class Chunk

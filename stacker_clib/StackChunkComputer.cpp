@@ -15,7 +15,6 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 //
-#include <casa/Arrays/Matrix.h>
 #include <iostream>
 
 #include "StackChunkComputer.h"
@@ -23,9 +22,6 @@
 #include "Coords.h"
 #include "PrimaryBeam.h"
 
-using casa::Matrix;
-using casa::Complex;
-using casa::Float;
 using std::cout;
 using std::real;
 
@@ -58,18 +54,17 @@ float StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 
 		// Data is in a matrix where columns are different frequencies
 		// and rows are different polarizations.
-		Matrix<Complex> data = inVis.data;
-		outVis.data = Matrix<Complex>(inVis.data.shape());
+		float* data_real = inVis.data_real;
+		float* data_imag = inVis.data_imag;
 
 		// For weights we only have a vector, ie. only one weight for all frequencies
 		// and the rows represents different polarizations.
-		casa::Vector<float> visWeight = inVis.weight;
-		outVis.weight = casa::Vector<Float>(inVis.weight.shape());
+		float* visWeight = inVis.weight;
+// 		outVis.weight = casa::Vector<Float>(inVis.weight.shape());
 
 		// Looping over frequency.
-		for(int j = 0; j < inVis.data.ncolumn(); j++)
+		for(int j = 0; j < inVis.nchan; j++)
 		{
-			Complex dd(0,0);
 			float dd_real = 0., dd_imag = 0.;
 			float weightNorm = 0.;
 			float phase;
@@ -84,10 +79,10 @@ float StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 				float weightbuff = coords->weight[fieldID][i_p];
 				float pbcor = float(pb->calc(coords->dx[fieldID][i_p], coords->dy[fieldID][i_p], freq));
 
-				dd_real = weightbuff*pbcor*cos(phase);
-				dd_imag = weightbuff*pbcor*sin(phase);
+				dd_real += weightbuff*pbcor*cos(phase);
+				dd_imag += weightbuff*pbcor*sin(phase);
 
-				dd += Complex(dd_real, dd_imag);
+// 				dd += Complex(dd_real, dd_imag);
 // 				if(stackingMode == 0)
 // 					dd += Complex(dd_real, dd_imag);
 // 				else
@@ -98,30 +93,35 @@ float StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 
 			if(weightNorm != 0)
 			{
-				dd /= weightNorm;
+				dd_real /= weightNorm;
+				dd_imag /= weightNorm;
 			}
 			else
 			{
-				dd  = Complex(0,0);
+				dd_real  = 0.;
+				dd_imag  = 0.;
 			}
 
 			// Looping over polarization.
 			// dd does not need to be updated since it does not depend on polarization.
-			for(int i = 0; i < inVis.data.nrow(); i++)
+			for(int i = 0; i < inVis.nstokes; i++)
 			{
-				outVis.data(i,j) = dd*inVis.data(i,j);
+				outVis.data_real[i*outVis.nchan+j] = dd_real*inVis.data_real[i*inVis.nchan+j]
+					                               - dd_imag*inVis.data_imag[i*inVis.nchan+j];
+				outVis.data_imag[i*outVis.nchan+j] = dd_real*inVis.data_imag[i*inVis.nchan+j]
+					                               + dd_imag*inVis.data_real[i*inVis.nchan+j];
 
 
 				if(redoWeights)
 					if(weightNorm < 1e30)
-						outVis.weight(i) = float(weightNorm)*inVis.weight(i);
+						outVis.weight[i] = float(weightNorm)*inVis.weight[i];
 					else
-						outVis.weight(i) = float(0.0)*inVis.weight(i);
+						outVis.weight[i] = float(0.0)*inVis.weight[i];
 				else
-					outVis.weight(i) = inVis.weight(i);
+					outVis.weight[i] = inVis.weight[i];
 
-				sum += float(real(outVis.data(i,j))*outVis.weight(i));
-				normsum += outVis.weight(i);
+				sum += outVis.data_real[i*inVis.nchan+j]*outVis.weight[i];
+				normsum += outVis.weight[i];
 			}
 		}
 
