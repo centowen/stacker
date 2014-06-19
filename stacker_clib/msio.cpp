@@ -214,7 +214,7 @@ int msio::readChunkSimple(Chunk& chunk)
             for(int chan = 0; chan < nchan; chan++)
             {
                 chunk.inVis[i].data_real[nchan*stokes+chan] = float(std::real(data(stokes,chan)));
-                chunk.inVis[i].data_imag[nchan*stokes+chan] = float(std::real(data(stokes,chan)));
+                chunk.inVis[i].data_imag[nchan*stokes+chan] = float(std::imag(data(stokes,chan)));
             }
         }
 
