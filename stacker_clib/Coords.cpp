@@ -146,6 +146,9 @@ void Coords::computeCoords(DataIO* ms, PrimaryBeam& pb)
 	delete[] cx;
 	delete[] cy;
 	delete[] cweight;
+
+	for(int i = 0; i < nStackPoints[0]; i++)
+		cout << "coord " << i << ": " << omega_x[0][0] << ", " << omega_y[0][0] << "," << omega_z[0][0] << endl;
 }
 
 Coords::Coords(const char* coordfile)
