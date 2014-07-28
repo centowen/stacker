@@ -264,8 +264,8 @@ void msio::writeChunk(Chunk& chunk)
 	{
 		int nstokes = chunk.outVis[i].nstokes;
 		Vector<Float> weight(nstokes);
-		for(int stokes; stokes<nstokes; stokes++)
-			weight(stokes) = chunk.outVis[i].weight[i];
+		for(int stokes = 0; stokes<nstokes; stokes++)
+			weight(stokes) = chunk.outVis[i].weight[stokes];
 
 		msoutcols->weight().put(chunk.outVis[i].index, weight);
 	}
