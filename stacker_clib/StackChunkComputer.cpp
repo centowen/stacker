@@ -106,8 +106,6 @@ float StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 			// dd does not need to be updated since it does not depend on polarization.
 			for(int i = 0; i < inVis.nstokes; i++)
 			{
-// 				outVis.data_real[i*outVis.nchan+j] = inVis.data_real[i*inVis.nchan+j];
-// 				outVis.data_imag[i*outVis.nchan+j] = inVis.data_imag[i*inVis.nchan+j];
 				outVis.data_real[i*outVis.nchan+j] = dd_real*inVis.data_real[i*inVis.nchan+j]
 					                               - dd_imag*inVis.data_imag[i*inVis.nchan+j];
 				outVis.data_imag[i*outVis.nchan+j] = dd_real*inVis.data_imag[i*inVis.nchan+j]
