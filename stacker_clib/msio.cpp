@@ -20,6 +20,8 @@
 #include "definitions.h"
 #include <iostream>
 #include <stdlib.h>
+#include <tables/Tables/TableError.h>
+using casa::TableError;
 
 msio::msio(const char* msinfile, const char * msoutfile,
 		             pthread_mutex_t* mutex , bool workondatacolumn)
@@ -37,6 +39,14 @@ msio::msio(const char* msinfile, const char * msoutfile,
 	else
 	{
 		datacolumn = col_corrected_data;
+		try
+		{
+			msin->isColumnStored("CORRECTED_DATA");
+		}
+		catch(TableError e)
+		{
+			throw fileException(fileException::CORRECTED_DATA_MISSING, "No \'corrected_data\' column exists in input mstable.");
+		}
 	}
 
 	if(strlen(msoutfile) > 0)
@@ -44,6 +54,15 @@ msio::msio(const char* msinfile, const char * msoutfile,
 		std::cout << "Opening outfil " << msoutfile << std::endl;
 		msout = new MeasurementSet(msoutfile, casa::Table::Update);
 		msoutcols = new MSColumns(*msout);
+		if(datacolumn == col_corrected_data) 
+		{
+			try{ msout->isColumnStored("CORRECTED_DATA");}
+			catch(TableError e) 
+			{
+				throw fileException(fileException::CORRECTED_DATA_MISSING, 
+						"No \'corrected_data\' column exists in output mstable.");
+			}
+		}
 	}
 	else
 	{

@@ -19,6 +19,7 @@
 
 // includes/*{{{*/
 #include "MSComputer.h"
+#include "DataIO.h"
 #include "PrimaryBeam.h"
 #include "MSPrimaryBeam.h"
 #include "Model.h"
@@ -128,15 +129,23 @@ void cpp_modsub(int infiletype, const char* infile, int infileoptions,
 	cout << "Pre making computer." << endl;
 
 	ModsubChunkComputer* cc = new ModsubChunkComputer(model, pb);
-	MSComputer* computer = new MSComputer((ChunkComputer*)cc, 
-			                              infiletype, infile, infileoptions,
-										  outfiletype, outfile, outfileoptions);
+	MSComputer* computer = NULL;
+	try
+	{
+		computer = new MSComputer((ChunkComputer*)cc, 
+											infiletype, infile, infileoptions,
+											outfiletype, outfile, outfileoptions);
+		cout << "Pre running computer." << endl;
 
-	cout << "Pre running computer." << endl;
+		computer->run();
 
-	computer->run();
+		cout << "Post running computer." << endl;
+	}
+	catch(fileException e)
+	{
+		std::cerr << e.what() << std::endl;
+	}
 
-	cout << "Post running computer." << endl;
 
 	delete computer;
 	delete cc;
