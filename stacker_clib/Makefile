@@ -23,6 +23,7 @@ default:
 	g++ -static-libgcc -O3 -fPIC -c $(CPPFLAGS) -o PrimaryBeam.o PrimaryBeam.cpp
 	g++ -static-libgcc -O3 -fPIC -c $(CPPFLAGS) -o Chunk.o Chunk.cpp
 	g++ -static-libgcc -O3 -fPIC -c $(CPPFLAGS) -o msio.o msio.cpp
+	g++ -static-libgcc -O3 -fPIC -c $(CPPFLAGS) -o DataIOFits.o DataIOFits.cpp
 	g++ -static-libgcc -O3 -fPIC -c $(CPPFLAGS) -o Coords.o Coords.cpp
 	g++ -static-libgcc -shared Coords.o Model.o msio.o Chunk.o PrimaryBeam.o ModsubChunkComputer.o StackChunkComputer.o MSComputer.o stacker.o -Wl,-soname,libstacker.so $(LDFLAGS) -o libstacker.so
 
