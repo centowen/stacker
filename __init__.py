@@ -157,6 +157,21 @@ def readCoords(coordfile, unit = 'deg'):
     return coords
 
 
+def _checkfile(filename, datacolumn):
+    import re
+    if re.match('^.*[mM][sS]/*$', filename) is not None:
+        from taskinit import ms
+        ms.open(filename)
+        ms.done()
+        filename = filename
+        filetype = FILE_TYPE_MS
+        fileoptions = 0
+        if datacolumn == 'data':
+            fileoptions = MS_DATACOLUMN_DATA
+    elif re.match('^.*[fF][iI][tT][sS]$'. filename) is not None:
+        raise NotImplementedError('FITS format is currently not supported.')
+    return filetype, filename, fileoptions
+
 def calculateSigma2Weights(coords, imagenames):
     pass
 

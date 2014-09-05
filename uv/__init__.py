@@ -51,21 +51,6 @@ def ___DANGER___stack_random(vis, npos, imagenames, outvis,
     stack(coords, outvis, outvis, stampsize=stampsize)
 
 
-def checkfile(filename, datacolumn):
-    import re
-    if re.match('^.*[mM][sS]/*$', filename) is not None:
-        from taskinit import ms
-        ms.open(filename)
-        ms.done()
-        filename = filename
-        filetype = stacker.FILE_TYPE_MS
-        fileoptions = 0
-        if datacolumn == 'data':
-            fileoptions = stacker.MS_DATACOLUMN_DATA
-    elif re.match('^.*[fF][iI][tT][sS]$'. filename) is not None:
-        raise NotImplementedError('FITS format is currently not supported.')
-    return filetype, filename, fileoptions
-
 def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32, primarybeam='guess', datacolumn='corrected'):
     import shutil
     import os
@@ -75,8 +60,8 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
         if not os.access(outvis, os.F_OK):
             shutil.copytree(vis, outvis)
 
-    infiletype, infilename, infileoptions = checkfile(vis, datacolumn)
-    outfiletype, outfilename, outfileoptions = checkfile(outvis, datacolumn)
+    infiletype, infilename, infileoptions = stacker._checkfile(vis, datacolumn)
+    outfiletype, outfilename, outfileoptions = stacker._checkfile(outvis, datacolumn)
 
 # primary beam
     if primarybeam == 'guess':

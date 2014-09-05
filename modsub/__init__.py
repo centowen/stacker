@@ -25,7 +25,7 @@ c_modsub = lib.modsub
 c_modsub.restype = c_int
 c_modsub.argtype = [c_char_p, c_char_p, c_char_p,c_char_p]
 
-def modsub(model, vis, outvis=''):
+def modsub(model, vis, outvis='', datacolumn='corrected'):
     import shutil
     import os
 
@@ -47,7 +47,12 @@ def modsub(model, vis, outvis=''):
     if not os.access(pbfile, os.F_OK):
         stacker.make_pbfile(vis, pbfile)
 
-    flux = c_modsub(c_char_p(vis), c_char_p(outvis), c_char_p(model), c_char_p(pbfile))
+    infiletype, infilename, infileoptions = stacker._checkfile(vis, datacolumn)
+    outfiletype, outfilename, outfileoptions = stacker._checkfile(outvis, datacolumn)
+
+    flux = c_modsub(infiletype, c_char_p(infilename), infileoptions,
+                    outfiletype, c_char_p(outfilename), outfileoptions,
+                    c_char_p(model), c_char_p(pbfile))
 
     return 0
 
