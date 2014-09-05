@@ -18,6 +18,23 @@
 #include "Chunk.h"
 #include <iostream>
 
+Visibility::Visibility()
+{
+	data_real = NULL;
+	data_imag = NULL;
+	weight = NULL;
+	nstokes = 0;
+	nchan = 0;
+}
+
+Visibility::~Visibility()
+{
+	if(nstokes>0 && nchan > 0)
+	{
+		delete[] data_real, data_imag, weight;
+	}
+}
+
 Chunk::Chunk(int size)
 {
 	inVis = new Visibility[size];

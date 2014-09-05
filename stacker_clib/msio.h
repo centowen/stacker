@@ -23,6 +23,7 @@ using casa::Array;
 using casa::Complex;
 using casa::Matrix;
 using casa::Vector;
+using casa::Float;
 using casa::IPosition;
 
 class Chunk;
@@ -48,10 +49,14 @@ class msio : public DataIO
 		int nfields;
 		float* x_phase_centre;
 		float* y_phase_centre;
+		int datacolumn;
+
+		static const int col_data = 0;
+		static const int col_corrected_data = 1;
 
 	public:
 		msio(const char* msinfile, const char* msoutfile, 
-		          pthread_mutex_t* mutex);
+		          pthread_mutex_t* mutex, bool workondatacolumn = false);
 		~msio();
 		int nvis();
 

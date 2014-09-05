@@ -1,0 +1,1 @@
+Copy stacker folder to a python library path, typically "~/.casa/ipython/" is a good place.

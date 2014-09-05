@@ -19,6 +19,16 @@ import math
 import os
 from ctypes import c_double, POINTER, c_char_p, cdll, c_int
 
+PB_CONST = 0
+PB_MS = 1
+PB_FITS = 2
+
+FILE_TYPE_MS = 0
+FILE_TYPE_FITS = 1
+
+MS_DATACOLUMN_DATA = 1
+
+
 clib_path = os.path.join(os.path.abspath(__path__[0]),
                          'stacker_clib')
 libstacker = cdll.LoadLibrary(os.path.join(clib_path, 'libstacker.so'))

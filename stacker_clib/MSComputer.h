@@ -13,7 +13,7 @@
 #include "definitions.h"
 #include "DataIO.h"
 #include "msio.h"
-#include "fitsio.h"
+#include "DataIOFits.h"
 
 #ifndef __MS_COMPUTER_H__
 #define __MS_COMPUTER_H__
@@ -61,7 +61,9 @@ class MSComputer
 		};
 
 	public:
-		MSComputer(ChunkComputer* cc, const char* msinfile, const char* msoutfile);
+		MSComputer(ChunkComputer* cc, 
+				   int infiletype, const char* infilename, int infileoptions,
+				   int outfiletype, const char* outfilename, int outfileoptions);
 		~MSComputer();
 
 		float run();

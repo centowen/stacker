@@ -25,7 +25,9 @@
 using std::cout;
 using std::endl;
 
-MSComputer::MSComputer(ChunkComputer* cc, const char* msinfile, const char* msoutfile)/*{{{*/
+MSComputer::MSComputer(ChunkComputer* cc, 
+				   int infiletype, const char* infilename, int infileoptions,
+				   int outfiletype, const char* outfilename, int outfileoptions)/*{{{*/
 {
 	this->cc = cc;
 
@@ -35,7 +37,35 @@ MSComputer::MSComputer(ChunkComputer* cc, const char* msinfile, const char* msou
 	for( int i =0; i < N_CHUNK; i++)
 		chunks[i] = new Chunk(CHUNK_SIZE);
 
-	data = (DataIO*)(new msio(msinfile, msoutfile, &mutex));
+	cout << "Opening file " << infilename;
+	if(infiletype == FILE_TYPE_MS)
+		cout << " of type ms";
+	else if(infiletype == FILE_TYPE_FITS)
+		cout << " of type fits";
+	cout << endl;
+	if(infiletype == FILE_TYPE_MS)
+	{
+		if(infileoptions & MS_DATACOLUMN_DATA)
+		{
+			cout << "Working on column \'data\'" << endl;
+			data = (DataIO*)(new msio(infilename, outfilename, &mutex, true));
+		}
+		else
+		{
+			cout << "Working on column \'corrected_data\'" << endl;
+			data = (DataIO*)(new msio(infilename, outfilename, &mutex, false));
+		}
+	}
+	else
+		data = NULL;
+// 	if(strcmp(".ms", infile+strlen(infile)-3) == 0
+// 			||strcmp(".ms/", infile+strlen(infile)-4) == 0)
+// 	{
+// 		cout << "is ms" << endl;
+// 		data = (DataIO*)(new msio(infile, outfile, &mutex));
+// 	}
+// 	else
+// 		data = (DataIO*)(new DataIOFits(infile, outfile, &mutex));
 }/*}}}*/
 
 MSComputer::~MSComputer()/*{{{*/

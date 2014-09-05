@@ -131,10 +131,10 @@ void Coords::computeCoords(DataIO* ms, PrimaryBeam& pb)
 //          dx[fieldID][i] = (x[fieldID][i] - x_phase_centre[fieldID])*cos(y[fieldID][i]);
 //          dy[fieldID][i] = asin(sin(y[fieldID][i])) - y_phase_centre[fieldID];
 
-            omega_x[fieldID][i] = 2*pi*sin(dx[fieldID][i])/casa::C::c;
-            omega_y[fieldID][i] = 2*pi*sin(dy[fieldID][i])/casa::C::c;
-//             omega_z[fieldID][i] = 2*pi*(cos(sqrt(dx[fieldID][i]*dx[fieldID][i]+dy[fieldID][i]*dy[fieldID][i]))-1)/casa::C::c;
-            omega_z[fieldID][i] = 2*pi*(sqrt(1-dx[fieldID][i]*dx[fieldID][i]-dy[fieldID][i]*dy[fieldID][i])-1)/casa::C::c;
+            omega_x[fieldID][i] = 2*pi*sin(dx[fieldID][i])/c;
+            omega_y[fieldID][i] = 2*pi*sin(dy[fieldID][i])/c;
+//             omega_z[fieldID][i] = 2*pi*(cos(sqrt(dx[fieldID][i]*dx[fieldID][i]+dy[fieldID][i]*dy[fieldID][i]))-1)/c;
+            omega_z[fieldID][i] = 2*pi*(sqrt(1-dx[fieldID][i]*dx[fieldID][i]-dy[fieldID][i]*dy[fieldID][i])-1)/c;
 // 			cout << "(omega_x, omega_y, omega_z) = (" 
 // 				 << omega_x[fieldID][i] << ", " 
 // 				 << omega_y[fieldID][i] << ", " 
@@ -143,9 +143,14 @@ void Coords::computeCoords(DataIO* ms, PrimaryBeam& pb)
 
     }
 
+// 	cout << "Printing of coords." << endl;
+// 	for(int i = 0; i < nStackPoints[0]; i++)
+// 		cout << "coord " << i << ": " << omega_x[0][0] << ", " << omega_y[0][0] << "," << omega_z[0][0] << endl;
+
 	delete[] cx;
 	delete[] cy;
 	delete[] cweight;
+
 }
 
 Coords::Coords(const char* coordfile)
