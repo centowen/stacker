@@ -17,17 +17,31 @@
 //
 #include "msio.h"
 #include "Chunk.h"
+#include "definitions.h"
 #include <iostream>
 #include <stdlib.h>
 
 msio::msio(const char* msinfile, const char * msoutfile,
-		             pthread_mutex_t* mutex )
+		             pthread_mutex_t* mutex , bool workondatacolumn)
 {
+	std::cout << "Opening " << msinfile << std::endl;
 	msin = new MeasurementSet(msinfile);
+	std::cout << "Opening columns of " << msinfile << std::endl;
 	msincols = new ROMSColumns(*msin);
+	std::cout << "Opened " << msinfile << std::endl;
+
+	if(workondatacolumn)
+	{
+		datacolumn = col_data;
+	}
+	else
+	{
+		datacolumn = col_corrected_data;
+	}
 
 	if(strlen(msoutfile) > 0)
 	{
+		std::cout << "Opening outfil " << msoutfile << std::endl;
 		msout = new MeasurementSet(msoutfile, casa::Table::Update);
 		msoutcols = new MSColumns(*msout);
 	}
@@ -57,6 +71,7 @@ msio::msio(const char* msinfile, const char * msoutfile,
 	}
 
 	nfields = msin->field().nrow();
+	std::cout << "Nfields: " << nfields << std::endl;
 	x_phase_centre = new float[nfields];
 	y_phase_centre = new float[nfields];
 	for(int fieldID = 0; fieldID < nfields; fieldID++)
@@ -64,6 +79,10 @@ msio::msio(const char* msinfile, const char * msoutfile,
 		Array<double> phase_centre = msincols->field().phaseDir()(fieldID);
 		x_phase_centre[fieldID] = float(phase_centre(IPosition(2,0,0)));
 		y_phase_centre[fieldID] = float(phase_centre(IPosition(2,1,0)));
+		std::cout << "field " << fieldID << ": " 
+			      <<  x_phase_centre[fieldID] << ", "
+			      <<  y_phase_centre[fieldID] << std::endl;
+
 	}
 
 }
@@ -192,7 +211,14 @@ int msio::readChunkSimple(Chunk& chunk)
 	for(int i = 0; i < chunk.size(); i++)
 	{
 		uvrow = i+currentVisibility;
-		data = msincols->data()(uvrow);
+		if(datacolumn == col_data)
+		{
+			data = msincols->data()(uvrow);
+		}
+		else if(datacolumn == col_corrected_data)
+		{
+			data = msincols->correctedData()(uvrow);
+		}
 		weight = msincols->weight()(uvrow);
 		uvw = msincols->uvw()(uvrow);
 
@@ -258,7 +284,15 @@ void msio::writeChunk(Chunk& chunk)
 				data(stokes, chan) = vis;
 			}
 		}
-		msoutcols->data().put(chunk.outVis[i].index, data);
+// 		msoutcols->data().put(chunk.outVis[i].index, data);
+		if(datacolumn == col_data)
+		{
+			msoutcols->data().put(chunk.outVis[i].index, data);
+		}
+		else if(datacolumn == col_corrected_data)
+		{
+			msoutcols->correctedData().put(chunk.outVis[i].index, data);
+		}
 	}
 	for(int i = 0; i < chunk.size(); i++)
 	{

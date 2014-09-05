@@ -11,5 +11,10 @@ const int PB_CONST = 0;
 const int PB_MS = 1;
 const int PB_FITS = 2;
 
+const int FILE_TYPE_MS = 0;
+const int FILE_TYPE_FITS = 1;
+
+// Operate on the data column rather than the corrected data column.
+const int MS_DATACOLUMN_DATA = 1;
 
 #endif

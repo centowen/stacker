@@ -51,14 +51,32 @@ def ___DANGER___stack_random(vis, npos, imagenames, outvis,
     stack(coords, outvis, outvis, stampsize=stampsize)
 
 
-def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32, primarybeam='guess'):
+def checkfile(filename, datacolumn):
+    import re
+    if re.match('^.*[mM][sS]/*$', filename) is not None:
+        from taskinit import ms
+        ms.open(filename)
+        ms.done()
+        filename = filename
+        filetype = stacker.FILE_TYPE_MS
+        fileoptions = 0
+        if datacolumn == 'data':
+            fileoptions = stacker.MS_DATACOLUMN_DATA
+    elif re.match('^.*[fF][iI][tT][sS]$'. filename) is not None:
+        raise NotImplementedError('FITS format is currently not supported.')
+    return filetype, filename, fileoptions
+
+def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32, primarybeam='guess', datacolumn='corrected'):
     import shutil
     import os
+    import re
 
     if outvis != '':
         if not os.access(outvis, os.F_OK):
             shutil.copytree(vis, outvis)
 
+    infiletype, infilename, infileoptions = checkfile(vis, datacolumn)
+    outfiletype, outfilename, outfileoptions = checkfile(outvis, datacolumn)
 
 # primary beam
     if primarybeam == 'guess':
@@ -93,7 +111,8 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
 
     from taskinit import qa
 
-    flux = c_stack(c_char_p(vis), c_char_p(outvis),
+    flux = c_stack(infiletype, c_char_p(infilename), infileoptions,
+                   outfiletype, c_char_p(outfilename), outfileoptions,
                    pbtype, c_char_p(pbfile),pbpars, pbnpars,
                    x, y, weight, c_int(len(coords)))
 

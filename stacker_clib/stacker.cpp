@@ -33,11 +33,13 @@ using std::cerr;
 using std::endl;
 
 
-double cpp_stack(const char* infile, const char* outfile, 
+double cpp_stack(int infiletype, const char* infile, int infileoptions, 
+                 int outfiletype, const char* outfile, int outfileoptions, 
 			     int pbtype, char* pbfile, double* pbpar, int npbpar,
 				 double* x, double* y, double* weight, int nstack);
-void cpp_modsub(const char* infile, const char* outfile, 
-	        const char* modelfile, const char* pbfile);
+void cpp_modsub(int infiletype, const char* infile, int infileoptions, 
+                int outfiletype, const char* outfile, int outfileoptions, 
+				const char* modelfile, const char* pbfile);
 
 // Functions to interface with python module.
 extern "C"{
@@ -52,12 +54,16 @@ extern "C"{
 	// - nstack: length of x, y and weight lists.
 	// Returns average of all visibilities. Estimate of flux for point sources.
 	//
-	double stack(char* infile, char* outfile, 
+	double stack(int infiletype, const char* infile, int infileoptions, 
+                 int outfiletype, const char* outfile, int outfileoptions, 
 			     int pbtype, char* pbfile, double* pbpar, int npbpar,
 			     double* x, double* y, double* weight, int nstack)
 	{
 		double flux;
-		flux = cpp_stack(infile, outfile, pbtype, pbfile, pbpar, npbpar, x, y, weight, nstack);
+		flux = cpp_stack(infiletype, infile, infileoptions, 
+				         outfiletype, outfile, outfileoptions,
+						 pbtype, pbfile, pbpar, npbpar, 
+						 x, y, weight, nstack);
 		return flux;
 	};
 
@@ -67,13 +73,18 @@ extern "C"{
 	// - outfile: The output ms file, can be the same as input ms file.
 	// - infile: cl file with the model to be subtracted
 	// - pbfile: A casa image of the primary beam, used to calculate primary beam correction.
-	void modsub(char* infile, char* outfile, char* modelfile, char* pbfile)
+	void modsub(int infiletype, char* infile, int infileoptions, 
+			    int outfiletype, char* outfile, int outfileoptions,
+				char* modelfile, char* pbfile)
 	{
-		cpp_modsub(infile, outfile, modelfile, pbfile);
+		cpp_modsub(infiletype, infile, infileoptions, 
+				   outfiletype, outfile, outfileoptions,
+				   modelfile, pbfile);
 	};
 };
 
-double cpp_stack(const char* infile, const char* outfile,
+double cpp_stack(int infiletype, const char* infile, int infileoptions, 
+                 int outfiletype, const char* outfile, int outfileoptions, 
 			     int pbtype, char* pbfile, double* pbpar, int npbpar,
 				 double* x, double* y, double* weight, int nstack)/*{{{*/
 {
@@ -81,12 +92,18 @@ double cpp_stack(const char* infile, const char* outfile,
 	if(pbtype == PB_CONST)
 		pb = (PrimaryBeam*)new ConstantPrimaryBeam;
 	else if(pbtype == PB_MS)
+	{
 		pb = (PrimaryBeam*)new MSPrimaryBeam(pbfile);
+		cout << "Using ms pb model." << endl;
+	}
 	else
 		pb = (PrimaryBeam*)new ConstantPrimaryBeam;
+	cout << "nstack = " << nstack << endl;
 	Coords coords(x, y, weight, nstack);
 	StackChunkComputer* cc = new StackChunkComputer(&coords, pb);
-	MSComputer* computer = new MSComputer((ChunkComputer*)cc, infile, outfile);
+	MSComputer* computer = new MSComputer((ChunkComputer*)cc, 
+			                              infiletype, infile, infileoptions,
+										  outfiletype, outfile, outfileoptions);
 
 	float retval = computer->run();
 
@@ -100,8 +117,9 @@ double cpp_stack(const char* infile, const char* outfile,
 }/*}}}*/
 
 // Subtract a cl model from measurement set.
-void cpp_modsub(const char* infile, const char* outfile, 
-	        const char* modelfile, const char* pbfile) /*{{{*/
+void cpp_modsub(int infiletype, const char* infile, int infileoptions, 
+                int outfiletype, const char* outfile, int outfileoptions, 
+				const char* modelfile, const char* pbfile) /*{{{*/
 {
 	PrimaryBeam* pb;// = new ImagePrimaryBeam(pbfile);
 	pb = (PrimaryBeam*)new MSPrimaryBeam(pbfile);
@@ -110,7 +128,9 @@ void cpp_modsub(const char* infile, const char* outfile,
 	cout << "Pre making computer." << endl;
 
 	ModsubChunkComputer* cc = new ModsubChunkComputer(model, pb);
-	MSComputer* computer = new MSComputer(cc, infile, outfile);
+	MSComputer* computer = new MSComputer((ChunkComputer*)cc, 
+			                              infiletype, infile, infileoptions,
+										  outfiletype, outfile, outfileoptions);
 
 	cout << "Pre running computer." << endl;
 

@@ -143,9 +143,9 @@ void Coords::computeCoords(DataIO* ms, PrimaryBeam& pb)
 
     }
 
-	cout << "Printing of coords." << endl;
-	for(int i = 0; i < nStackPoints[0]; i++)
-		cout << "coord " << i << ": " << omega_x[0][0] << ", " << omega_y[0][0] << "," << omega_z[0][0] << endl;
+// 	cout << "Printing of coords." << endl;
+// 	for(int i = 0; i < nStackPoints[0]; i++)
+// 		cout << "coord " << i << ": " << omega_x[0][0] << ", " << omega_y[0][0] << "," << omega_z[0][0] << endl;
 
 	delete[] cx;
 	delete[] cy;
