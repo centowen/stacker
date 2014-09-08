@@ -178,11 +178,11 @@ def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
 
     _write_stacked_image(outfile, stacked_im,
                          coords.imagenames[0], stampsize)
-    return stacked_im[int(stampsize/2+0.5), int(stampsize/2+0.5),0,0]
+    return stacked_im[int(stampsize/2), int(stampsize/2),0,0]
 
             
 def noise(coords, nrandom = 50, imagenames=[], stampsize=32,
-        method = 'mean', weighting = 'simga2', maxmaskradius=None,
+        method = 'mean', weighting = 'simga2', maskradius=None,
         psfmode = 'point'):
 
     import stacker
@@ -207,15 +207,15 @@ def noise(coords, nrandom = 50, imagenames=[], stampsize=32,
         _load_stack(random_coords, psfmode)
 
         if method == 'mean' and weighting == 'sigma2':
-            random_coords = _calculate_sigma2_weights(random_coords, maxmaskradius)
+            random_coords = _calculate_sigma2_weights(random_coords, maskradius)
         elif method == 'mean' and weighting == 'sigma':
-            random_coords = _calculate_sigma_weights(random_coords, maxmaskradius)
+            random_coords = _calculate_sigma_weights(random_coords, maskradius)
 
         stacked_im  = _stack_stack(method, random_coords)
 
         dist.append(stacked_im[int(stampsize/2+0.5), int(stampsize/2+0.5),0,0])
 
-    return dist
+    return np.std(dist)
 
 
 def getFlux(imagename):

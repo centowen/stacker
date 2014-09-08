@@ -63,7 +63,12 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
             shutil.copytree(vis, outvis)
 
     infiletype, infilename, infileoptions = stacker._checkfile(vis, datacolumn)
-    outfiletype, outfilename, outfileoptions = stacker._checkfile(outvis, datacolumn)
+    if outvis != '':
+        outfiletype, outfilename, outfileoptions = stacker._checkfile(outvis, datacolumn)
+    else:
+        outfilename = ''
+        outfiletype = stacker.FILE_TYPE_NONE
+        outfileoptions = 0
 
 # primary beam
     if primarybeam == 'guess':
@@ -113,7 +118,7 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
     return flux
 
 
-def noise(coords, vis, imagenames, weighting = 'sigma2', nrand = 50, stampsize = 32):
+def noise(coords, vis, imagenames, weighting = 'sigma2', nrand = 50, stampsize = 32, maskradius = None):
     import stacker
     import stacker.image
     from taskinit import ia, qa
@@ -127,7 +132,7 @@ def noise(coords, vis, imagenames, weighting = 'sigma2', nrand = 50, stampsize =
         random_coords = stacker.randomizeCoords(coords, beam=beam)
         print 'peti',len(random_coords), len(coords)
         if weighting == 'sigma2':
-            random_coords = stacker.image.calculate_sigma2_weights( random_coords, imagenames, stampsize)
+            random_coords = stacker.image.calculate_sigma2_weights( random_coords, imagenames, stampsize, maskradius)
         dist.append(stack(random_coords, vis))
 
-    return np.array(dist)
+    return np.std(np.real(np.array(dist)))

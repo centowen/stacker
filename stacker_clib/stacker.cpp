@@ -110,14 +110,14 @@ double cpp_stack(int infiletype, const char* infile, int infileoptions,
 										  outfiletype, outfile, outfileoptions);
 
 	float retval = computer->run();
+	double averageFlux =  (double)cc->flux();
 
 	delete computer;
 	delete cc;
 	delete pb;
 
-// 	Complex averageFlux =  float(1. / normSumVis) * sumVis;
 
-	return retval;
+	return averageFlux;
 }/*}}}*/
 
 // Subtract a cl model from measurement set.

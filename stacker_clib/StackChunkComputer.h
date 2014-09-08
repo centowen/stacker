@@ -21,6 +21,7 @@
 #include "Coords.h"
 #include "PrimaryBeam.h"
 #include "DataIO.h"
+#include <pthread.h>
 
 #ifndef __STACK_CHUNK_COMPUTER_H__
 #define __STACK_CHUNK_COMPUTER_H__
@@ -33,6 +34,9 @@ class StackChunkComputer: public ChunkComputer
 		PrimaryBeam* pb;
 		int stackingMode;
 		bool redoWeights;
+        double sumvisweight, sumweight;
+
+		pthread_mutex_t fluxMutex;
 
 	public:
 		void setStackingMode(int mode);
@@ -44,6 +48,8 @@ class StackChunkComputer: public ChunkComputer
 		void preCompute(DataIO* ms);
 		virtual float computeChunk(Chunk* chunk);
 		void postCompute(DataIO* ms);
+
+        double flux();
 };
 
 #endif // inclusion guard

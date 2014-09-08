@@ -4,6 +4,10 @@ import stacker.uv
 import stacker.modsub
 import numpy as np
 
+# Do Monte Carlo noise estimate, can be time consuming
+donoise = True
+
+
 if os.access('output', os.F_OK): shutil.rmtree('output')
 os.mkdir('output')
 
@@ -54,25 +58,40 @@ stacker.image.stack(coords, 'output/imstacked.image',
                                     # are used. weighting='sigma2' would
                                     # would recalculate weights.
 
-stacker.uv.stack(coords, 'output/residual.ms', 'output/uvstacked.ms')
+fluxuv = stacker.uv.stack(coords, 'output/residual.ms', 'output/uvstacked.ms')
 
 # Calculate the resulting fluxes
 flux = {}
+noise = {}
+simplenoise = np.sum([c.weight for c in coords])**-.5
 
 # image flux
 ia.open('output/imstacked.image')
 flux['image'] = ia.getregion()[int(stampsize/2), int(stampsize/2), 0, 0]
+if donoise:
+    noise['image'] = stacker.uv.noise(coords, imagesnames = ['output/residual.image'], stampsize = stampsize, maskradius=5)
+else:
+    noise['image'] = simplenoise
 ia.done()
 
 # uv flux
 ms.open('output/uvstacked.ms')
-flux['uv'] = np.mean(ms.getdata('corrected_data')['corrected_data'])
+flux['uv'] = fluxuv
+if donoise:
+    noise['uv'] = stacker.uv.noise(coords, 'output/residual.ms', 
+            ['output/residual.image'], stampsize = stampsize, maskradius=5)
+else:
+    noise['uv'] = simplenoise
 ms.done()
 
 print('Stacking results:')
-print('image-stacking flux: {0:.1f}+-{1:.1f}'.format(flux['image']*1e6, 
-      np.sum([c.weight for c in coords])**-.5*1e6))
-print('uv-stacking flux: {0:.1f}'.format(np.real(flux['uv'])*1e6))
+if not donoise:
+    print('warning, noise estimate based on image noise')
+    print('may not be accurate (simulation indicate typically')
+    print('within 20\%)')
+print('')
+print('image-stacking flux: {0:.1f}+-{1:.1f}'.format(flux['image']*1e6, noise['image']*1e6))
+print('uv-stacking flux: {0:.1f}+-{1:.1f}'.format(np.real(flux['uv'])*1e6, noise['uv']*1e6))
 
 # Image the uv-stacked data to produce an image.
 clean('output/uvstacked.ms', 'output/uvstacked',

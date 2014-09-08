@@ -132,9 +132,13 @@ float StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 		outVis.index = inVis.index;
 	}
 	float retval = 0;
+    pthread_mutex_lock(&fluxMutex);
 	if( normsum > 0)
-		retval = sum/normsum*chunk->size();
-	return retval;
+    {
+        sumvisweight += sum;
+        sumweight += normsum;
+    }
+    pthread_mutex_unlock(&fluxMutex);
 // 	return 1.;
 }/*}}}*/
 
@@ -146,6 +150,11 @@ void StackChunkComputer::preCompute(DataIO* data)
 	{
 		redoWeights = true;
 	}
+
+
+	pthread_mutex_init(&fluxMutex, NULL);
+    sumvisweight = 0.;
+    sumweight = 0.;
 
 	coords->computeCoords(data, *pb);
 }
@@ -159,4 +168,9 @@ void StackChunkComputer::postCompute(DataIO* data)
 
 	// Maybe it would be nice to also remove all the other fields?
 	// Also should properly flag visibilities that got bad in stacking.
+}
+
+double StackChunkComputer::flux()
+{
+    return sumvisweight/sumweight;
 }

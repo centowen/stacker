@@ -70,6 +70,8 @@ class MSComputer
 		queue<pair<int,string> > printQueue;
 		int chunksDone, totalChunks;
 
+// 		float sumvis;
+// 		float sumweights;
 		float sumvis;
 		float nvis;
 

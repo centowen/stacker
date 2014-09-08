@@ -247,13 +247,18 @@ void MSComputer::computerThread()/*{{{*/
 		if(chunkid>=0)
 		{
 			sumvis_chunk = cc->computeChunk(chunks[chunkid]);
+            std::cout << "chunk " << chunkid << " has a flux of " << sumvis_chunk << std::endl;
 
 			pthread_mutex_lock(&mutex);
-			if(abs(sumvis_chunk) > 0)
-			{
+
+// 			if(abs(sumvis_chunk) > 0)
+// 			{
+                std::cout << "sumvis was " << sumvis << std::endl;
 				sumvis += sumvis_chunk;
+                std::cout << "sumvis is " << sumvis << std::endl;
 				nvis += chunks[chunkid]->size();
-			}
+                std::cout << "nvis is " << nvis << std::endl;
+// 			}
 			chunksToWrite.push(chunkid);
 			pthread_mutex_unlock(&mutex);
 		}
