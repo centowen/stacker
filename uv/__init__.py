@@ -57,6 +57,14 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
     import shutil
     import os
     import re
+    from taskinit import casalog
+    casalog.origin('stacker')
+
+    casalog.post('#'*42,'INFO')
+    casalog.post('#'*5 +  ' {0: <31}'.format("Begin Task: Stacker")+'#'*5, 'INFO')
+
+    casalog.post('Number of stacking positions: {0}'.format(len(coords)), 'INFO')
+
 
     if outvis != '':
         if not os.access(outvis, os.F_OK):
@@ -70,9 +78,17 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
         outfiletype = stacker.FILE_TYPE_NONE
         outfileoptions = 0
 
+    
+    casalog.post('Input uv file: \'{0}\' of type {1}'.format(infilename, stacker.FILETYPENAME[infiletype]), 'INFO')
+    if outvis != '':
+        casalog.post('Output uv file: \'{0}\' of type {1}'.format(outfilename, stacker.FILETYPENAME[outfiletype]), 'INFO')
+    else:
+        casalog.post('No output uv file given, will not write stacked visibility', 'INFO')
+
 # primary beam
     if primarybeam == 'guess':
         from taskinit import ms,tb,qa
+
         ms.open(vis)
         freq = int(np.mean(ms.range('chan_freq')['chan_freq'])/1e8)/10.
         ms.done()
@@ -115,6 +131,8 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
         clean.clean(vis=outvis, imagename = imagename, field='0', mode='mfs',
                     cell=cell, imsize=stampsize, weighting='natural')
 
+    casalog.post('#'*5 +  ' {0: <31}'.format("End Task: stacker")+'#'*5)
+    casalog.post('#'*42)
     return flux
 
 

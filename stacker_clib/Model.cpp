@@ -49,9 +49,6 @@ using casa::ComponentShape;
 using casa::Unit;
 using casa::MDirection;
 
-using std::endl;
-using std::cout;
-
 Model::Model(string file)
 {
 	clfile = file;
@@ -119,19 +116,9 @@ void Model::compute(DataIO* ms, PrimaryBeam* pb)
 	}
 
 	double totFlux = 0.;
-	std::cout << "Number of components in cl: " << cl.nelements() << std::endl;
-
-// 	cout << "Some PrimaryBeam examples:" << endl;
-// 	cout << "(0, 0): " << pb->calc(0, 0, 222e9) << endl;;
-// 	cout << "(50, 0): " << pb->calc(1e-5, 0, 222e9) << endl;;
-// 	cout << "(100, 0): " << pb->calc(3e-5, 0, 222e9) << endl;;
 
 	for(int i = 0; i < cl.nelements(); i++)
 	{
-// 		cout << "Comp " << i << endl;
-
-		// Seems to crash on some point sources, why?
-
 		SkyComponent sc(cl.component(i));
 		MDirection dir(sc.shape().refDirection());
 		float x, y, flux, size;
@@ -140,37 +127,27 @@ void Model::compute(DataIO* ms, PrimaryBeam* pb)
 		y = float(dir.getAngle().getValue("rad")[1]);
 		flux = float(sc.flux().value(casa::Stokes::I, false).getValue(Unit("Jy")));
 		size = float(0.);
-// 		cout << "shape is " << sc.shape().type() << endl;
 		if(sc.shape().type() == 1)
 			size = float(sc.shape().parameters()[0]);
-// 		cout << "size: " << size << endl;
 		totFlux += flux;
 
 		for(int fieldID = 0; fieldID < nPointings; fieldID++)
 		{
-// 			cout << fieldID << std::flush;
 			float dx = 1.*((x - float(ms->xPhaseCentre(fieldID)))*cos(y));
 			float dy = 1.*(asin(sin(y)/cos(dx)) - float(ms->yPhaseCentre(fieldID)));
-// 			cout << " (" << dx << ", " << dy << ")"  << std::flush;
 
 
 			if(pb->calc(dx,  dy )> 0.01)
 			{
-// 				cout << "+" << std::flush;
 				cx[fieldID].push_back(x);
 				cy[fieldID].push_back(y);
 				cflux[fieldID].push_back(flux);
 				csize[fieldID].push_back(size);
 				nStackPoints[fieldID] ++;
-// 				cout << "*" << std::flush;
 			}
-// 			cout << ", " << std::flush;
 		}
-// 		cout << endl;
 	}
 
-
-	std::cout << "total flux: " << totFlux << std::endl;
 
 	x = new float*[nPointings];
 	y = new float*[nPointings];
@@ -184,11 +161,7 @@ void Model::compute(DataIO* ms, PrimaryBeam* pb)
 	size = new float*[nPointings];
 
 	for(int fieldID = 0; fieldID < nPointings; fieldID++)
-		cout << "Number of model components in field " << fieldID << ": " << nStackPoints[fieldID] << endl;
-
-	for(int fieldID = 0; fieldID < nPointings; fieldID++)
 	{
-// 		cout << "field " << fieldID << ": " << endl;
 		x[fieldID] = new float[nStackPoints[fieldID]];
 		y[fieldID] = new float[nStackPoints[fieldID]];
 		dx[fieldID] = new float[nStackPoints[fieldID]];
@@ -209,20 +182,12 @@ void Model::compute(DataIO* ms, PrimaryBeam* pb)
 
 			dx[fieldID][i] = (x[fieldID][i] - float(ms->xPhaseCentre(fieldID)))*cos(y[fieldID][i]);
 			dy[fieldID][i] = asin(sin(y[fieldID][i])/cos(dx[fieldID][i])) - float(ms->yPhaseCentre(fieldID));
-			//          cout << "(dx,dy) (" << dx[fieldID][i] << ", " << dy[fieldID][i] << ") " << 180/pi*3600*sqrt(dx[fieldID][i]*dx[fieldID][i]+dy
-			//          dx[fieldID][i] = (x[fieldID][i] - x_phase_centre[fieldID])*cos(y[fieldID][i]);
-			//          dy[fieldID][i] = asin(sin(y[fieldID][i])) - y_phase_centre[fieldID];
-// 			cout << "(dx, dy) = (" << dx[fieldID][i] << ", " << dy[fieldID][i] << ")" << endl;
 
 			omega_x[fieldID][i] = 2*pi*sin(dx[fieldID][i])/casa::C::c;
 			omega_y[fieldID][i] = 2*pi*sin(dy[fieldID][i])/casa::C::c;
 // 			omega_z[fieldID][i] = 2*pi*(cos(sqrt(dx[fieldID][i]*dx[fieldID][i]+dy[fieldID][i]*dy[fieldID][i]))-1)/casa::C::c;
 			omega_z[fieldID][i] = 2*pi*(sqrt(1-dx[fieldID][i]*dx[fieldID][i]-dy[fieldID][i]*dy[fieldID][i])-1)/casa::C::c;
 			omega_size[fieldID][i] = pow(pi*size[fieldID][i]/casa::C::c, 2) / (4 * log(2));
-// 			cout << "(omega_x, omega_y, omega_z) = (" 
-// 				 << omega_x[fieldID][i] << ", " 
-// 				 << omega_y[fieldID][i] << ", " 
-// 				 << omega_z[fieldID][i] << ")" << endl;
 		}
 	}
 
@@ -231,19 +196,4 @@ void Model::compute(DataIO* ms, PrimaryBeam* pb)
     delete[] cflux;
     delete[] csize;
 
-// 	cout << "Model: " << endl;
-// 	for(int fieldID = 0; fieldID < nPointings; fieldID++)
-// 	{
-// 		cout << "Field " << fieldID << ": " << endl;
-// 		for(int i = 0; i < nStackPoints[fieldID]; i++)
-// 		{
-// 			cout << "omegas: (" 
-// 			     << omega_x[fieldID][i] << ", " 
-// 			     << omega_y[fieldID][i] << ", "
-// 			     << omega_z[fieldID][i] << ", "
-// 			     << omega_size[fieldID][i] << ")"
-// 				 << " flux: " << flux[fieldID][i] 
-// 				 << endl;
-// 		}
-// 	}
 }

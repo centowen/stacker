@@ -22,7 +22,6 @@
 #include "Coords.h"
 #include "PrimaryBeam.h"
 
-using std::cout;
 using std::real;
 
 StackChunkComputer::StackChunkComputer(Coords* coords, PrimaryBeam* pb)

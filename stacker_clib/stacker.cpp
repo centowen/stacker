@@ -98,11 +98,9 @@ double cpp_stack(int infiletype, const char* infile, int infileoptions,
 	else if(pbtype == PB_MS)
 	{
 		pb = (PrimaryBeam*)new MSPrimaryBeam(pbfile);
-		cout << "Using ms pb model." << endl;
 	}
 	else
 		pb = (PrimaryBeam*)new ConstantPrimaryBeam;
-	cout << "nstack = " << nstack << endl;
 	Coords coords(x, y, weight, nstack);
 	StackChunkComputer* cc = new StackChunkComputer(&coords, pb);
 	MSComputer* computer = new MSComputer((ChunkComputer*)cc, 
@@ -136,7 +134,6 @@ void cpp_modsub(int infiletype, const char* infile, int infileoptions,
 
 	Model* model = new Model(modelfile);
 
-	cout << "Pre making computer." << endl;
 
 	ModsubChunkComputer* cc = new ModsubChunkComputer(model, pb);
 	MSComputer* computer = NULL;
@@ -145,11 +142,9 @@ void cpp_modsub(int infiletype, const char* infile, int infileoptions,
 		computer = new MSComputer((ChunkComputer*)cc, 
 											infiletype, infile, infileoptions,
 											outfiletype, outfile, outfileoptions);
-		cout << "Pre running computer." << endl;
 
 		computer->run();
 
-		cout << "Post running computer." << endl;
 	}
 	catch(fileException e)
 	{

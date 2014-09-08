@@ -22,8 +22,6 @@
 #include "Coords.h"
 #include "PrimaryBeam.h"
 
-using std::cout;
-
 
 ModsubChunkComputer::ModsubChunkComputer(Model* model, PrimaryBeam* pb)
 {

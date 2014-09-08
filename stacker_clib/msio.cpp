@@ -26,11 +26,8 @@ using casa::TableError;
 msio::msio(const char* msinfile, const char * msoutfile,
 		             pthread_mutex_t* mutex , bool workondatacolumn)
 {
-	std::cout << "Opening " << msinfile << std::endl;
 	msin = new MeasurementSet(msinfile);
-	std::cout << "Opening columns of " << msinfile << std::endl;
 	msincols = new ROMSColumns(*msin);
-	std::cout << "Opened " << msinfile << std::endl;
 
 	if(workondatacolumn)
 	{
@@ -51,7 +48,6 @@ msio::msio(const char* msinfile, const char * msoutfile,
 
 	if(strlen(msoutfile) > 0)
 	{
-		std::cout << "Opening outfil " << msoutfile << std::endl;
 		msout = new MeasurementSet(msoutfile, casa::Table::Update);
 		msoutcols = new MSColumns(*msout);
 		if(datacolumn == col_corrected_data) 
@@ -90,7 +86,6 @@ msio::msio(const char* msinfile, const char * msoutfile,
 	}
 
 	nfields = msin->field().nrow();
-	std::cout << "Nfields: " << nfields << std::endl;
 	x_phase_centre = new float[nfields];
 	y_phase_centre = new float[nfields];
 	for(int fieldID = 0; fieldID < nfields; fieldID++)
@@ -98,9 +93,6 @@ msio::msio(const char* msinfile, const char * msoutfile,
 		Array<double> phase_centre = msincols->field().phaseDir()(fieldID);
 		x_phase_centre[fieldID] = float(phase_centre(IPosition(2,0,0)));
 		y_phase_centre[fieldID] = float(phase_centre(IPosition(2,1,0)));
-		std::cout << "field " << fieldID << ": " 
-			      <<  x_phase_centre[fieldID] << ", "
-			      <<  y_phase_centre[fieldID] << std::endl;
 
 	}
 

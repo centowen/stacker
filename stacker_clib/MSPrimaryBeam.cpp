@@ -83,9 +83,6 @@ MSPrimaryBeam::MSPrimaryBeam(const char fileName[]) /*{{{*/
 	else
 		freq0 = float(0.);
 
-	std::cout << "spectral: " << freq0 << std::endl;
-	std::cout << "n: " << nx << ", " << ny << std::endl;
-
 	px_x0 = float(cs.referencePixel()(0));
 	px_y0 = float(cs.referencePixel()(1));
 	this->dx = float(cs.increment()(0));

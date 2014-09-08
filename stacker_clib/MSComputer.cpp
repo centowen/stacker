@@ -37,22 +37,14 @@ MSComputer::MSComputer(ChunkComputer* cc,
 	for( int i =0; i < N_CHUNK; i++)
 		chunks[i] = new Chunk(CHUNK_SIZE);
 
-	cout << "Opening file " << infilename;
-	if(infiletype == FILE_TYPE_MS)
-		cout << " of type ms";
-	else if(infiletype == FILE_TYPE_FITS)
-		cout << " of type fits";
-	cout << endl;
 	if(infiletype == FILE_TYPE_MS)
 	{
 		if(infileoptions & MS_DATACOLUMN_DATA)
 		{
-			cout << "Working on column \'data\'" << endl;
 			data = (DataIO*)(new msio(infilename, outfilename, &mutex, true));
 		}
 		else
 		{
-			cout << "Working on column \'corrected_data\'" << endl;
 			data = (DataIO*)(new msio(infilename, outfilename, &mutex, false));
 		}
 	}
@@ -61,7 +53,6 @@ MSComputer::MSComputer(ChunkComputer* cc,
 // 	if(strcmp(".ms", infile+strlen(infile)-3) == 0
 // 			||strcmp(".ms/", infile+strlen(infile)-4) == 0)
 // 	{
-// 		cout << "is ms" << endl;
 // 		data = (DataIO*)(new msio(infile, outfile, &mutex));
 // 	}
 // 	else
@@ -79,11 +70,7 @@ MSComputer::~MSComputer()/*{{{*/
 
 float MSComputer::run()/*{{{*/
 {
-	sumvis = 0.;
-	nvis = 0.;
-
 	totalChunks = int(data->nvis()/CHUNK_SIZE)+1;
-	cout << "Total number of chunks should be " << totalChunks << endl;
 	//
 	// Generate a queue of messages related to progress.
 	// Specifies how many chunks needed to print a certain progress.
@@ -117,12 +104,10 @@ float MSComputer::run()/*{{{*/
 		freeChunks.push(i);
 	}
 
-	cout << "Initiate cc" << endl;
 	cc->preCompute(data);
 
 	pthread_t threads[N_THREAD];
 
-	cout << "Starting threads" << endl;
 	for(int i = 0; i < N_THREAD; i++)
 	{
 		pthread_create(&threads[i], NULL, startComputerThread, (void*)this);
@@ -208,12 +193,10 @@ float MSComputer::run()/*{{{*/
 		usleep(2000);
 	}
 
-	cout << "clean up cc" << endl;
 	cc->postCompute(data);
 
-	cout << "sums: " << sumvis << ", " << nvis << endl;
 
-	return sumvis/nvis;
+	return 0.;
 }/*}}}*/
 
 void* MSComputer::startComputerThread(void* computer)
@@ -242,23 +225,13 @@ void MSComputer::computerThread()/*{{{*/
 
 		pthread_mutex_unlock(&mutex);
 
-		float sumvis_chunk = 0.;
 		// Time to get to work if we found a chunk.
 		if(chunkid>=0)
 		{
-			sumvis_chunk = cc->computeChunk(chunks[chunkid]);
-            std::cout << "chunk " << chunkid << " has a flux of " << sumvis_chunk << std::endl;
+			cc->computeChunk(chunks[chunkid]);
 
 			pthread_mutex_lock(&mutex);
 
-// 			if(abs(sumvis_chunk) > 0)
-// 			{
-                std::cout << "sumvis was " << sumvis << std::endl;
-				sumvis += sumvis_chunk;
-                std::cout << "sumvis is " << sumvis << std::endl;
-				nvis += chunks[chunkid]->size();
-                std::cout << "nvis is " << nvis << std::endl;
-// 			}
 			chunksToWrite.push(chunkid);
 			pthread_mutex_unlock(&mutex);
 		}

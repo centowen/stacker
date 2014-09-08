@@ -23,10 +23,7 @@
 
 PrimaryBeam::PrimaryBeam() {}
 PrimaryBeam::~PrimaryBeam() {}
-ConstantPrimaryBeam::ConstantPrimaryBeam() 
-{
-	std::cout << "Loading constant primary beam!" << std::endl;
-}
+ConstantPrimaryBeam::ConstantPrimaryBeam() {}
 ConstantPrimaryBeam::~ConstantPrimaryBeam() {}
 
 ImagePrimaryBeam::ImagePrimaryBeam(const char fileName[])

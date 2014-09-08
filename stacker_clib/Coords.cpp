@@ -84,10 +84,6 @@ void Coords::computeCoords(DataIO* ms, PrimaryBeam& pb)
 			nStackPointsVisible ++;
     }
 
-	for(int fieldID = 0; fieldID < nPointings; fieldID++)
-		cout << "Number of stacking positions in field " << fieldID 
-			 << ": " << nStackPoints[fieldID] << endl;
-
 	omega_x = new float*[nPointings];
 	omega_y = new float*[nPointings];
 	omega_z = new float*[nPointings];
@@ -97,14 +93,9 @@ void Coords::computeCoords(DataIO* ms, PrimaryBeam& pb)
 	this->y = new float*[nPointings];
 	this->weight = new float*[nPointings];
 
-//     for(int fieldID = 0; fieldID < nPointings; fieldID++)
-// 	{
-//         cout << "Number of stacking positions in field " << fieldID << ": " << nStackPoints[fieldID] << endl;
-// 	}
 
     for(int fieldID = 0; fieldID < nPointings; fieldID++)
     {
-// 		cout << "field " << fieldID << ": " << endl;
         dx[fieldID] = new float[nStackPoints[fieldID]];
         dy[fieldID] = new float[nStackPoints[fieldID]];
         omega_x[fieldID] = new float[nStackPoints[fieldID]];
@@ -122,11 +113,8 @@ void Coords::computeCoords(DataIO* ms, PrimaryBeam& pb)
 
             dx[fieldID][i] = (this->x[fieldID][i] - ms->xPhaseCentre(fieldID))*cos(this->y[fieldID][i]);
             dy[fieldID][i] = asin(sin(this->y[fieldID][i])/cos(dx[fieldID][i])) - ms->yPhaseCentre(fieldID);
-// 			std::cout << "pos " << i << ", dx, dy: " << dx << ", " << dy << endl;
 			while(dx[fieldID][i] > 2*pi) dx[fieldID][i] -= 2*pi;
 			while(dx[fieldID][i] < -2*pi) dx[fieldID][i] += 2*pi;
-// 			cout << "(dx, dy) = (" << dx[fieldID][i] << ", " << dy[fieldID][i] << ")" << endl;
-// 			std::cout << "pos " << i << ", dx, dy: " << dx << ", " << dy << endl;
 // 
 //          dx[fieldID][i] = (x[fieldID][i] - x_phase_centre[fieldID])*cos(y[fieldID][i]);
 //          dy[fieldID][i] = asin(sin(y[fieldID][i])) - y_phase_centre[fieldID];
@@ -135,17 +123,10 @@ void Coords::computeCoords(DataIO* ms, PrimaryBeam& pb)
             omega_y[fieldID][i] = 2*pi*sin(dy[fieldID][i])/c;
 //             omega_z[fieldID][i] = 2*pi*(cos(sqrt(dx[fieldID][i]*dx[fieldID][i]+dy[fieldID][i]*dy[fieldID][i]))-1)/c;
             omega_z[fieldID][i] = 2*pi*(sqrt(1-dx[fieldID][i]*dx[fieldID][i]-dy[fieldID][i]*dy[fieldID][i])-1)/c;
-// 			cout << "(omega_x, omega_y, omega_z) = (" 
-// 				 << omega_x[fieldID][i] << ", " 
-// 				 << omega_y[fieldID][i] << ", " 
-// 				 << omega_z[fieldID][i] << ")" << endl;
         }
 
     }
 
-// 	cout << "Printing of coords." << endl;
-// 	for(int i = 0; i < nStackPoints[0]; i++)
-// 		cout << "coord " << i << ": " << omega_x[0][0] << ", " << omega_y[0][0] << "," << omega_z[0][0] << endl;
 
 	delete[] cx;
 	delete[] cy;

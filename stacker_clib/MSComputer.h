@@ -70,11 +70,6 @@ class MSComputer
 		queue<pair<int,string> > printQueue;
 		int chunksDone, totalChunks;
 
-// 		float sumvis;
-// 		float sumweights;
-		float sumvis;
-		float nvis;
-
 		string to_string(int x)
 		{
 			return dynamic_cast< std::ostringstream & >( \

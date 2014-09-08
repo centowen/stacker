@@ -5,7 +5,7 @@ import stacker.modsub
 import numpy as np
 
 # Do Monte Carlo noise estimate, can be time consuming
-donoise = True
+donoise = False
 
 
 if os.access('output', os.F_OK): shutil.rmtree('output')
@@ -50,7 +50,9 @@ coords = stacker.image.calculate_sigma2_weights(coords,
         maskradius = 5) # Excludes pixels closer to centre than 5 pixels.
 
 # Actual stack, in both image and uv domain.
-stacker.image.stack(coords, 'output/imstacked.image', 
+flux = {}
+
+flux['image'] = stacker.image.stack(coords, 'output/imstacked.image', 
                     imagenames=['output/residual.image'], 
                     stampsize=stampsize, 
                     method='mean', # As opposed to median.
@@ -58,31 +60,31 @@ stacker.image.stack(coords, 'output/imstacked.image',
                                     # are used. weighting='sigma2' would
                                     # would recalculate weights.
 
-fluxuv = stacker.uv.stack(coords, 'output/residual.ms', 'output/uvstacked.ms')
+flux['uv'] = stacker.uv.stack(coords, 'output/residual.ms', 'output/uvstacked.ms')
 
-# Calculate the resulting fluxes
-flux = {}
+# Calculate the resulting noises
 noise = {}
-simplenoise = np.sum([c.weight for c in coords])**-.5
+simplenoise = {}
+
+ms.open('output/uvstacked.ms')
+corrected_data = ms.getdata(['corrected_data'])['corrected_data']
+ms.done()
+
+simplenoise['image'] = np.sum([c.weight for c in coords])**-.5
+simplenoise['uv'] = np.std(np.real(corrected_data))/np.sqrt(np.prod(corrected_data.shape))
 
 # image flux
-ia.open('output/imstacked.image')
-flux['image'] = ia.getregion()[int(stampsize/2), int(stampsize/2), 0, 0]
 if donoise:
-    noise['image'] = stacker.uv.noise(coords, imagesnames = ['output/residual.image'], stampsize = stampsize, maskradius=5)
+    noise['image'] = stacker.image.noise(coords, imagenames=['output/residual.image'], stampsize = stampsize, maskradius=5)
 else:
-    noise['image'] = simplenoise
-ia.done()
+    noise['image'] = simplenoise['image']
 
 # uv flux
-ms.open('output/uvstacked.ms')
-flux['uv'] = fluxuv
 if donoise:
     noise['uv'] = stacker.uv.noise(coords, 'output/residual.ms', 
             ['output/residual.image'], stampsize = stampsize, maskradius=5)
 else:
-    noise['uv'] = simplenoise
-ms.done()
+    noise['uv'] = simplenoise['uv']
 
 print('Stacking results:')
 if not donoise:

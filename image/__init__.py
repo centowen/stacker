@@ -134,6 +134,10 @@ def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
     import numpy as np
     from taskinit import ia, casalog
 
+    casalog.origin('stacker')
+    casalog.post('#'*42,'INFO')
+    casalog.post('#'*5 +  ' {0: <31}'.format("Begin Task: Stacker")+'#'*5, 'INFO')
+
     global skymap
     global data
     global oldimagenames
@@ -178,6 +182,8 @@ def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
 
     _write_stacked_image(outfile, stacked_im,
                          coords.imagenames[0], stampsize)
+    casalog.post('#'*5 +  ' {0: <31}'.format("End Task: stacker")+'#'*5)
+    casalog.post('#'*42)
     return stacked_im[int(stampsize/2), int(stampsize/2),0,0]
 
             

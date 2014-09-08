@@ -94,8 +94,6 @@ DataIOFits::DataIOFits(const char* infilename, const char* outfilename,
     throw fileException(fileException::HEADER_INFO_MISSING, 
                         "No field information present in fits file.");
   }
-
-  std::cout << "(RA, DEC): (" << ra << ", " << dec << ")" << std::endl;
 }
 
 float DataIOFits::readKeywordFloat(const char* keyword) {
