@@ -35,17 +35,26 @@ def modsub(model, vis, outvis='', datacolumn='corrected'):
 
 
 # primary beam
-    from taskinit import ms,tb,qa
-    ms.open(vis)
-    freq = int(np.mean(ms.range('chan_freq')['chan_freq'])/1e9*100)/100.
-    ms.done()
-    tb.open(vis+'/OBSERVATION')
-    telescope = tb.getcol('TELESCOPE_NAME')[0]
-    tb.done()
-    pbfile = '{0}-{1}GHz.pb'.format(telescope, freq)
+    if primarybeam == 'guess':
+        from taskinit import ms,tb,qa
+        ms.open(vis)
+        freq = int(np.mean(ms.range('chan_freq')['chan_freq'])/1e9*100)/100.
+        ms.done()
+        tb.open(vis+'/OBSERVATION')
+        telescope = tb.getcol('TELESCOPE_NAME')[0]
+        tb.done()
+        pbtype = stacker.PB_MS
+        pbfile = '{0}-{1}GHz.pb'.format(telescope, freq)
+        pbnpars = 0
+        pbpars = None
 
-    if not os.access(pbfile, os.F_OK):
-        stacker.make_pbfile(vis, pbfile)
+        if not os.access(pbfile, os.F_OK):
+            stacker.make_pbfile(vis, pbfile)
+    else:
+        pbtype = stacker.PB_CONST
+        pbfile = ''
+        pbnpars = 0
+        pbpars = None
 
     infiletype, infilename, infileoptions = stacker._checkfile(vis, datacolumn)
     outfiletype, outfilename, outfileoptions = stacker._checkfile(outvis, datacolumn)
@@ -53,7 +62,6 @@ def modsub(model, vis, outvis='', datacolumn='corrected'):
     flux = c_modsub(infiletype, c_char_p(infilename), infileoptions,
                     outfiletype, c_char_p(outfilename), outfileoptions,
                     c_char_p(model), c_char_p(pbfile))
-
     return 0
 
 

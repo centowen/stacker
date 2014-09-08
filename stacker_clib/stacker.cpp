@@ -40,7 +40,8 @@ double cpp_stack(int infiletype, const char* infile, int infileoptions,
 				 double* x, double* y, double* weight, int nstack);
 void cpp_modsub(int infiletype, const char* infile, int infileoptions, 
                 int outfiletype, const char* outfile, int outfileoptions, 
-				const char* modelfile, const char* pbfile);
+				const char* modelfile,
+				int pbtype, const char* pbfile, double* pbpar, int npbpar);
 
 // Functions to interface with python module.
 extern "C"{
@@ -76,11 +77,13 @@ extern "C"{
 	// - pbfile: A casa image of the primary beam, used to calculate primary beam correction.
 	void modsub(int infiletype, char* infile, int infileoptions, 
 			    int outfiletype, char* outfile, int outfileoptions,
-				char* modelfile, char* pbfile)
+				char* modelfile, 
+				int pbtype, const char* pbfile, double* pbpar, int npbpar)
 	{
 		cpp_modsub(infiletype, infile, infileoptions, 
 				   outfiletype, outfile, outfileoptions,
-				   modelfile, pbfile);
+				   modelfile, 
+				   pbtype, pbfile, pbpar, npbpar);
 	};
 };
 
@@ -120,10 +123,17 @@ double cpp_stack(int infiletype, const char* infile, int infileoptions,
 // Subtract a cl model from measurement set.
 void cpp_modsub(int infiletype, const char* infile, int infileoptions, 
                 int outfiletype, const char* outfile, int outfileoptions, 
-				const char* modelfile, const char* pbfile) /*{{{*/
+				const char* modelfile, 
+				int pbtype, const char* pbfile, double* pbpar, int npbpar) /*{{{*/
 {
 	PrimaryBeam* pb;// = new ImagePrimaryBeam(pbfile);
-	pb = (PrimaryBeam*)new MSPrimaryBeam(pbfile);
+	if(pbtype == PB_CONST)
+		pb = (PrimaryBeam*)new ConstantPrimaryBeam;
+	else if(pbtype == PB_MS)
+		pb = (PrimaryBeam*)new MSPrimaryBeam(pbfile);
+	else
+		pb = (PrimaryBeam*)new ConstantPrimaryBeam;
+
 	Model* model = new Model(modelfile);
 
 	cout << "Pre making computer." << endl;
