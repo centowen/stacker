@@ -20,7 +20,6 @@ import stacker
 import os
 from rmtables import rmtables
 
-# lib = cdll.LoadLibrary('stacker/uv/libuvstack.so')
 c_stack = stacker.libstacker.stack
 c_stack.restype = c_double
 c_stack.argtype = [c_int, c_char_p, c_int,
@@ -28,32 +27,27 @@ c_stack.argtype = [c_int, c_char_p, c_int,
                    c_int, c_char_p, POINTER(c_double), c_int, 
                    POINTER(c_double), POINTER(c_double), POINTER(c_double), 
                    c_int]
-# c_stack.argtype = [c_char_p, c_char_p, c_char_p,
-#                    POINTER(c_double), POINTER(c_double), POINTER(c_double), 
-#                    c_int, c_int, c_double]
-
-
-#  WARNING DO NOT USE THIS FUNCTION!!!!!!
-# Only left for convience if a new function is to be implemented
-# Will not produce proper results in current form (will probably crash)
-def ___DANGER___stack_random(vis, npos, imagenames, outvis, 
-                 flux = {'unit': 'Jy', 'value': 1.0}, 
-                 stampsize = 32, psfmode='point',
-                 model = 'mcmodel.cl'):
-
-    from modsub_cl import modsub
-    import stacker.image
-
-
-    coords = stacker.randomCoords(imagenames, npos)
-    if os.access(model, os.F_OK): rmtables(model)
-    stacker.coordsTocl(model, flux, coords)
-    modsub(model, vis, outvis)
-    coords = stacker.image.calculate_sigma2_weights(coords, imagenames, stampsize)
-    stack(coords, outvis, outvis, stampsize=stampsize)
 
 
 def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32, primarybeam='guess', datacolumn='corrected'):
+    """
+         Performs stacking in the uv domain.
+
+      
+         coords -- A coordList object of all target coordinates.
+         vis -- Input uv data file.
+         outvis -- Output uv data file. Can be set to '' to not save stacked visibilities.
+         datacolumn -- Either 'corrected' or 'data'. Which column stacking is applied to.
+         primarybeam -- How to calculated primary beam. Currently only two options, 
+                      'guess' (using casa builtin model) 
+                      or 'constant' (i.e. no correction)
+
+         imagename -- Optional argument to image stacked data.
+         cell -- pixel size for target image
+         stampsize -- size of target image in pixels
+
+         returns: Estimate of stacked flux assuming point source.
+    """
     import shutil
     import os
     import re
@@ -137,6 +131,7 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
 
 
 def noise(coords, vis, imagenames, weighting = 'sigma2', nrand = 50, stampsize = 32, maskradius = None):
+""" Calculate noise using a Monte Carlo method, can be time consuming. """
     import stacker
     import stacker.image
     from taskinit import ia, qa

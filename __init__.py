@@ -134,6 +134,8 @@ def readCoords(coordfile, unit = 'deg'):
             Path to coordinate file. A file in csv format. x and y should
             be in J2000 . A weight may be added in third column
             to weight positions for stacking.
+	unit: 
+	    Unit of input coordinates. Allows two values, 'deg' and 'rad'.
     """
     import csv
 

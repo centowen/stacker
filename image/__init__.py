@@ -126,6 +126,22 @@ def calculate_flux_weights(coords, imagenames=[]):
 
 def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
         weighting = 'sigma2', maxmaskradius=None, psfmode = 'point', dishdia='12m'):
+    """
+   	 Performs stacking in the image domain.
+
+         coords -- A coordList object of all target coordinates.
+	 outfile -- Target name for stacked image.
+         stampsize -- size of target image in pixels
+         imagenames -- Name of images to extract flux from.
+         method -- 'mean' or 'median', will determined how pixels are calculated
+         weighting -- only for method 'mean', if set to None will use weights in coords.
+         maxmaskradius -- allows blanking of centre pixels in weight calculation
+         psfmode -- Allows application of filters to stacking, currently not supported.
+         dishdia -- only applies if weighting='pb', will use a simple pbmodel.
+
+         returns: Estimate of stacked flux assuming point source.
+    """
+
 
     from ..interval import interval
     import stacker
