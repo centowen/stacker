@@ -25,7 +25,7 @@ c_modsub = lib.modsub
 c_modsub.restype = c_int
 c_modsub.argtype = [c_char_p, c_char_p, c_char_p,c_char_p]
 
-def modsub(model, vis, outvis='', datacolumn='corrected'):
+def modsub(model, vis, outvis='', datacolumn='corrected', primarybeam='guess'):
     import shutil
     import os
 
