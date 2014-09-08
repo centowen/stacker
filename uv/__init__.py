@@ -23,7 +23,9 @@ from rmtables import rmtables
 # lib = cdll.LoadLibrary('stacker/uv/libuvstack.so')
 c_stack = stacker.libstacker.stack
 c_stack.restype = c_double
-c_stack.argtype = [c_char_p, c_char_p, c_char_p,
+c_stack.argtype = [c_int, c_char_p, c_int,
+                   c_int, c_char_p, c_int
+                   c_int, c_char_p, POINTER(c_double), c_int, 
                    POINTER(c_double), POINTER(c_double), POINTER(c_double), 
                    c_int]
 # c_stack.argtype = [c_char_p, c_char_p, c_char_p,
