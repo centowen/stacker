@@ -1,2 +1,6 @@
 *.o
 *.pyc
+example/output
+example/*.pb
+*.log
+*.last
