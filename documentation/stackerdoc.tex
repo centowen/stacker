@@ -25,6 +25,13 @@ coords.append(stacker.Coord(x2, y2))
 \end{verbatim}
 Note that coordinates here should be give in J2000 radians.
 
+\section{Primary beam model}
+The primary beam model can be defined by an instance of 
+{\tt stacker.pb.PrimaryBeamModel} or inherited classes. The c code only support
+{\tt stacker.pb.MSPrimaryBeamModel} and {\tt stacker.pb.PrimaryBeamModel}. 
+A primary beam model can be generated from a measurement set with the function
+{\tt stacker.pb.guesspb}.
+
 \section{uv}
 Submodule for stacking in the uv domain. 
 Primarily provides two functions {\tt stacker.uv.stack} and {\tt stacker.uv.noise}.
@@ -42,7 +49,7 @@ Submoduls for stacking in the image domain.
 Provides the same functions as the submodule {\tt uv} except it works fully in the image domain.
 The same caveats apply. 
 
-Also provides functions to calculate local weights for positions from the stamps surronding them.
+Also provides functions to calculate local weights for positions from the stamps surrounding them.
 
 The module can handle a list of images as well as an individual image.
 An individual image should be specified as a one element list.
