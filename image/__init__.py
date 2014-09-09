@@ -25,7 +25,7 @@ stampsize = 0
 imagesizes = []
 
 
-def calculate_pb_weights(coords, imagenames=[], dishdia='12m'):
+def calculate_pb_weights(coords, primarybeam, imagenames=[]):
     import stacker
     from scipy.constants import c
     from taskinit import ia, qa
@@ -42,20 +42,17 @@ def calculate_pb_weights(coords, imagenames=[], dishdia='12m'):
 #     _allocate_buffers(pixcoords.imagenames, stampsize, len(pixcoords))
 #     _load_stack(pixcoords)
 
-    dishdia = qa.convert(dishdia, 'm')['value'] 
-
     for coord in pixcoords:
         ia.open(imagenames[coord.image])
         cs = ia.coordsys()
         freqaxis = cs.findaxisbyname('freq')
         restfreq = cs.referencevalue()['numeric'][freqaxis]
-        vp_fwhm = 1.22*c/restfreq/dishdia
         dx = ((coord.x-cs.referencepixel()['numeric'][0])
                 *cs.increment()['numeric'][0])
         dy = ((coord.y-cs.referencepixel()['numeric'][1])
                 *cs.increment()['numeric'][1])
 
-        coord.weight = np.exp(-2.*4*np.log(2)*(dx**2+dy**2)/vp_fwhm**2)
+        coord.weight = primarybeam(dx,dy,restfreq)**2
 
     if coords.coord_type == 'physical':
         for coord in coords:
@@ -122,7 +119,7 @@ def calculate_flux_weights(coords, imagenames=[]):
 
 
 def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
-        weighting = 'sigma2', maxmaskradius=None, psfmode = 'point', dishdia='12m'):
+        weighting = 'sigma2', maxmaskradius=None, psfmode = 'point', primarybeam = None):
     """
    	 Performs stacking in the image domain.
 
@@ -134,7 +131,7 @@ def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
          weighting -- only for method 'mean', if set to None will use weights in coords.
          maxmaskradius -- allows blanking of centre pixels in weight calculation
          psfmode -- Allows application of filters to stacking, currently not supported.
-         dishdia -- only applies if weighting='pb', will use a simple pbmodel.
+         primarybeam -- only applies if weighting='pb'
 
          returns: Estimate of stacked flux assuming point source.
     """
@@ -183,7 +180,7 @@ def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
     elif method == 'mean' and weighting == 'sigma':
         coords = _calculate_sigma_weights(coords, maxmaskradius)
     elif method == 'mean' and weighting == 'pb':
-        coords = calculate_pb_weights(coords, imagenames, dishdia)
+        coords = calculate_pb_weights(coords, primarybeam, imagenames)
 
     npos = len([c.weight for c in coords if c.weight > 1e-6])
     casalog.post('Number of stacking positions: {0}'.format(npos),
