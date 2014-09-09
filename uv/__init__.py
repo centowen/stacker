@@ -17,6 +17,7 @@
 from ctypes import c_double, POINTER, c_char_p, cdll, c_int
 import numpy as np
 import stacker
+import stacker.pb
 import os
 from rmtables import rmtables
 
@@ -81,27 +82,9 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
 
 # primary beam
     if primarybeam == 'guess':
-        from taskinit import ms,tb,qa
+        primarybeam = stacker.pb.guesspb(vis)
 
-        ms.open(vis)
-        freq = int(np.mean(ms.range('chan_freq')['chan_freq'])/1e8)/10.
-        ms.done()
-        tb.open(vis+'/OBSERVATION')
-        telescope = tb.getcol('TELESCOPE_NAME')[0]
-        tb.done()
-        pbtype = stacker.PB_MS
-        pbfile = '{0}-{1}GHz.pb'.format(telescope, freq)
-        pbnpars = 0
-        pbpars = None
-        if not os.access(pbfile, os.F_OK):
-            stacker.make_pbfile(vis, pbfile)
-    else:
-        pbtype = stacker.PB_CONST
-        pbfile = ''
-        pbnpars = 0
-        pbpars = None
-
-    
+    pbtype, pbfile, pbnpars, pbpars = primarybeam.cdata()
 
     x = [p.x for p in coords]
     y = [p.y for p in coords]
@@ -131,7 +114,7 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
 
 
 def noise(coords, vis, imagenames, weighting = 'sigma2', nrand = 50, stampsize = 32, maskradius = None):
-""" Calculate noise using a Monte Carlo method, can be time consuming. """
+    """ Calculate noise using a Monte Carlo method, can be time consuming. """
     import stacker
     import stacker.image
     from taskinit import ia, qa
@@ -149,3 +132,4 @@ def noise(coords, vis, imagenames, weighting = 'sigma2', nrand = 50, stampsize =
         dist.append(stack(random_coords, vis))
 
     return np.std(np.real(np.array(dist)))
+

@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import math
+import stacker
 
 
 skymap = []
@@ -69,8 +70,6 @@ def calculate_pb_weights(coords, imagenames=[], dishdia='12m'):
 
 
 def calculate_sigma2_weights(coords, imagenames=[], stampsize=32, maskradius=None):
-    import stacker
-
     for i, coord in enumerate(coords):
         coord.index = i
 
@@ -96,8 +95,6 @@ def calculate_sigma2_weights(coords, imagenames=[], stampsize=32, maskradius=Non
 
 
 def calculate_flux_weights(coords, imagenames=[]):
-    import stacker
-
     for i, coord in enumerate(coords):
         coord.index = i
 
@@ -144,7 +141,6 @@ def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
 
 
     from ..interval import interval
-    import stacker
     import os
     import shutil
     import numpy as np

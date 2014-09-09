@@ -1,3 +1,4 @@
+# -*- coding: utf-8; -*-
 # stacker, Python module for stacking of interferometric data.
 # Copyright (C) 2014  Lukas Lindroos
 #
@@ -15,9 +16,20 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+"""
+    Library to stack interferometric images.
+"""
+
 import math
 import os
 from ctypes import c_double, POINTER, c_char_p, cdll, c_int
+
+__author__ = 'Lukas Lindroos'
+__copyright__ = 'Copyright 2014'
+__license__ = 'GPL'
+__version__ = '1.0.0'
+__maintainer__ = 'Lukas Lindroos'
+__email__ = 'lindroos@chalmers.se'
 
 PB_CONST = 0
 PB_MS = 1
@@ -38,9 +50,6 @@ clib_path = os.path.join(os.path.abspath(__path__[0]),
                          'stacker_clib')
 libstacker = cdll.LoadLibrary(os.path.join(clib_path, 'libstacker.so'))
 
-"""
-    Library to stack interferometric images.
-"""
 
 class CoordList(list):
     """
@@ -71,12 +80,6 @@ class CoordList(list):
 
     def append(self, x):
         self.coords.append(x)
-
-
-#     def __getitem__(self, x):
-#         new = CoordList(self.imagenames, self.coord_type, self.unit)
-# #         new.coords = self.coords#.__getitem__(x)
-#         return new
 
 
     def __len__(self):
