@@ -8,3 +8,9 @@ install:
 	if [ ! -d ~/.casa/ipython ]; then mkdir -p ~/.casa/ipython; fi
 	if [ -d ~/.casa/ipython/stacker ]; then rm -rf ~/.casa/ipython/stacker; fi
 	cp -r $(THIS_DIR) ~/.casa/ipython
+
+clean:
+	git checkout -f example/testdata.ms
+	rm example/output -rf
+	rm example/*.log example/*.last -f
+	rm documentation/*.aux documentation/*.log -f
