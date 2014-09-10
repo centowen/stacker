@@ -14,3 +14,4 @@ clean:
 	rm example/output -rf
 	rm example/*.log example/*.last -f
 	rm documentation/*.aux documentation/*.log -f
+	cd stacker_clib && make clean
