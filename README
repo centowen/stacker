@@ -13,6 +13,6 @@ An example of using the stacker is contained in 'example/stack_testdata.py'.
 To run:
 cd example
 casapy
-execfile('stack_testdata.py')
+execfile('stack_testdata.py') # in the casa shell
 
 For more information on running code read documentation.pdf
