@@ -1,0 +1,61 @@
+import os
+import os.path
+import pysvn
+env = Environment()
+
+def casa_svnversion(casapath):
+    import re
+    import os.path
+    casapyinfofile = open(os.path.join(casapath, 'casapyinfo'))
+    svnversion = None
+    for line in casapyinfofile:
+        match = re.match('SVNVERSION="([0-9]*)"', line)
+        if match:
+            svnversion = match.groups()[0]
+
+    if svnversion is None:
+        raise IOError('Can not find svn version.')
+
+    return svnversion
+        
+
+
+casapath = '/home/lindroos/sw/casapy'
+casalibpath = os.path.join(casapath, 'lib64')
+
+
+svnversion = casa_svnversion(casapath)
+client = pysvn.Client()
+casacore_svnpath = 'https://svn.cv.nrao.edu/svn/casa/trunk/casacore/'
+casacore_path = 'casacore-for-casapy-r{0}'.format(svnversion)
+svnrevision=pysvn.Revision(pysvn.opt_revision_kind.number, 26465)
+client.checkout(casacore_svnpath, casacore_path, svnrevision)
+
+env.Append(CPPPATH = [casacore_path])
+env.Append(LIBPATH = [casalibpath])
+env.Append(LIBS = ['casa_scimath', 'casa_casa', 'casa_tables', 'casa_images', 
+                   'casa_ms', 'casa_components', 'casa_coordinates',
+                   'casa_lattices','casa_measures', 'casa_scimath_f', 'casa_fits', 
+                   'casa_msfits', 'casa_derivedmscal', 'casa_mirlib'])
+env.Append(LIBS=File(os.path.join(casalibpath, 'libgfortran.so.1')))
+env.Append(LIBS=File(os.path.join(casalibpath, 'liblapack.so.3')))
+env.Append(LIBS=File(os.path.join(casalibpath, 'libblas.so.3')))
+env.Append(LIBS=File(os.path.join(casalibpath, 'libwcs.so.4.7')))
+env.Append(LIBS=File(os.path.join(casalibpath, 'libcfitsio.so.0')))
+env.Append(CCFLAGS = ['-fPIC','-O3'])
+
+Sources = []
+Sources.append("Coords.cpp")
+Sources.append("Model.cpp")
+Sources.append("DataIOFits.cpp")
+Sources.append("msio.cpp")
+Sources.append("Chunk.cpp")
+Sources.append("PrimaryBeam.cpp")
+Sources.append("MSPrimaryBeam.cpp")
+Sources.append("ModsubChunkComputer.cpp")
+Sources.append("StackChunkComputer.cpp")
+Sources.append("MSComputer.cpp")
+Sources.append('stacker.cpp')
+
+object_list = env.SharedObject(Sources)
+env.SharedLibrary(target='stacker', source= object_list)
