@@ -14,7 +14,7 @@ def casa_svnversion(casapath):
             svnversion = match.groups()[0]
 
     if svnversion is None:
-        raise IOError('Can not find svn version.')
+        raise IOError('Can not find casa version.')
 
     return svnversion
         
@@ -31,25 +31,48 @@ def whichpath(file):
 
     return None
 
-casapath = whichpath('casapy')
-print('casapath', casapath)
-casalibpath = os.path.join(casapath, 'lib64')
+AddOption('--casapath',
+          dest='casapath',
+          type='string',
+          nargs = 1,
+          action='store',
+          metavar='DIR',
+          help='Path of casa installation.')
+casapath = GetOption('casapath')
+
+if casapath is None:
+    casapath = whichpath('casapy')
+casalibpath = os.path.join(casapath, 'lib')
 casapyinclude = os.path.join(casapath, 'include')
 
+print('Downloading casacore headers matching casapy version -')
 svnversion = casa_svnversion(casapath)
 client = pysvn.Client()
 casacore_svnpath = 'https://svn.cv.nrao.edu/svn/casa/trunk/casacore/'
 casacore_path = 'casacore-for-casapy-r{0}'.format(svnversion)
-svnrevision=pysvn.Revision(pysvn.opt_revision_kind.number, 26465)
-client.checkout(casacore_svnpath, casacore_path, svnrevision)
+#svnrevision=pysvn.Revision(pysvn.opt_revision_kind.number, 26465)
+svnrevision=pysvn.Revision(pysvn.opt_revision_kind.number, svnversion)
+rev = client.checkout(casacore_svnpath, casacore_path, svnrevision, svnrevision)
+# import subprocess
+# subprocess.Popen('svn co {0} {1} -r {2}'.format(casacore_svnpath, casacore_path, svnversion))
+        #pysvn.Revision(pysvn.opt_revision_kind.number))
+#print(rev)
+print('done')
 
-print(casapyinclude)
 env.Append(CPPPATH = [casacore_path, casapyinclude])
 env.Append(LIBPATH = [casalibpath])
-env.Append(LIBS = ['casa_scimath', 'casa_casa', 'casa_tables', 'casa_images', 
-                   'casa_ms', 'casa_components', 'casa_coordinates',
-                   'casa_lattices','casa_measures', 'casa_scimath_f', 'casa_fits', 
-                   'casa_msfits', 'casa_derivedmscal', 'casa_mirlib'])
+conf = Configure(env)
+if conf.CheckLib('casa_casa'):
+    env.Append(LIBS = ['casa_scimath', 'casa_casa', 'casa_tables', 'casa_images', 
+                    'casa_ms', 'casa_components', 'casa_coordinates',
+                    'casa_lattices','casa_measures', 'casa_scimath_f', 'casa_fits', 
+                    'casa_msfits', 'casa_derivedmscal', 'casa_mirlib'])
+elif conf.CheckLib('casacore'):
+    env.Append(LIBS = ['casacore'])
+else:
+    print('Did not find casa libraries!')
+    Exit(1)
+
 env.Append(LIBS=File(os.path.join(casalibpath, 'libgfortran.so.1')))
 env.Append(LIBS=File(os.path.join(casalibpath, 'liblapack.so.3')))
 env.Append(LIBS=File(os.path.join(casalibpath, 'libblas.so.3')))

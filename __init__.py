@@ -48,8 +48,35 @@ MS_DATACOLUMN_DATA = 1
 
 clib_path = os.path.join(os.path.abspath(__path__[0]),
                          'stacker_clib')
-libstacker = cdll.LoadLibrary(os.path.join(clib_path, 'libstacker.so'))
 
+def _casa_svnversion(casapath):
+    import re
+    import os.path
+    casapyinfofile = open(os.path.join(casapath, 'casapyinfo'))
+    svnversion = None
+    for line in casapyinfofile:
+        match = re.match('SVNVERSION="([0-9]*)"', line)
+        if match:
+            svnversion = match.groups()[0]
+
+    if svnversion is None:
+        raise IOError('Can not find casa version.')
+
+    return svnversion
+
+from taskinit import casa
+import os
+_svnversion = _casa_svnversion(casa['dirs']['root'])
+_libname = 'libstacker.so'
+_libpath = os.path.join(clib_path, 'libstacker-r{0}.so'.format(_svnversion))
+if _svnversion is not None and os.access(_libpath, os.F_OK):
+    print('Loading stacking library for casapy svn revision {0}'.format(_svnversion))
+else:
+    print('warning, no precompiled library compatible with your version of casa exists.')
+    print('Trying to use version 2.2.2 .')
+    _libpath = os.path.join(clib_path, 'libstacker-r30986.so'.format(_svnversion))
+
+libstacker = cdll.LoadLibrary(_libpath)
 
 class CoordList(list):
     """
