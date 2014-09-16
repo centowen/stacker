@@ -19,10 +19,17 @@ def casa_svnversion(casapath):
     return svnversion
         
 
+def whichpath(file):
+    import os
+    import os.path
+    for path in os.environ['PATH'].split(':'):
+        if os.path.exists(os.path.join(path, file)):
+            return path
 
-casapath = '/home/lindroos/sw/casapy'
+    return None
+
+casapath = whichpath('casapy')
 casalibpath = os.path.join(casapath, 'lib64')
-
 
 svnversion = casa_svnversion(casapath)
 client = pysvn.Client()
