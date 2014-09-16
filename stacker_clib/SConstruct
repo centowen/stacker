@@ -24,12 +24,17 @@ def whichpath(file):
     import os.path
     for path in os.environ['PATH'].split(':'):
         if os.path.exists(os.path.join(path, file)):
-            return path
+            l = os.path.join(path, file)
+            while os.path.islink(l):
+                l = os.path.join( os.path.dirname(l), os.readlink(l))
+            return os.path.dirname(l)
 
     return None
 
 casapath = whichpath('casapy')
+print('casapath', casapath)
 casalibpath = os.path.join(casapath, 'lib64')
+casapyinclude = os.path.join(casapath, 'include')
 
 svnversion = casa_svnversion(casapath)
 client = pysvn.Client()
@@ -38,7 +43,8 @@ casacore_path = 'casacore-for-casapy-r{0}'.format(svnversion)
 svnrevision=pysvn.Revision(pysvn.opt_revision_kind.number, 26465)
 client.checkout(casacore_svnpath, casacore_path, svnrevision)
 
-env.Append(CPPPATH = [casacore_path])
+print(casapyinclude)
+env.Append(CPPPATH = [casacore_path, casapyinclude])
 env.Append(LIBPATH = [casalibpath])
 env.Append(LIBS = ['casa_scimath', 'casa_casa', 'casa_tables', 'casa_images', 
                    'casa_ms', 'casa_components', 'casa_coordinates',
@@ -54,7 +60,7 @@ env.Append(CCFLAGS = ['-fPIC','-O3'])
 Sources = []
 Sources.append("Coords.cpp")
 Sources.append("Model.cpp")
-Sources.append("DataIOFits.cpp")
+#Sources.append("DataIOFits.cpp")
 Sources.append("msio.cpp")
 Sources.append("Chunk.cpp")
 Sources.append("PrimaryBeam.cpp")
@@ -65,4 +71,4 @@ Sources.append("MSComputer.cpp")
 Sources.append('stacker.cpp')
 
 object_list = env.SharedObject(Sources)
-env.SharedLibrary(target='stacker', source= object_list)
+env.SharedLibrary(target='stacker-r{0}'.format(svnversion), source=object_list)
