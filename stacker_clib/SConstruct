@@ -45,21 +45,21 @@ if casapath is None:
 casalibpath = os.path.join(casapath, 'lib')
 casapyinclude = os.path.join(casapath, 'include')
 
-print('Downloading casacore headers matching casapy version -')
 svnversion = casa_svnversion(casapath)
-client = pysvn.Client()
-casacore_svnpath = 'https://svn.cv.nrao.edu/svn/casa/trunk/casacore/'
-casacore_path = 'casacore-for-casapy-r{0}'.format(svnversion)
-#svnrevision=pysvn.Revision(pysvn.opt_revision_kind.number, 26465)
-svnrevision=pysvn.Revision(pysvn.opt_revision_kind.number, svnversion)
-rev = client.checkout(casacore_svnpath, casacore_path, svnrevision, svnrevision)
-# import subprocess
-# subprocess.Popen('svn co {0} {1} -r {2}'.format(casacore_svnpath, casacore_path, svnversion))
-        #pysvn.Revision(pysvn.opt_revision_kind.number))
-#print(rev)
-print('done')
+if int(svnversion) > 22889:
+    print('Downloading casacore headers matching casapy version -')
+    client = pysvn.Client()
+    casacore_svnpath = 'https://svn.cv.nrao.edu/svn/casa/trunk/casacore/'
+    casacore_path = 'casacore-for-casapy-r{0}'.format(svnversion)
+    svnrevision=pysvn.Revision(pysvn.opt_revision_kind.number, svnversion)
+    rev = client.checkout(casacore_svnpath, casacore_path, svnrevision, svnrevision)
+    print('done')
 
-env.Append(CPPPATH = [casacore_path, casapyinclude])
+if int(svnversion) > 22889:
+    env.Append(CPPPATH = [casacore_path, casapyinclude])
+else:
+    env.Append(CPPPATH = [casapyinclude, os.path.join(casapyinclude, 'casacore')])
+
 env.Append(LIBPATH = [casalibpath])
 conf = Configure(env)
 if conf.CheckLib('casa_casa'):
