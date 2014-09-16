@@ -73,8 +73,17 @@ if _svnversion is not None and os.access(_libpath, os.F_OK):
     print('Loading stacking library for casapy svn revision {0}'.format(_svnversion))
 else:
     print('warning, no precompiled library compatible with your version of casa exists.')
-    print('Trying to use version 2.2.2 .')
-    _libpath = os.path.join(clib_path, 'libstacker-r30986.so'.format(_svnversion))
+    print('It is recommended to recompile stacker for your casa version.')
+    import re
+    stacker_clib_ls = os.listdir(clib_path)
+    stackerlibs = [((re.match('libstacker-r([0-9]*).so', f).group(1)),f) for f in stacker_clib_ls if re.match('libstacker-r[0-9]*.so', f)]
+    print(stackerlibs)
+    vdiff = [(abs(int(_svnversion)-int(v)),lib, v) for (v,lib) in stackerlibs]
+    vdiff.sort()
+    print(vdiff)
+    print('Trying to use svn revision {0}.'.format(vdiff[0][2]))
+    _libpath = os.path.join(clib_path, vdiff[0][1])
+
 
 libstacker = cdll.LoadLibrary(_libpath)
 
