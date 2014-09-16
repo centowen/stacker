@@ -4,15 +4,22 @@ make install # Should work in most cases.
 
 
 # ------ If that does not work ------
-This is is compiled for casa version 4.2.0a rev#28144. If your version is close
-to this you should be able to directly used the compiled libraries.  Copy
-stacker folder to a python library path, typically "~/.casa/ipython/" is a good
-place.
+This is compiled for several casa versions.  Copy stacker folder to a python
+library path, typically "~/.casa/ipython/" is a good place.
 
 In case the library does not work you will need to manually compile. This requires
 casacore of the same version as your casa version uses.
 
 1. Download and compile casacore (v. 1.2.35.29 works for version 4.2.0 of CASA).
-2. Add path to casa and casacore in stacked_clib/Makefile
-3. $ make
-4. $ make install
+
+For version 4.X of casa it should work to run 
+$ svn co https://svn.cv.nrao.edu/svn/casa/trunk/casacore/ <destination> -r <your casa version>
+to download the right version of casacore headers. And (in "stacker_clib/Makefile") set
+CASACORE_INCLUDE=-I$(CASABASE)/include -I<destination>
+
+For version 3.X of casa it should work to set 
+CASACORE_INCLUDE=-I$(CASABASE)/include -I$(CASABASE)/include/casacore
+in "stacker_clib/Makefile".
+
+2. $ make
+3. $ make install

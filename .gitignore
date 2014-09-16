@@ -1,4 +1,5 @@
 *.o
+*.os
 *.pyc
 example/output
 example/*.pb

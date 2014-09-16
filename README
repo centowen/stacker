@@ -1,7 +1,7 @@
 Python module to stack data in the uv or image domain.
 
 Requirements:
-casapy 4.2
+casapy
 + everything required to run casa
 
 To install run:
