@@ -55,7 +55,7 @@ flux = {}
 flux['image'] = stacker.image.stack(coords, 'output/imstacked.image', 
                     imagenames=['output/residual.image'], 
                     stampsize=stampsize, 
-                    method='mean', # As opposed to median.
+                    method='mean',  # As opposed to median.
                     weighting=None) # This ensures that the weights set 
                                     # are used. weighting='sigma2' would
                                     # would recalculate weights.

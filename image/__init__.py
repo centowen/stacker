@@ -119,7 +119,7 @@ def calculate_flux_weights(coords, imagenames=[]):
 
 
 def stack(coords, outfile, stampsize = 32, imagenames= [], method = 'mean',
-        weighting = 'sigma2', maxmaskradius=None, psfmode = 'point', primarybeam = None):
+        weighting = None, maxmaskradius=None, psfmode = 'point', primarybeam = None):
     """
    	 Performs stacking in the image domain.
 

@@ -1,7 +1,10 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
-\title{Documention for module stacker}
+\usepackage{natbib}
+\usepackage{amsmath}
+\bibliographystyle{mn2e}
+\title{Documentation for module stacker}
 
 \author{L. Lindroos}
 
@@ -14,10 +17,48 @@ The module is designed to stack interferometric data.
 Primarily it was designed to allow stacking in the uv domain, 
 but supports stacking in image domain.
 
-\section{Coordinates}
+\section{Algorithm}
+The algorithms used by this code are described in \cite{lindroos2014}.
+The image based algorithm supports either mean or median stacking,
+where the flux from subimages are average with either the median or a weighted mean method.
+It works on a pixel-by-pixel basis in a defined stamp around the stacking positions.
+
+The $uv$-stacking algorithm is based on aligning the phases of all visibilties to the target sources.
+Stacked visibilities are calculated as 
+\begin{equation}
+	V_\mathrm{stack}(u,v,w) = V(u,v,w) \frac{\Sigma_{k=1}^N W_k \frac{1}{A_N(l_k, m_k)} e^{\frac{2\pi}{\lambda} i \left( u l_k + v m_k + w(\sqrt{1-l_k^2-m_k^2})\right)} 
+	}{\Sigma_{k=1}^N W_k}
+	\label{eq:uvstack}
+\end{equation}
+where $(l_k, m_k)$ are the separation of stacking position $k$ from the phase centre,
+$(u,v,w)$ are the coordinates of the visibility in the $uv$ plane,
+$\lambda$ is the wavelength, 
+$A_N(l_k, m_k)$ is the primary beam attenuation at stacking position $k$,
+and $W_k$ is the weight of the stacking position.
+
+\section{Usage}
+This document provides a quick overview of the available functionalities in {\tt stacker}.
+The module contains 3 packages: {\tt pb}, {\tt image} and {\tt uv}.
+The packages {\tt image} and {\tt uv} provides functions to stack in the image and $uv$ domain respectively.
+The package {\tt pb} allows for describing the primary beam model.
+For a typical example of how {\tt stacker} can be used see the provided example in ``{\tt example/stack\_testdata.py}''.
+
+\subsection{Coordinates}
 The coordinates are described by a {\tt coordList} object in the module.
-A {\tt coordList} object can be generated from a csv file with the function {\tt stacker.readCoords}.
-It can also be built from scratch
+A {\tt coordList} object can be generated from a csv file with the function {\tt stacker.readCoords},
+i.e.,
+\begin{verbatim}
+coord = stacker.readCoords(<path to coordinate file>)
+\end{verbatim}
+Syntax of coordinate file should be
+\begin{verbatim}
+x1, y1(, weight1)
+x2, y2(, weight2)
+\end{verbatim}
+etc. For more info run help(stacker.readCoords) in casapy.
+
+
+A coords object can also be built from scratch
 \begin{verbatim}
 coords = stacker.CoordList()
 coords.append(stacker.Coord(x1, y1))
@@ -25,18 +66,29 @@ coords.append(stacker.Coord(x2, y2))
 \end{verbatim}
 Note that coordinates here should be give in J2000 radians.
 
-\section{Primary beam model}
+\subsection{Primary beam model}
 The primary beam model can be defined by an instance of 
 {\tt stacker.pb.PrimaryBeamModel} or inherited classes. The c code only support
 {\tt stacker.pb.MSPrimaryBeamModel} and {\tt stacker.pb.PrimaryBeamModel}. 
 A primary beam model can be generated from a measurement set with the function
 {\tt stacker.pb.guesspb}.
+\begin{verbatim}
+pbmodel = stacker.pb.guesspb(<path to ms file>)
+\end{verbatim}
+If $uv$ stacking is run without specifying a primary beam model it will automatically attempt to use {\tt stacker.pb.guesspb}.
 
-\section{uv}
-Submodule for stacking in the uv domain. 
+\subsection{uv}
+Submodule for stacking in the $uv$ domain. 
 Primarily provides two functions {\tt stacker.uv.stack} and {\tt stacker.uv.noise}.
 The first perform ({\tt stacker.uv.stack}) the actual stacking, 
-and requires an input uv data-file and a {\tt coordsList} object as input.
+and requires an input $uv$-data file and a {\tt coordsList} object as input.
+\begin{verbatim}
+import stacker, stacker.uv
+coords = stacker.readCoords(<path to coordinate file>)
+flux = stacker.uv.stack(coords, <path to ms data file>, 
+                        <path to save stacked ms file>)
+\end{verbatim}
+For more info on usage run {\tt help(stacker.uv.stack)} in casapy.
 
 The second ({\tt stacker.uv.noise}) calculates noise using a Monte Carlo
 where random positions are stacked to estimate the noise level. 
@@ -44,15 +96,23 @@ The function will try to recompute weights for the random positions.
 If you require variable weights which are not simply the primary beam
 or the noise in a local stamp you will have to re-implement the function.
 
-\section{image}
+\subsection{image}
 Submoduls for stacking in the image domain.
 Provides the same functions as the submodule {\tt uv} except it works fully in the image domain.
-The same caveats apply. 
-
-Also provides functions to calculate local weights for positions from the stamps surrounding them.
-
-The module can handle a list of images as well as an individual image.
+\begin{verbatim}
+import stacker, stacker.image
+coords = stacker.readCoords(<path to coordinate file>)
+flux = stacker.uv.stack(coords, <target file>, 
+                        <stamp size in pixels>, <list of image maps>)
+\end{verbatim}
+The image maps are assumed to have been primary beam corrected.
+The package can handle a list of images as well as an individual image.
 An individual image should be specified as a one element list.
+For more details run help(stacker.image.stack) in casapy.
 
+The {\tt image} package also provides functions to calculate local weights for
+positions from the stamps surrounding them. 
+
+\bibliography{stackerdoc} 
 \end{document}
 
