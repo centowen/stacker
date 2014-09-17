@@ -219,9 +219,6 @@ def _checkfile(filename, datacolumn):
         raise NotImplementedError('FITS format is currently not supported.')
     return filetype, filename, fileoptions
 
-def calculateSigma2Weights(coords, imagenames):
-    pass
-
 
 def coordsTocl(name, flux, coords):
     from taskinit import cl,qa
@@ -407,10 +404,6 @@ def make_pbfile(vis, pbfile):
     ia.setcoordsys(cs.torecord())
     ia.maskhandler('delete', 'mask0')
     ia.done()
-
-
-def calculate_pb_weight(coords, pbfile):
-    pass
 
 
 def getPixelCoords(coords, imagenames):

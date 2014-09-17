@@ -215,7 +215,6 @@ def noise(coords, nrandom = 50, imagenames=[], stampsize=32,
 
     dist = []
 
-#     coords = stacker.randomizeCoords(coords, beam=5)
     for i in range(nrandom):
         random_coords = stacker.randomizeCoords(coords, beam=beam)
         random_coords = stacker.getPixelCoords(random_coords, imagenames)
