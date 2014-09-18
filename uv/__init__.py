@@ -52,13 +52,16 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
     import shutil
     import os
     import re
-    from taskinit import casalog
-    casalog.origin('stacker')
+    try:
+        from taskinit import casalog
+    except ImportError:
+        casalog = None
 
-    casalog.post('#'*42,'INFO')
-    casalog.post('#'*5 +  ' {0: <31}'.format("Begin Task: Stacker")+'#'*5, 'INFO')
-
-    casalog.post('Number of stacking positions: {0}'.format(len(coords)), 'INFO')
+    if casalog is not None:
+        casalog.origin('stacker')
+        casalog.post('#'*42,'INFO')
+        casalog.post('#'*5 +  ' {0: <31}'.format("Begin Task: Stacker")+'#'*5, 'INFO')
+        casalog.post('Number of stacking positions: {0}'.format(len(coords)), 'INFO')
 
 
     if outvis != '':
@@ -74,11 +77,12 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
         outfileoptions = 0
 
     
-    casalog.post('Input uv file: \'{0}\' of type {1}'.format(infilename, stacker.FILETYPENAME[infiletype]), 'INFO')
-    if outvis != '':
-        casalog.post('Output uv file: \'{0}\' of type {1}'.format(outfilename, stacker.FILETYPENAME[outfiletype]), 'INFO')
-    else:
-        casalog.post('No output uv file given, will not write stacked visibility', 'INFO')
+    if casalog is not None:
+        casalog.post('Input uv file: \'{0}\' of type {1}'.format(infilename, stacker.FILETYPENAME[infiletype]), 'INFO')
+        if outvis != '':
+            casalog.post('Output uv file: \'{0}\' of type {1}'.format(outfilename, stacker.FILETYPENAME[outfiletype]), 'INFO')
+        else:
+            casalog.post('No output uv file given, will not write stacked visibility', 'INFO')
 
 # primary beam
     if primarybeam == 'guess':
@@ -94,8 +98,6 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
     y = (c_double*len(y))(*y)
     weight = (c_double*len(weight))(*weight)
 
-    from taskinit import qa
-
     flux = c_stack(infiletype, c_char_p(infilename), infileoptions,
                    outfiletype, c_char_p(outfilename), outfileoptions,
                    pbtype, c_char_p(pbfile),pbpars, pbnpars,
@@ -108,25 +110,29 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
         clean.clean(vis=outvis, imagename = imagename, field='0', mode='mfs',
                     cell=cell, imsize=stampsize, weighting='natural')
 
-    casalog.post('#'*5 +  ' {0: <31}'.format("End Task: stacker")+'#'*5)
-    casalog.post('#'*42)
+    if casalog is not None:
+        casalog.post('#'*5 +  ' {0: <31}'.format("End Task: stacker")+'#'*5)
+        casalog.post('#'*42)
     return flux
 
 
-def noise(coords, vis, imagenames, weighting = 'sigma2', nrand = 50, stampsize = 32, maskradius = None):
+def noise(coords, vis, weighting = 'sigma2', imagenames = [], beam = None, nrand = 50, stampsize = 32, maskradius = None):
     """ Calculate noise using a Monte Carlo method, can be time consuming. """
     import stacker
     import stacker.image
-    from taskinit import ia, qa
+    if beam is None:
+        try:
+            from taskinit import ia, qa
 
-    ia.open(imagenames[0])
-    beam = qa.convert(ia.restoringbeam()['major'], 'rad')['value']
-    ia.done()
+            ia.open(imagenames[0])
+            beam = qa.convert(ia.restoringbeam()['major'], 'rad')['value']
+            ia.done()
+        except ImportError:
+            beam = 1/3600./180.*pi
 
     dist = []
     for i in range(nrand):
         random_coords = stacker.randomizeCoords(coords, beam=beam)
-        print 'peti',len(random_coords), len(coords)
         if weighting == 'sigma2':
             random_coords = stacker.image.calculate_sigma2_weights( random_coords, imagenames, stampsize, maskradius)
         dist.append(stack(random_coords, vis))
