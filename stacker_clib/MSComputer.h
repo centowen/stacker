@@ -21,8 +21,7 @@
  * MSComputer
  *
  * Runs a computer for all visbilities in a CASA measurement set. Will use
- * pthreads to use maximum number of cores. Will also handle all file io 
- * internally.
+ * pthreads to use maximum number of cores. Will also handle all file io.
  ***/
 
 #include <queue>
