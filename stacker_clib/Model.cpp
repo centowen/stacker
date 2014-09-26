@@ -133,8 +133,12 @@ void Model::compute(DataIO* ms, PrimaryBeam* pb)
 
 		for(int fieldID = 0; fieldID < nPointings; fieldID++)
 		{
-			float dx = 1.*((x - float(ms->xPhaseCentre(fieldID)))*cos(y));
-			float dy = 1.*(asin(sin(y)/cos(dx)) - float(ms->yPhaseCentre(fieldID)));
+// 			float dx = 1.*((x - float(ms->xPhaseCentre(fieldID)))*cos(y));
+// 			float dy = 1.*(asin(sin(y)/cos(dx)) - float(ms->yPhaseCentre(fieldID)));
+            float dx = sin(x-ms->xPhaseCentre(fieldID))*cos(y);
+            float dy = sin(y)*cos(ms->yPhaseCentre(fieldID))-
+				       cos(y)*sin(ms->yPhaseCentre(fieldID))*
+					   cos(x-ms->xPhaseCentre(fieldID));
 
 
 			if(pb->calc(dx,  dy )> 0.01)
@@ -180,8 +184,12 @@ void Model::compute(DataIO* ms, PrimaryBeam* pb)
 			flux[fieldID][i] = cflux[fieldID][i];
 			size[fieldID][i] = csize[fieldID][i];
 
-			dx[fieldID][i] = (x[fieldID][i] - float(ms->xPhaseCentre(fieldID)))*cos(y[fieldID][i]);
-			dy[fieldID][i] = asin(sin(y[fieldID][i])/cos(dx[fieldID][i])) - float(ms->yPhaseCentre(fieldID));
+// 			dx[fieldID][i] = (x[fieldID][i] - float(ms->xPhaseCentre(fieldID)))*cos(y[fieldID][i]);
+// 			dy[fieldID][i] = asin(sin(y[fieldID][i])/cos(dx[fieldID][i])) - float(ms->yPhaseCentre(fieldID));
+            dx[fieldID][i] = sin(x[fieldID][i]-ms->xPhaseCentre(fieldID))*cos(y[fieldID][i]);
+            dy[fieldID][i] = sin(y[fieldID][i])*cos(ms->yPhaseCentre(fieldID)) -
+			                 cos(y[fieldID][i])*sin(ms->yPhaseCentre(fieldID)) *
+			                 cos(x[fieldID][i]-ms->xPhaseCentre(fieldID));
 
 			omega_x[fieldID][i] = 2*pi*sin(dx[fieldID][i])/casa::C::c;
 			omega_y[fieldID][i] = 2*pi*sin(dy[fieldID][i])/casa::C::c;

@@ -60,10 +60,13 @@ void Coords::computeCoords(DataIO* ms, PrimaryBeam& pb)
 		bool pointVisible = false;
 		for(int fieldID = 0; fieldID < nPointings; fieldID++)
 		{
-            float dx = (float(x_raw[i]) - ms->xPhaseCentre(fieldID))*cos(y_raw[i]);
-            float dy = asin(sin(float(y_raw[i]))/cos(dx)) - ms->yPhaseCentre(fieldID);
-//          float dx = (x - x_phase_centre[fieldID])*cos(y);
-//          float dy = asin(sin(y)) - y_phase_centre[fieldID];
+            float dx = sin(x_raw[i]-ms->xPhaseCentre(fieldID))*cos(y_raw[i]);
+            float dy = sin(y_raw[i])*cos(ms->yPhaseCentre(fieldID))-
+				       cos(y_raw[i])*sin(ms->yPhaseCentre(fieldID))*cos(x_raw[i]-ms->xPhaseCentre(fieldID));
+//             float dx = (float(x_raw[i]) - ms->xPhaseCentre(fieldID))*cos(y_raw[i]);
+//             float dy = asin(sin(float(y_raw[i]))/cos(dx)) - ms->yPhaseCentre(fieldID);
+// 			float dx = (x - x_phase_centre[fieldID])*cos(y);
+// 			float dy = asin(sin(y)) - y_phase_centre[fieldID];
 			while(dx > 2*pi) dx -= 2*pi;
 			while(dx < -2*pi) dx += 2*pi;
 
@@ -111,16 +114,22 @@ void Coords::computeCoords(DataIO* ms, PrimaryBeam& pb)
             this->y[fieldID][i] = cy[fieldID][i];
             this->weight[fieldID][i] = cweight[fieldID][i];
 
-            dx[fieldID][i] = (this->x[fieldID][i] - ms->xPhaseCentre(fieldID))*cos(this->y[fieldID][i]);
-            dy[fieldID][i] = asin(sin(this->y[fieldID][i])/cos(dx[fieldID][i])) - ms->yPhaseCentre(fieldID);
+//             dx[fieldID][i] = (this->x[fieldID][i] - ms->xPhaseCentre(fieldID))*cos(this->y[fieldID][i]);
+//             dy[fieldID][i] = asin(sin(this->y[fieldID][i])/cos(dx[fieldID][i])) - ms->yPhaseCentre(fieldID);
+            dx[fieldID][i] = sin(this->x[fieldID][i]-ms->xPhaseCentre(fieldID))*cos(this->y[fieldID][i]);
+            dy[fieldID][i] = sin(this->y[fieldID][i])*cos(ms->yPhaseCentre(fieldID)) -
+			                 cos(this->y[fieldID][i])*sin(ms->yPhaseCentre(fieldID)) *
+			                 cos(this->x[fieldID][i]-ms->xPhaseCentre(fieldID));
 			while(dx[fieldID][i] > 2*pi) dx[fieldID][i] -= 2*pi;
 			while(dx[fieldID][i] < -2*pi) dx[fieldID][i] += 2*pi;
 // 
 //          dx[fieldID][i] = (x[fieldID][i] - x_phase_centre[fieldID])*cos(y[fieldID][i]);
 //          dy[fieldID][i] = asin(sin(y[fieldID][i])) - y_phase_centre[fieldID];
 
-            omega_x[fieldID][i] = 2*pi*sin(dx[fieldID][i])/c;
-            omega_y[fieldID][i] = 2*pi*sin(dy[fieldID][i])/c;
+//             omega_x[fieldID][i] = 2*pi*sin(dx[fieldID][i])/c;
+//             omega_y[fieldID][i] = 2*pi*sin(dy[fieldID][i])/c;
+            omega_x[fieldID][i] = 2*pi*dx[fieldID][i]/c;
+            omega_y[fieldID][i] = 2*pi*dy[fieldID][i]/c;
 //             omega_z[fieldID][i] = 2*pi*(cos(sqrt(dx[fieldID][i]*dx[fieldID][i]+dy[fieldID][i]*dy[fieldID][i]))-1)/c;
             omega_z[fieldID][i] = 2*pi*(sqrt(1-dx[fieldID][i]*dx[fieldID][i]-dy[fieldID][i]*dy[fieldID][i])-1)/c;
         }
