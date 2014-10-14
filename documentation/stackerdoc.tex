@@ -14,16 +14,16 @@
 \section{Introduction}
 This document describes version 1.0 of the module {\tt stacker}.
 The module is designed to stack interferometric data.
-Primarily it was designed to allow stacking in the uv domain, 
+Primarily it was designed to allow stacking in the $uv$ domain, 
 but supports stacking in image domain.
 
 \section{Algorithm}
 The algorithms used by this code are described in \cite{lindroos2014}.
 The image based algorithm supports either mean or median stacking,
-where the flux from subimages are average with either the median or a weighted mean method.
-It works on a pixel-by-pixel basis in a defined stamp around the stacking positions.
+where the flux from sub images are average with either the median or a weighted mean method.
+It works on a pixel-by-pixel basis in a defined rectangular region (stamp) around the stacking positions.
 
-The $uv$-stacking algorithm is based on aligning the phases of all visibilties to the target sources.
+The $uv$-stacking algorithm is based on aligning the phases of all visibilities to the target sources.
 Stacked visibilities are calculated as 
 \begin{equation}
 	V_\mathrm{stack}(u,v,w) = V(u,v,w) \frac{\Sigma_{k=1}^N W_k \frac{1}{A_N(l_k, m_k)} e^{\frac{2\pi}{\lambda} i \left( u l_k + v m_k + w(\sqrt{1-l_k^2-m_k^2})\right)} 
@@ -67,6 +67,7 @@ coords.append(stacker.Coord(x2, y2))
 Note that coordinates here should be give in J2000 radians.
 
 \subsection{Primary beam model}
+\label{sec:pb}
 The primary beam model can be defined by an instance of 
 {\tt stacker.pb.PrimaryBeamModel} or inherited classes. The c code only support
 {\tt stacker.pb.MSPrimaryBeamModel} and {\tt stacker.pb.PrimaryBeamModel}. 
@@ -76,6 +77,16 @@ A primary beam model can be generated from a measurement set with the function
 pbmodel = stacker.pb.guesspb(<path to ms file>)
 \end{verbatim}
 If $uv$ stacking is run without specifying a primary beam model it will automatically attempt to use {\tt stacker.pb.guesspb}.
+This has been tested for ALMA and VLA data, 
+and in these cases manually specifiyng the primary beam model is not necessary.
+
+A custom primary-beam model can be used by writing it to a casa image.
+The image should be centered at $(0., 0.)$.
+The primary beam is loaded into casa using
+\begin{verbatim}
+pbmodel = stacker.pb.MSPrimaryBeamModel(<path to pb file>)
+\end{verbatim}
+
 
 \subsection{uv}
 Submodule for stacking in the $uv$ domain. 
@@ -96,23 +107,66 @@ The function will try to recompute weights for the random positions.
 If you require variable weights which are not simply the primary beam
 or the noise in a local stamp you will have to re-implement the function.
 
+
 \subsection{image}
 Submoduls for stacking in the image domain.
 Provides the same functions as the submodule {\tt uv} except it works fully in the image domain.
 \begin{verbatim}
 import stacker, stacker.image
 coords = stacker.readCoords(<path to coordinate file>)
-flux = stacker.uv.stack(coords, <target file>, 
-                        <stamp size in pixels>, <list of image maps>)
+flux = stacker.image.stack(coords, <target file>, 
+                          <stamp size in pixels>, <list of image maps>)
 \end{verbatim}
-The image maps are assumed to have been primary beam corrected.
+The function {\tt stacker.image.stack} writes the stacked image to <target file>,
+as well as returning a flux estimate which assumes the stacked source is a point source.
+The input image maps are assumed to have been primary beam corrected.
 The package can handle a list of images as well as an individual image.
 An individual image should be specified as a one element list.
 For more details run help(stacker.image.stack) in casapy.
 
 The {\tt image} package also provides functions to calculate local weights for
-positions from the stamps surrounding them. 
+positions from the stamps surrounding them or from the primary beam.
+For ALMA data it is most likely best to use the pb weighting mode.
+This mode requires a primary beam model to calculate the weights, 
+for more details see section \ref{sec:pb}.
+
+\section{Some related techniques}
+This sections describes a few of techniques
+which are not unique to stacking, 
+but may be useful in the context of stacking.
+
+\subsection{Removing bright sources}
+Bright non-target sources present in the data can significantly impact the stacking result.
+To reduce this effect, a model of the bright sources should be subtracted from the $uv$ data.
+If the data is imaged with {\tt clean} in casa the model can be subtracted using the task {\tt uvsub}.
+
+The package {\tt modsub} also provides a facility to subtract a model from the $uv$ data.
+As input it takes a casa component list of the model. 
+\begin{verbatim}
+import stacker.modsub
+stacker.modsub.modsub(<path to casa cl file>, <path to in ms file>,
+	                  <path to out ms file>)
+\end{verbatim}
+This function can also be given a custom primary-beam model defined by the {\tt pb} package.
+
+
+\subsection{Stacking in mosaic data sets}
+When $uv$ stacking in mosaics it is important that the relative weights between the different pointings are scaled correctly.
+This may not be the case for non contiguous mosaics.
+In these cases the weights can be recomputed using the casa task {\tt statwt}. 
+This calculates the weight of each visibility using the scatter over nearby visibilities.
+
+If using image-stacking it is most likely best image each pointing separately.
+The function {\tt stacker.image.stack} can be given a list of all pointings,
+and will automatically assign proper weights to each position in each pointing.
 
 \bibliography{stackerdoc} 
+
+\section{Concluding remarks}
+If you have question, or are looking for more information, 
+do not hesitate to contact me at lindroos@chalmers.se .
+
+When referencing the usage of this code, please cite \cite{lindroos2014}.
+
 \end{document}
 
