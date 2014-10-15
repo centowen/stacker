@@ -6,7 +6,13 @@
 \bibliographystyle{mn2e}
 \title{Documentation for module stacker}
 
-\author{L. Lindroos}
+\author{L. Lindroos\\
+{\it Department of Earth and Space Sciences,}\\
+{\it Chalmers University of Technology,}\\
+{\it Onsala Space Observatory,
+SE-439 92 Onsala,
+Sweden}
+}
 
 \begin{document}
 \maketitle
@@ -16,7 +22,7 @@ This document describes version 1.0 of the module {\tt stacker}.
 The module is designed to stack interferometric data.
 Primarily it was designed to allow stacking in the $uv$ domain, 
 but supports stacking in image domain.
-When referencing the usage of this code, please cite \cite{lindroos2014}.
+When referencing the usage of this code, please cite Lindroos et al., 2014, MNRAS, submitted.
 
 If you have question, or are looking for more information, 
 do not hesitate to contact me at lindroos@chalmers.se .
@@ -104,6 +110,8 @@ flux = stacker.uv.stack(coords, <path to ms data file>,
                         <path to save stacked ms file>)
 \end{verbatim}
 For more info on usage run {\tt help(stacker.uv.stack)} in casapy.
+The output, written to the stacked ms file,
+can be further analyzed with a tool such {\tt uvmultifit} \citep{vidal2014}.
 
 The second ({\tt stacker.uv.noise}) calculates noise using a Monte Carlo
 where random positions are stacked to estimate the noise level. 
@@ -121,7 +129,7 @@ coords = stacker.readCoords(<path to coordinate file>)
 flux = stacker.image.stack(coords, <target file>, 
                           <stamp size in pixels>, <list of image maps>)
 \end{verbatim}
-The function {\tt stacker.image.stack} writes the stacked image to <target file>,
+The function {\tt stacker.image.stack} writes the stacked image to the target file,
 as well as returning a flux estimate which assumes the stacked source is a point source.
 The input image maps are assumed to have been primary beam corrected.
 The package can handle a list of images as well as an individual image.
