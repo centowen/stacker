@@ -66,6 +66,10 @@ class DataIOFits : public DataIO
 		float xPhaseCentre(int fieldID);
 		float yPhaseCentre(int fieldID);
 		void setPhaseCentre(int fieldID, double x, double y);
+
+		int nChan();
+		int nSpw();
+		float* getFreq();
 };
 
 #endif // inclusion guard

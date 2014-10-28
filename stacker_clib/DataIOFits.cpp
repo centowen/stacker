@@ -180,3 +180,18 @@ void DataIOFits::setPhaseCentre(int fieldID, double x, double y)
 {
 }
 
+int DataIOFits::nChan()
+{
+	return 0;
+}
+
+int DataIOFits::nSpw()
+{
+	return 0;
+}
+
+float* DataIOFits::getFreq()
+{
+	return NULL;
+}
+

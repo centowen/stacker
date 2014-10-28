@@ -57,6 +57,10 @@ class DataIO
 		virtual float yPhaseCentre(int fieldID) = 0;
 		virtual void setPhaseCentre(int fieldID, double x, double y) = 0;
 
+		virtual int nChan() = 0;
+		virtual int nSpw() = 0;
+		virtual float* getFreq(int spw) = 0;
+
 };
 
 #endif //inclusion guard

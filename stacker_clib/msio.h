@@ -54,7 +54,7 @@ class msio : public DataIO
 		MatrixIterator<Complex>* datainit;
 		VectorIterator<double>* uvwinit;
 		VectorIterator<float>* weightinit;
-		double** freq;
+		float** freq;
 		int nchan, nspw;
 		MeasurementSet* msin;
 		ROMSColumns* msincols;
@@ -87,6 +87,9 @@ class msio : public DataIO
 		float yPhaseCentre(int fieldID);
 		void setPhaseCentre(int fieldID, double x, double y);
 
+		int nChan();
+		int nSpw();
+		float* getFreq(int spw);
 };
 
 #endif //inclusion guard

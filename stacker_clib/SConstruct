@@ -47,7 +47,7 @@ casapyinclude = os.path.join(casapath, 'include')
 
 svnversion = casa_svnversion(casapath)
 if int(svnversion) > 22889:
-    print('Downloading casacore headers matching casapy version -')
+    print('Downloading casacore headers matching casapy svn revision {0}'.format(svnversion))
     client = pysvn.Client()
     casacore_svnpath = 'https://svn.cv.nrao.edu/svn/casa/trunk/casacore/'
     casacore_path = 'casacore-for-casapy-r{0}'.format(svnversion)

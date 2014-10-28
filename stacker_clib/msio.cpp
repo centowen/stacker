@@ -74,14 +74,14 @@ msio::msio(const char* msinfile, const char * msoutfile,
 	VectorIterator<double>* freqinit = (casa::VectorIterator<double>*) msincols->spectralWindow().chanFreq().getColumn().makeIterator(1);
 	
 	nspw = msincols->spectralWindow().nrow();
-	freq  = new double*[nspw];
+	freq  = new float*[nspw];
 	for(int row =0 ; row < nspw; row++)
 	{
 		casa::Vector<double> freqbuff = freqinit->vector();
 		nchan = freqbuff.shape()(0);
-		freq[row] = new double[nchan];
+		freq[row] = new float[nchan];
 		for(int col = 0; col < nchan; col++)
-			freq[row][col] = freqbuff(col);
+			freq[row][col] = float(freqbuff(col));
 		freqinit->next();
 	}
 
@@ -350,3 +350,18 @@ void msio::setPhaseCentre(int fieldID, double x, double y)
 	msoutcols->field().delayDir().put(fieldID, newPhaseCentre);
 }
 
+
+int msio::nChan()
+{
+	return nchan;
+}
+
+int msio::nSpw()
+{
+	return nspw;
+}
+
+float* msio::getFreq(int spw)
+{
+	return freq[spw];
+}
