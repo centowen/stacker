@@ -23,8 +23,9 @@
 #include <tables/Tables/TableError.h>
 using casa::TableError;
 
-msio::msio(const char* msinfile, const char * msoutfile,
-		             pthread_mutex_t* mutex , bool workondatacolumn)
+msio::msio(const char* msinfile,
+           const char * msoutfile,
+           bool workondatacolumn)
 {
 	msin = new MeasurementSet(msinfile);
 	msincols = new ROMSColumns(*msin);
@@ -42,7 +43,8 @@ msio::msio(const char* msinfile, const char * msoutfile,
 		}
 		catch(TableError e)
 		{
-			throw fileException(fileException::CORRECTED_DATA_MISSING, "No \'corrected_data\' column exists in input mstable.");
+			throw fileException(fileException::CORRECTED_DATA_MISSING,
+					"No \'corrected_data\' column exists in input mstable.");
 		}
 	}
 
@@ -65,7 +67,6 @@ msio::msio(const char* msinfile, const char * msoutfile,
 		msout = NULL;
 		msoutcols = NULL;
 	}
-	this->mutex = *mutex;
 	currentVisibility = 0;
 // 	datainit = (casa::MatrixIterator<Complex>*) msincols->data().getColumn().makeIterator(2);
 // 	uvwinit = (casa::VectorIterator<double>*) msincols->uvw().getColumn().makeIterator(1);
@@ -207,7 +208,7 @@ int msio::readChunkSimple(Chunk& chunk)
 	Vector<double> uvw;
 	Matrix<Complex> data;
 	Vector<float> weight;
-	pthread_mutex_lock(&mutex);
+
 	int currentVisibility = this->currentVisibility;
 	if(currentVisibility >= nvis())
 		return 0;
@@ -216,7 +217,6 @@ int msio::readChunkSimple(Chunk& chunk)
 		chunk.setSize(nvis()-currentVisibility);
 	}
 	this->currentVisibility += chunk.size();
-	pthread_mutex_unlock(&mutex);
 
 	int uvrow = 0, nchan, nstokes;
 	for(int i = 0; i < chunk.size(); i++)

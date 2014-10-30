@@ -41,11 +41,11 @@ MSComputer::MSComputer(ChunkComputer* cc,
 	{
 		if(infileoptions & MS_DATACOLUMN_DATA)
 		{
-			data = (DataIO*)(new msio(infilename, outfilename, &mutex, true));
+			data = (DataIO*)(new msio(infilename, outfilename, true));
 		}
 		else
 		{
-			data = (DataIO*)(new msio(infilename, outfilename, &mutex, false));
+			data = (DataIO*)(new msio(infilename, outfilename, false));
 		}
 	}
 	else

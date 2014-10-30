@@ -43,6 +43,7 @@ stampsize = 64 # Size of stacked stamp
 # Create a coordinate descriptor
 coords = stacker.readCoords('coordinates.list')
 
+print("Starting to stack.")
 # Calculate position specific weigths from noise in residual image
 coords = stacker.image.calculate_sigma2_weights(coords,
         imagenames = ['output/residual.image'],

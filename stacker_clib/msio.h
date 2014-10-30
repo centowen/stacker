@@ -50,7 +50,6 @@ class Chunk;
 class msio : public DataIO
 {
 	private:
-		pthread_mutex_t mutex;
 		MatrixIterator<Complex>* datainit;
 		VectorIterator<double>* uvwinit;
 		VectorIterator<float>* weightinit;
@@ -75,7 +74,7 @@ class msio : public DataIO
 
 	public:
 		msio(const char* msinfile, const char* msoutfile, 
-		          pthread_mutex_t* mutex, bool workondatacolumn = false);
+		     bool workondatacolumn = false);
 		~msio();
 		int nvis();
 
