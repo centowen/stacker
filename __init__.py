@@ -363,8 +363,11 @@ def make_pbfile(vis, pbfile):
     import numpy as np
     from scipy.constants import c
 
+    ms.open(vis)
+    fields = ms.getrange('field_id')['field_id']
+    ms.done()
     im.open(vis)
-    im.selectvis(field='0')
+    im.selectvis(field=fields[0])
     ms.open(vis)
     freq = np.mean(ms.range('chan_freq')['chan_freq'])
     phase_dir = ms.range('phase_dir')['phase_dir']['direction']
