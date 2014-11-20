@@ -45,7 +45,16 @@ if casapath is None:
 casalibpath = os.path.join(casapath, 'lib')
 casapyinclude = os.path.join(casapath, 'include')
 
-svnversion = casa_svnversion(casapath)
+AddOption('--casasvnversion',
+          dest='casasvnversion',
+          type='int',
+          nargs = 1,
+          action='store',
+          help='Set a specific version of casa to compile against.')
+svnversion = GetOption('casasvnversion')
+if svnversion is None:
+    svnversion = casa_svnversion(casapath)
+
 if int(svnversion) > 22889:
     print('Downloading casacore headers matching casapy svn revision {0}'.format(svnversion))
     client = pysvn.Client()
