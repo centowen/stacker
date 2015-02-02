@@ -173,6 +173,39 @@ The function {\tt stacker.image.stack} can be given a list of all pointings,
 and will automatically assign proper weights to each position in each pointing.
 
 
+\section{Time usage of stacking code}
+Running uv-stacking requires to process all visibilities. 
+For large data sets this can be time consuming.
+As an example, we stacked a data set with $2.38\cdot10^{7}$ visibilities (approximately 900 MiB data set),
+stacking 900 different positions.
+Using a Intel CPU E5-2620 with 6 physical cores, this stacking uses 292$\pm$30 s.
+This time is dominated by the computation of the shifts applied to each visibility.
+Increasing the number of stacking positions will linearly increase the total run time.
+Also, running a Monte Carlo noise estimate will require one stack per Monte Carlo sample 
+(typically 100), resulting in a typical time of time of 8 hours for the test data.
+
+The uv-stacking algorithm is higly parallelizable. 
+As such it is possible to use the graphics processing unit (GPU).
+To do this, we have implemented a {CUDA \tt} version of the stacking code.
+We evaluating this code,
+using a NVIDIA GTX 480 GPU, 
+and the same data was stacked in 9.1$\pm$0.9 s.
+A significant improvement compared to the CPU based code,
+with a speed up factor of 32. 
+
+Timing the different parts of the code,
+shows that 70-80 \% of the time is used to read and write data from disk.
+Another 10-20 \% is used to shuffle data between the CPU and GPU unit.
+
+At the number of stack positions in the test, 
+the run time is almost independant of number of stack positions.
+This means that we can expect the speed up factor to be even better for 
+a Monte Carlo noise estimate.
+We evaluated this and found that a noise estimate with 100 samples,
+requires 135 $\pm$ 14 s, a speed up of 216 times.
+
+If you interested in stacking large data sets, 
+the CUDA code can be made available on request.
 
 \bibliography{stackerdoc} 
 

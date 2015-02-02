@@ -6,15 +6,16 @@
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
 
 """
     Library to stack interferometric images.
@@ -22,7 +23,7 @@
 
 import math
 import os
-from ctypes import c_double, POINTER, c_char_p, cdll, c_int
+from ctypes import cdll
 
 __author__ = 'Lukas Lindroos'
 __copyright__ = 'Copyright 2014'
@@ -49,6 +50,7 @@ MS_DATACOLUMN_DATA = 1
 clib_path = os.path.join(os.path.abspath(__path__[0]),
                          'stacker_clib')
 
+
 def _casa_svnversion(casapath):
     import re
     import os.path
@@ -70,15 +72,19 @@ _svnversion = _casa_svnversion(casa['dirs']['root'])
 _libname = 'libstacker.so'
 _libpath = os.path.join(clib_path, 'libstacker-r{0}.so'.format(_svnversion))
 if _svnversion is not None and os.access(_libpath, os.F_OK):
-    print('Loading stacking library for casapy svn revision {0}'.format(_svnversion))
+    print('Loading stacking library for casapy svn revision {0}'.format(
+        _svnversion))
 else:
     print('warning, no precompiled library compatible with your version of casa exists.')
     print('It is recommended to recompile stacker for your casa version.')
     import re
     stacker_clib_ls = os.listdir(clib_path)
-    stackerlibs = [((re.match('libstacker-r([0-9]*).so', f).group(1)),f) for f in stacker_clib_ls if re.match('libstacker-r[0-9]*.so', f)]
+    stackerlibs = [((re.match('libstacker-r([0-9]*).so', f).group(1)), f)
+                   for f in stacker_clib_ls
+                   if re.match('libstacker-r[0-9]*.so', f)]
     print(stackerlibs)
-    vdiff = [(abs(int(_svnversion)-int(v)),lib, v) for (v,lib) in stackerlibs]
+    vdiff = [(abs(int(_svnversion)-int(v)), lib, v)
+             for (v, lib) in stackerlibs]
     vdiff.sort()
     print(vdiff)
     print('Trying to use svn revision {0}.'.format(vdiff[0][2]))
@@ -87,13 +93,16 @@ else:
 
 libstacker = cdll.LoadLibrary(_libpath)
 
+
 class CoordList(list):
     """
         Extended list to contain list of coordinates.
 
     """
-    def __init__(self, imagenames = [], coord_type = 'physical', unit = 'rad'):
-        """ Requires an image list in case of pixel coordinates to work properly. """
+    def __init__(self, imagenames=[], coord_type='physical', unit='rad'):
+        """
+        Requires an image list in case of pixel coordinates to work properly.
+        """
 
         super(CoordList, self).__init__()
 
@@ -105,33 +114,26 @@ class CoordList(list):
         self.coord_type = coord_type
         self.unit = unit
 
-
     def __getitem__(self, i):
         return self.coords[i]
-
 
     def __setitem__(self, i, x):
         self.coords[i] = x
 
-
     def append(self, x):
         self.coords.append(x)
 
-
     def __len__(self):
         return len(self.coords)
-
 
     def __iter__(self):
         for x in self.coords:
             yield x
 
-
     def __getslice__(self, i, j):
         new_a = CoordList(self.imagenames, self.coord_type, self.unit)
-        new_a.coords = self.coords.__getslice__(i,j)
+        new_a.coords = self.coords.__getslice__(i, j)
         return new_a
-
 
     def __str__(self):
         ret = []
@@ -145,14 +147,14 @@ class Coord:
     """
         Describes a stacking position.
 
-        Class used internally to represent coordinates. May describe a 
+        Class used internally to represent coordinates. May describe a
         physical coordinate or a pixel coordinate.
     """
 
-    def __init__(self, x, y, weight = 1., image = 0):
+    def __init__(self, x, y, weight=1., image=0):
         """
             Create a coordinate. A pixel coordinate should always specify
-            to which image it belongs. Physical coordinates should be in 
+            to which image it belongs. Physical coordinates should be in
             J2000 radians.
         """
         self.x = x
@@ -160,22 +162,21 @@ class Coord:
         self.weight = weight
         self.image = image
 
-
     def __str__(self):
         return '{0}, {1}'.format(self.x, self.y)
 
 
-def readCoords(coordfile, unit = 'deg'):
+def readCoords(coordfile, unit='deg'):
     """
-        Reads a coordinate file from disk and produces a list. 
-    
-        coordfile: 
+        Reads a coordinate file from disk and produces a list.
+
+        coordfile:
             Path to coordinate file. A file in csv format. x and y should
             be in J2000 . A weight may be added in third column
             to weight positions for stacking. If no weight are wanted
-            put no third column in coordinate file. 
-	unit: 
-	    Unit of input coordinates. Allows two values, 'deg' and 'rad'.
+            put no third column in coordinate file.
+        unit:
+            Unit of input coordinates. Allows two values, 'deg' and 'rad'.
     """
     import csv
 
@@ -199,7 +200,7 @@ def readCoords(coordfile, unit = 'deg'):
         if y > math.pi:
             y -= 2*math.pi
 
-        coords.append(Coord(x,y,weight))
+        coords.append(Coord(x, y, weight))
 
     return coords
 
@@ -221,7 +222,7 @@ def _checkfile(filename, datacolumn):
 
 
 def coordsTocl(name, flux, coords):
-    from taskinit import cl,qa
+    from taskinit import cl, qa
 
     flux = qa.quantity(flux)
     cl.done()
@@ -236,15 +237,12 @@ def coordsTocl(name, flux, coords):
     cl.done()
 
 
-def randomCoords(imagenames, ncoords = 10):
+def randomCoords(imagenames, ncoords=10):
     import random
-    import math
-    import copy
-    from taskinit import ia,qa
+    from taskinit import ia, qa
 
-    
-    xmin,xmax = [],[]
-    ymin,ymax = [],[]
+    xmin, xmax = [], []
+    ymin, ymax = [], []
     for image in imagenames:
         ia.open(image)
         print image, ia.boundingbox()
@@ -270,18 +268,16 @@ def randomCoords(imagenames, ncoords = 10):
 def randomizeCoords(coords, beam):
     import random
     import math
-    import copy
 
-    randomcoords = CoordList(coords.imagenames, coords.coord_type, 
-                             unit = coords.unit)
+    randomcoords = CoordList(coords.imagenames, coords.coord_type,
+                             unit=coords.unit)
 
     for coord in coords:
         dr = random.uniform(beam, 5*beam)
-        dphi = random.uniform(0,2*math.pi)
+        dphi = random.uniform(0, 2*math.pi)
         x = coord.x + dr*math.cos(dphi)
         y = coord.y + dr*math.sin(dphi)
-        randomcoords.append(Coord(x,y, coord.weight, coord.image))
-
+        randomcoords.append(Coord(x, y, coord.weight, coord.image))
 
     return randomcoords
 
@@ -297,13 +293,14 @@ def _getPixelCoords1ImSimpleProj(coords, imagename):
 
     pixcoords = []
     for coord in coords:
-        p = cs.convert(coordin=[coords.x, coord.y,0,0], absin = [True]*4, 
-                unitsin=[coords.unit,coords.unit, 'pix', 'pix'], absout = [True]*4, unitsout=['pix']*4)
+        p = cs.convert(coordin=[coords.x, coord.y, 0, 0], absin=[True]*4,
+                       unitsin=[coords.unit, coords.unit, 'pix', 'pix'],
+                       absout=[True]*4, unitsout=['pix']*4)
         x = p[0]
         y = p[1]
 
-        if x in interval[0,imshape[0]-1] and y in interval[0.,imshape[1]-1]:
-            c = Coord(x,y)
+        if x in interval[0, imshape[0]-1] and y in interval[0., imshape[1]-1]:
+            c = Coord(x, y)
             try:
                 c.index = coord.index
             except AttributeError:
@@ -339,14 +336,15 @@ def _getPixelCoords1Im(coords, imagename):
         x = dx/x_pix_inc+x_pix_ref
         y = dy/y_pix_inc+y_pix_ref
 
-#         p = cs.convert(coordin=[coord.x, coord.y,0,0], absin = [True]*4, 
-#                 unitsin=[coords.unit,coords.unit, 'pix', 'pix'], absout = [True]*4, unitsout=['pix']*4)
+#         p = cs.convert(coordin=[coord.x, coord.y,0,0], absin = [True]*4,
+#                        unitsin=[coords.unit,coords.unit, 'pix', 'pix'],
+#                        absout = [True]*4, unitsout=['pix']*4)
 #         x = p[0]
 #         y = p[1]
 
-        if x in interval[0,imshape[0]-1] and y in interval[0.,imshape[1]-1]:
+        if x in interval[0, imshape[0]-1] and y in interval[0., imshape[1]-1]:
 #             pixcoords.append(Coord(x,y, coord.weight))
-            c = Coord(x,y, coord.weight)
+            c = Coord(x, y, coord.weight)
 
             try:
                 c.index = coord.index
@@ -359,7 +357,7 @@ def _getPixelCoords1Im(coords, imagename):
 
 
 def make_pbfile(vis, pbfile):
-    from taskinit import im,ms,ia,qa,tb
+    from taskinit import im, ms, ia, qa, tb
     import numpy as np
     from scipy.constants import c
 
@@ -374,14 +372,13 @@ def make_pbfile(vis, pbfile):
     ms.done()
 
     phase_dir = phase_dir[0][0], phase_dir[1][0]
-    phase_dir = [qa.formxxx(str(phase_dir[0])+'rad', format='hms'), 
+    phase_dir = [qa.formxxx(str(phase_dir[0])+'rad', format='hms'),
                  qa.formxxx(str(phase_dir[1])+'rad', format='dms')]
     phase_dir = 'J2000 '+' '.join(phase_dir)
 
     tb.open(vis+'/ANTENNA/')
     dishdia = np.min(tb.getcol('DISH_DIAMETER'))
     tb.done()
-
 
     # pb of 512 pix cover pb down to 0.001
     # ensure largest pixel to pixel var to .01
@@ -394,16 +391,19 @@ def make_pbfile(vis, pbfile):
     cell['value'] = beam*cellconv
     cell['unit'] = 'rad'
 
-#     nx = int(3*3e8/freq/dishdia*1.22*180/math.pi*3600/qa.convert(advise['cell'], 'arcsec')['value'])
-    # Chosen as to be 3 times fwhm of primary beam, should include up to approximately .01 of peak flux
+#     nx = int(3*3e8/freq/dishdia*1.22*180/
+#              math.pi*3600/qa.convert(advise['cell'],
+#              'arcsec')['value'])
+    # Chosen as to be 3 times fwhm of primary beam,
+    # should include up to approximately .01 of peak flux
 
-    im.defineimage(nx=nx, ny=nx, cellx=cell, celly=cell, phasecenter = phase_dir)
+    im.defineimage(nx=nx, ny=nx, cellx=cell, celly=cell, phasecenter=phase_dir)
     im.setvp(dovp=True)
     im.makeimage(type='pb', image=pbfile)
     im.done()
     ia.open(pbfile)
     cs = ia.coordsys()
-    cs.setreferencevalue(type='direction', value=[0.,0.])
+    cs.setreferencevalue(type='direction', value=[0., 0.])
     ia.setcoordsys(cs.torecord())
     ia.maskhandler('delete', 'mask0')
     ia.done()
@@ -415,7 +415,6 @@ def getPixelCoords(coords, imagenames):
         list and a list of images.
     """
 
-
     pixcoords = CoordList(imagenames, 'pixel', unit='pix')
 
     for (i, imagename) in enumerate(pixcoords.imagenames):
@@ -424,6 +423,3 @@ def getPixelCoords(coords, imagenames):
             pixcoords.append(coord)
 
     return pixcoords
-
-
-
