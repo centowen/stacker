@@ -5,53 +5,53 @@
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-from ctypes import c_double, POINTER, c_char_p, cdll, c_int
+# Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA  02110-1301, USA.
+from ctypes import c_double, POINTER, c_char_p, c_int
 import numpy as np
 import stacker
 import stacker.pb
-import os
-from rmtables import rmtables
 
 c_stack = stacker.libstacker.stack
 c_stack.restype = c_double
 c_stack.argtype = [c_int, c_char_p, c_int,
                    c_int, c_char_p, c_int,
-                   c_int, c_char_p, POINTER(c_double), c_int, 
-                   POINTER(c_double), POINTER(c_double), POINTER(c_double), 
+                   c_int, c_char_p, POINTER(c_double), c_int,
+                   POINTER(c_double), POINTER(c_double), POINTER(c_double),
                    c_int]
 
 
-def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32, primarybeam='guess', datacolumn='corrected'):
+def stack(coords, vis, outvis='', imagename='', cell='1arcsec', stampsize=32,
+          primarybeam='guess', datacolumn='corrected'):
     """
          Performs stacking in the uv domain.
 
-      
-         coords -- A coordList object of all target coordinates.
-         vis -- Input uv data file.
-         outvis -- Output uv data file. Can be set to '' to not save stacked visibilities.
-         datacolumn -- Either 'corrected' or 'data'. Which column stacking is applied to.
-         primarybeam -- How to calculated primary beam. Currently only two options, 
-                      'guess' (using casa builtin model) 
-                      or 'constant' (i.e. no correction)
 
-         imagename -- Optional argument to image stacked data.
-         cell -- pixel size for target image
-         stampsize -- size of target image in pixels
+         coords      -- A coordList object of all target coordinates.
+         vis         -- Input uv data file.
+         outvis      -- Output uv data file. Can be set to '' to not save
+                        stacked visibilities.
+         datacolumn  -- Either 'corrected' or 'data'. Which column stacking is
+                        applied to.
+         primarybeam -- How to calculated primary beam. Currently only two
+                        options, 'guess' (using casa builtin model) or
+                        'constant' (i.e. no correction)
+         imagename   -- Optional argument to image stacked data.
+         cell        -- pixel size for target image
+         stampsize   -- size of target image in pixels
 
          returns: Estimate of stacked flux assuming point source.
     """
     import shutil
     import os
-    import re
     try:
         from taskinit import casalog
     except ImportError:
@@ -59,10 +59,11 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
 
     if casalog is not None:
         casalog.origin('stacker')
-        casalog.post('#'*42,'INFO')
-        casalog.post('#'*5 +  ' {0: <31}'.format("Begin Task: Stacker")+'#'*5, 'INFO')
-        casalog.post('Number of stacking positions: {0}'.format(len(coords)), 'INFO')
-
+        casalog.post('#'*42, 'INFO')
+        casalog.post('#'*5 + ' {0: <31}'.format("Begin Task: Stacker")+'#'*5,
+                     'INFO')
+        casalog.post('Number of stacking positions: {0}'.format(len(coords)),
+                     'INFO')
 
     if outvis != '':
         if not os.access(outvis, os.F_OK):
@@ -70,19 +71,22 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
 
     infiletype, infilename, infileoptions = stacker._checkfile(vis, datacolumn)
     if outvis != '':
-        outfiletype, outfilename, outfileoptions = stacker._checkfile(outvis, datacolumn)
+        outfiletype, outfilename, outfileoptions =\
+            stacker._checkfile(outvis, datacolumn)
     else:
         outfilename = ''
         outfiletype = stacker.FILE_TYPE_NONE
         outfileoptions = 0
 
-    
     if casalog is not None:
-        casalog.post('Input uv file: \'{0}\' of type {1}'.format(infilename, stacker.FILETYPENAME[infiletype]), 'INFO')
+        casalog.post('Input uv file: \'{0}\' of type {1}'.format(
+            infilename, stacker.FILETYPENAME[infiletype]), 'INFO')
         if outvis != '':
-            casalog.post('Output uv file: \'{0}\' of type {1}'.format(outfilename, stacker.FILETYPENAME[outfiletype]), 'INFO')
+            casalog.post('Output uv file: \'{0}\' of type {1}'.format(
+                outfilename, stacker.FILETYPENAME[outfiletype]), 'INFO')
         else:
-            casalog.post('No output uv file given, will not write stacked visibility', 'INFO')
+            _ = 'No output uv file given, will not write stacked visibility'
+            casalog.post(_, 'INFO')
 
 # primary beam
     if primarybeam == 'guess':
@@ -102,7 +106,7 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
     start = time.time()
     flux = c_stack(infiletype, c_char_p(infilename), infileoptions,
                    outfiletype, c_char_p(outfilename), outfileoptions,
-                   pbtype, c_char_p(pbfile),pbpars, pbnpars,
+                   pbtype, c_char_p(pbfile), pbpars, pbnpars,
                    x, y, weight, c_int(len(coords)))
     stop = time.time()
 #     print("Started stack at {}".format(start))
@@ -113,19 +117,21 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
         import clean
         import clearcal
         clearcal.clearcal(vis=outvis)
-        clean.clean(vis=outvis, imagename = imagename, field='0', mode='mfs',
+        clean.clean(vis=outvis, imagename=imagename, field='0', mode='mfs',
                     cell=cell, imsize=stampsize, weighting='natural')
 
     if casalog is not None:
-        casalog.post('#'*5 +  ' {0: <31}'.format("End Task: stacker")+'#'*5)
+        casalog.post('#'*5 + ' {0: <31}'.format("End Task: stacker")+'#'*5)
         casalog.post('#'*42)
     return flux
 
 
-def noise(coords, vis, weighting = 'sigma2', imagenames = [], beam = None, nrand = 50, stampsize = 32, maskradius = None):
+def noise(coords, vis, weighting='sigma2', imagenames=[], beam=None, nrand=50,
+          stampsize=32, maskradius=None):
     """ Calculate noise using a Monte Carlo method, can be time consuming. """
     import stacker
     import stacker.image
+    from math import pi
     if beam is None:
         try:
             from taskinit import ia, qa
@@ -140,8 +146,8 @@ def noise(coords, vis, weighting = 'sigma2', imagenames = [], beam = None, nrand
     for i in range(nrand):
         random_coords = stacker.randomizeCoords(coords, beam=beam)
         if weighting == 'sigma2':
-            random_coords = stacker.image.calculate_sigma2_weights( random_coords, imagenames, stampsize, maskradius)
+            random_coords = stacker.image.calculate_sigma2_weights(
+                random_coords, imagenames, stampsize, maskradius)
         dist.append(stack(random_coords, vis))
 
     return np.std(np.real(np.array(dist)))
-
