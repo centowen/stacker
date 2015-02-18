@@ -98,10 +98,16 @@ def stack(coords, vis, outvis='', imagename='', cell = '1arcsec', stampsize = 32
     y = (c_double*len(y))(*y)
     weight = (c_double*len(weight))(*weight)
 
+    import time
+    start = time.time()
     flux = c_stack(infiletype, c_char_p(infilename), infileoptions,
                    outfiletype, c_char_p(outfilename), outfileoptions,
                    pbtype, c_char_p(pbfile),pbpars, pbnpars,
                    x, y, weight, c_int(len(coords)))
+    stop = time.time()
+#     print("Started stack at {}".format(start))
+#     print("Finished stack at {}".format(stop))
+    print("Time used to stack: {}".format(stop-start))
 
     if imagename != '':
         import clean
