@@ -46,9 +46,18 @@ class fileException : public std::runtime_error {
 		int getCode() {return code; };
 };
 
+/* Base class for reading data from disk.
+ *
+ * DataIO is not thread-safe!
+ */
 class DataIO
 {
+	private:
+		static int id_counter;
+		const int dataset_id;
 	public:
+		DataIO();
+
 		virtual int nvis() = 0;
 		virtual int readChunk(Chunk& chunk) = 0;
 		virtual void writeChunk(Chunk& chunk) = 0;

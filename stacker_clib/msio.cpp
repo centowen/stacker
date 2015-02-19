@@ -25,7 +25,7 @@ using casa::TableError;
 
 msio::msio(const char* msinfile,
            const char * msoutfile,
-           bool workondatacolumn)
+           bool workondatacolumn) : DataIO()
 {
 	msin = new MeasurementSet(msinfile);
 	msincols = new ROMSColumns(*msin);
@@ -74,17 +74,39 @@ msio::msio(const char* msinfile,
 
 	VectorIterator<double>* freqinit = (casa::VectorIterator<double>*) msincols->spectralWindow().chanFreq().getColumn().makeIterator(1);
 	
-	nspw = msincols->spectralWindow().nrow();
+	nspw = (size_t)msincols->spectralWindow().nrow();
 	freq  = new float*[nspw];
+	nchan = 0;
+
+	// First figure out the largest nchan value.
 	for(int row =0 ; row < nspw; row++)
 	{
 		casa::Vector<double> freqbuff = freqinit->vector();
-		nchan = freqbuff.shape()(0);
-		freq[row] = new float[nchan];
-		for(int col = 0; col < nchan; col++)
+		if((size_t)freqbuff.shape()(0) > nchan)
+			nchan = (size_t)freqbuff.shape()(0);
+	}
+
+	// Now we can read the frequency information.
+	for(int row =0 ; row < nspw; row++)
+	{
+		casa::Vector<double> freqbuff = freqinit->vector();
+		int c_nchan = freqbuff.shape()(0);
+		freq[row] = new float[c_nchan];
+		for(int col = 0; col < c_nchan; col++)
 			freq[row][col] = float(freqbuff(col));
 		freqinit->next();
 	}
+
+	nstokes = 0;
+	ROScalarColumn<casa::Int> nStokesCol = msincols->polarization().numCorr();
+	Vector<casa::Int> nStokesForEach(msincols->polarization().nrow());
+	nStokesCol.getColumn(nStokesForEach);
+	for(casa::uInt i = 0; i < msincols->polarization().nrow(); i++)
+	{
+		if((size_t)nStokesForEach(i) > nstokes)
+			nstokes = (size_t)nStokesForEach(i);
+	}
+	
 
 	nfields = msin->field().nrow();
 	x_phase_centre = new float[nfields];
@@ -217,6 +239,8 @@ int msio::readChunkSimple(Chunk& chunk)
 		chunk.setSize(nvis()-currentVisibility);
 	}
 	this->currentVisibility += chunk.size();
+
+// 	chunk.reshape_data(this->nchan, this->nstokes);
 
 	int uvrow = 0, nchan, nstokes;
 	for(int i = 0; i < chunk.size(); i++)

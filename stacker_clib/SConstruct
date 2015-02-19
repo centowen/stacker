@@ -93,6 +93,7 @@ Sources = []
 Sources.append("Coords.cpp")
 Sources.append("Model.cpp")
 #Sources.append("DataIOFits.cpp")
+Sources.append("DataIO.cpp")
 Sources.append("msio.cpp")
 Sources.append("Chunk.cpp")
 Sources.append("PrimaryBeam.cpp")

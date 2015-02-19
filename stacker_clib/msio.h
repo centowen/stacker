@@ -45,6 +45,8 @@ using casa::Vector;
 using casa::Float;
 using casa::IPosition;
 
+using casa::ROScalarColumn;
+
 class Chunk;
 
 class msio : public DataIO
@@ -54,7 +56,8 @@ class msio : public DataIO
 		VectorIterator<double>* uvwinit;
 		VectorIterator<float>* weightinit;
 		float** freq;
-		int nchan, nspw;
+		size_t nchan, nspw;
+		size_t nstokes;
 		MeasurementSet* msin;
 		ROMSColumns* msincols;
 		MeasurementSet* msout;
