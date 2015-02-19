@@ -89,8 +89,9 @@ class msio : public DataIO
 		float yPhaseCentre(int fieldID);
 		void setPhaseCentre(int fieldID, double x, double y);
 
-		int nChan();
-		int nSpw();
+		size_t nStokes();
+		size_t nChan();
+		size_t nSpw();
 		float* getFreq(int spw);
 };
 

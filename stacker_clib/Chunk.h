@@ -33,7 +33,10 @@ struct Visibility
 {
 	float u,v,w;
 	float* freq;
-	float *data_real, *data_imag, *weight;
+	float* data_real;
+	float* data_imag;
+	float* weight;
+
 	int nstokes, nchan;
 	int fieldID, index, spw;
 

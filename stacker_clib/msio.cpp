@@ -376,13 +376,17 @@ void msio::setPhaseCentre(int fieldID, double x, double y)
 	msoutcols->field().delayDir().put(fieldID, newPhaseCentre);
 }
 
+size_t msio::nStokes()
+{
+	return nstokes;
+}
 
-int msio::nChan()
+size_t msio::nChan()
 {
 	return nchan;
 }
 
-int msio::nSpw()
+size_t msio::nSpw()
 {
 	return nspw;
 }
