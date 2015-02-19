@@ -55,7 +55,7 @@ class msio : public DataIO
 		MatrixIterator<Complex>* datainit;
 		VectorIterator<double>* uvwinit;
 		VectorIterator<float>* weightinit;
-		float** freq;
+		float* freq;
 		size_t nchan, nspw;
 		size_t nstokes;
 		MeasurementSet* msin;

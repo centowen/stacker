@@ -54,9 +54,10 @@ class DataIO
 {
 	private:
 		static int id_counter;
-		const int dataset_id;
 	public:
 		DataIO();
+
+		const int dataset_id;
 
 		virtual int nvis() = 0;
 		virtual int readChunk(Chunk& chunk) = 0;

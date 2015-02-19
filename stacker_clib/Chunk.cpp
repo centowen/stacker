@@ -46,6 +46,8 @@ Chunk::Chunk(size_t size)
 	data_imag_out = NULL;
 	weight_in = NULL;
 	weight_out = NULL;
+
+    update_datalinks();
 }
 
 Chunk::~Chunk()
@@ -85,6 +87,8 @@ void Chunk::setSize(int size)
 		nvis = size;
 		max_nvis = size;
 	}
+
+    update_datalinks();
 }
 
 size_t Chunk::nChan()
@@ -123,16 +127,7 @@ void Chunk::reshape_data(size_t nchan, size_t nstokes)
 		this->nstokes = nstokes;
 	}
 
-	for( int i = 0; i < nvis; i++)
-	{
-		inVis[i].data_real = &data_real_in[nchan*nstokes*i];
-		inVis[i].data_imag = &data_imag_in[nchan*nstokes*i];
-		inVis[i].weight    = &weight_in[nchan*nstokes*i];
-
-		outVis[i].data_real = &data_real_out[nchan*nstokes*i];
-		outVis[i].data_imag = &data_imag_out[nchan*nstokes*i];
-		outVis[i].weight    = &weight_out[nchan*nstokes*i];
-	}
+    update_datalinks();
 }
 
 int Chunk::get_dataset_id()
@@ -143,4 +138,34 @@ int Chunk::get_dataset_id()
 void Chunk::set_dataset_id(int id)
 {
 	dataset_id = id;
+}
+
+void Chunk::update_datalinks()
+{
+    if(nchan == 0 or nstokes == 0)
+    {
+        for(int i = 0; i < max_nvis; i++)
+        {
+            inVis[i].data_real  = NULL;
+            inVis[i].data_imag  = NULL;
+            inVis[i].weight     = NULL;
+            outVis[i].data_real = NULL;
+            outVis[i].data_imag = NULL;
+            outVis[i].weight    = NULL;
+        }
+    }
+
+    if(nvis <= 0)
+        return;
+
+    for(int i = 0; i < nvis; i++)
+    {
+        inVis[i].data_real = &data_real_in[i*nchan*nstokes];
+        inVis[i].data_imag = &data_imag_in[i*nchan*nstokes];
+        inVis[i].weight    = &weight_in[i*nchan*nstokes];
+
+        outVis[i].data_real = &data_real_out[i*nchan*nstokes];
+        outVis[i].data_imag = &data_imag_out[i*nchan*nstokes];
+        outVis[i].weight    = &weight_out[i*nchan*nstokes];
+    }
 }

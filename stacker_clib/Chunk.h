@@ -75,6 +75,8 @@ public:
 
 	int get_dataset_id();
 	void set_dataset_id(int id);
+
+	void update_datalinks();
 };
 
 #endif // end of inclusion guard
