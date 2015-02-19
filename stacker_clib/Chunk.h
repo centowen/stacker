@@ -44,15 +44,37 @@ public:
 
 class Chunk
 {
+public:
+	static const int dataset_none = -1;
+
+
 private:
-	int nvis;
+	int dataset_id;
+	size_t nvis, max_nvis;
+	size_t nchan;
+	size_t nstokes;
 
 public:
+	float* data_real_in;
+	float* data_imag_in;
+	float* weight_in;
+	float* data_real_out;
+	float* data_imag_out;
+	float* weight_out;
 	Visibility *inVis, *outVis;
-	Chunk(int size);
+
+	Chunk(size_t size);
 	~Chunk();
-	int size();
+
+	size_t size();
 	void setSize(int size);
+
+	size_t nChan();
+	size_t nStokes();
+	void reshape_data(size_t nchan, size_t nstokes);
+
+	int get_dataset_id();
+	void set_dataset_id(int id);
 };
 
 #endif // end of inclusion guard
