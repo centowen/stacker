@@ -27,13 +27,7 @@ Visibility::Visibility()
 	nchan = 0;
 }
 
-Visibility::~Visibility()
-{
-	if(nstokes>0 && nchan > 0)
-	{
-		delete[] data_real, data_imag, weight;
-	}
-}
+Visibility::~Visibility() {}
 
 Chunk::Chunk(size_t size)
 {
