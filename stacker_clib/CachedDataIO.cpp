@@ -60,6 +60,10 @@ int CachedDataIO::nvis()
 	return n_vis;
 }
 
+void CachedDataIO::writeChunk(Chunk& chunk)/*{{{*/
+{ 
+} /*}}}*/
+
 int CachedDataIO::readChunk(Chunk& chunk)/*{{{*/
 {
 	if(cache_iterator == cache.end())

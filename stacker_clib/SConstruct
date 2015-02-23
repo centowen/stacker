@@ -1,6 +1,5 @@
 import os
 import os.path
-import pysvn
 env = Environment()
 
 
@@ -125,6 +124,7 @@ if link_against_casa:
         svnversion = casa_svnversion(casapath)
 
 if link_against_casa and int(svnversion) > 22889:
+    import pysvn
     print('Downloading casacore headers matching casapy svn revision {0}'.format(svnversion))
     client = pysvn.Client()
     casacore_svnpath = 'https://svn.cv.nrao.edu/svn/casa/trunk/casacore/'
