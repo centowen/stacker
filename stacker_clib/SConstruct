@@ -31,47 +31,88 @@ def whichpath(file):
 
     return None
 
-AddOption('--casapath',
-          dest='casapath',
-          type='string',
-          nargs = 1,
-          action='store',
-          metavar='DIR',
-          help='Path of casa installation.')
-casapath = GetOption('casapath')
 
-if casapath is None:
-    casapath = whichpath('casapy')
-casalibpath = os.path.join(casapath, 'lib')
-casapyinclude = os.path.join(casapath, 'include')
+def add_options():
+    AddOption('--link2casa',
+            dest='link_against_casa',
+            action ='store_true',
+            help = 'Tells scons to try to link against casa (not casacore).')
 
-AddOption('--casasvnversion',
-          dest='casasvnversion',
-          type='int',
-          nargs = 1,
-          action='store',
-          help='Set a specific version of casa to compile against.')
-svnversion = GetOption('casasvnversion')
-if svnversion is None:
-    svnversion = casa_svnversion(casapath)
+    AddOption('--casapath',
+            dest='casapath',
+            type='string',
+            nargs = 1,
+            action='store',
+            metavar='DIR',
+            help='Path of casa installation. Can be used when linking against casa.')
 
-if int(svnversion) > 22889:
+    AddOption('--casasvnversion',
+            dest='casasvnversion',
+            type='int',
+            nargs = 1,
+            action='store',
+            help='Set a specific version of casa to compile against.')
+
+
+def CheckPKGConfig(context, version):
+    context.Message( 'Checking for pkg-config... ' )
+    ret = context.TryAction('pkg-config --atleast-pkgconfig-version=%s' % version)[0]
+    context.Result( ret )
+    return ret
+
+
+def CheckPKG(context, name):
+    context.Message( 'Checking for %s... ' % name )
+    ret = context.TryAction('PKG_CONFIG_PATH='+conf.env['ENV']['PKG_CONFIG_PATH']+' pkg-config --exists \'%s\'' % name)[0]
+    # ret = context.TryAction('echo $PKG_CONFIG_PATH')
+
+    context.Result( ret )
+    return ret
+
+
+env['ENV']['PKG_CONFIG_PATH'] = os.environ.get('PKG_CONFIG_PATH', '')
+add_options()
+
+link_against_casa = GetOption('link_against_casa')
+if link_against_casa is None:
+    link_against_casa = False
+
+if link_against_casa:
+    casapath = GetOption('casapath')
+    if casapath is None:
+        casapath = whichpath('casapy')
+
+    if casapath is None:
+        print('Can not locate casa. Please specify --casapath.')
+        Exit(1)
+
+    casalibpath = os.path.join(casapath, 'lib')
+    casapyinclude = os.path.join(casapath, 'include')
+
+    svnversion = GetOption('casasvnversion')
+    if svnversion is None:
+        svnversion = casa_svnversion(casapath)
+
+if link_against_casa and int(svnversion) > 22889:
     print('Downloading casacore headers matching casapy svn revision {0}'.format(svnversion))
     client = pysvn.Client()
     casacore_svnpath = 'https://svn.cv.nrao.edu/svn/casa/trunk/casacore/'
-    casacore_path = 'casacore-for-casapy-r{0}'.format(svnversion)
+    dl_casacore_path = 'casacore-for-casapy-r{0}'.format(svnversion)
     svnrevision=pysvn.Revision(pysvn.opt_revision_kind.number, svnversion)
-    rev = client.checkout(casacore_svnpath, casacore_path, svnrevision, svnrevision)
+    rev = client.checkout(casacore_svnpath, dl_casacore_path, svnrevision, svnrevision)
     print('done')
 
-if int(svnversion) > 22889:
-    env.Append(CPPPATH = [casacore_path, casapyinclude])
-else:
-    env.Append(CPPPATH = [casapyinclude, os.path.join(casapyinclude, 'casacore')])
+if link_against_casa :
+    if int(svnversion) > 22889:
+        env.Append(CPPPATH = [dl_casacore_path, casapyinclude])
+    else:
+        env.Append(CPPPATH = [casapyinclude, os.path.join(casapyinclude, 'casacore')])
+    env.Append(LIBPATH = [casalibpath])
 
-env.Append(LIBPATH = [casalibpath])
-conf = Configure(env)
-if conf.CheckLib('casa_casa'):
+conf = Configure(env, custom_tests = {'CheckPKGConfig': CheckPKGConfig, 'CheckPKG': CheckPKG})
+if not link_against_casa and conf.CheckPKGConfig('0.15.0') and conf.CheckPKG('casacore'):
+    env.ParseConfig('pkg-config --cflags --libs casacore')
+elif conf.CheckLib('casa_casa'):
     env.Append(LIBS = ['casa_scimath', 'casa_casa', 'casa_tables', 'casa_images', 
                     'casa_ms', 'casa_components', 'casa_coordinates',
                     'casa_lattices','casa_measures', 'casa_scimath_f', 'casa_fits', 
@@ -79,20 +120,24 @@ if conf.CheckLib('casa_casa'):
 elif conf.CheckLib('casacore'):
     env.Append(LIBS = ['casacore'])
 else:
-    print('Did not find casa libraries!')
+    print('Did not find casacore libraries!')
     Exit(1)
 
-env.Append(LIBS=File(os.path.join(casalibpath, 'libgfortran.so.1')))
-env.Append(LIBS=File(os.path.join(casalibpath, 'liblapack.so.3')))
-env.Append(LIBS=File(os.path.join(casalibpath, 'libblas.so.3')))
-env.Append(LIBS=File(os.path.join(casalibpath, 'libwcs.so.4.7')))
-env.Append(LIBS=File(os.path.join(casalibpath, 'libcfitsio.so.0')))
+if link_against_casa:
+    env.Append(LIBS=File(os.path.join(casalibpath, 'libgfortran.so.1')))
+    env.Append(LIBS=File(os.path.join(casalibpath, 'liblapack.so.3')))
+    env.Append(LIBS=File(os.path.join(casalibpath, 'libblas.so.3')))
+    env.Append(LIBS=File(os.path.join(casalibpath, 'libwcs.so.4.7')))
+    env.Append(LIBS=File(os.path.join(casalibpath, 'libcfitsio.so.0')))
+else:
+    env.Append(LIBS=['gfortran', 'lapack', 'blas', 'wcs', 'cfitsio'])
 env.Append(CCFLAGS = ['-fPIC','-O3'])
 
 Sources = []
 Sources.append("Coords.cpp")
 Sources.append("Model.cpp")
 #Sources.append("DataIOFits.cpp")
+Sources.append("CachedDataIO.cpp")
 Sources.append("DataIO.cpp")
 Sources.append("msio.cpp")
 Sources.append("Chunk.cpp")
@@ -104,4 +149,8 @@ Sources.append("MSComputer.cpp")
 Sources.append('stacker.cpp')
 
 object_list = env.SharedObject(Sources)
-env.SharedLibrary(target='stacker-r{0}'.format(svnversion), source=object_list)
+if link_against_casa:
+    target_name = 'stacker-r{0}'.format(svnversion)
+else:
+    target_name = 'stacker'
+env.SharedLibrary(target=target_name, source=object_list)
