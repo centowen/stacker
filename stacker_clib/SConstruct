@@ -3,6 +3,21 @@ import os.path
 import pysvn
 env = Environment()
 
+
+def build_header(env, do_pthreads = True, do_cuda = False):
+    header_file = open('config.h', 'w')
+
+    header_file.write('/* Auto generated file. Edits will not stick. */\n')
+
+    if do_pthreads:
+        header_file.write('#define USE_PTHREADS\n')
+
+    if do_cuda:
+        header_file.write('#define USE_CUDA\n')
+
+    header_file.close()
+
+
 def casa_svnversion(casapath):
     import re
     import os.path
@@ -53,6 +68,17 @@ def add_options():
             action='store',
             help='Set a specific version of casa to compile against.')
 
+    AddOption('--cuda',
+            dest = 'do_cuda',
+            action = 'store_true',
+            help = 'Compile cuda code.')
+
+    AddOption('--no-pthreads',
+            dest = 'do_pthreads',
+            action = 'store_false',
+            help = 'Compile without pthreads.',
+            default = True)
+
 
 def CheckPKGConfig(context, version):
     context.Message( 'Checking for pkg-config... ' )
@@ -72,6 +98,11 @@ def CheckPKG(context, name):
 
 env['ENV']['PKG_CONFIG_PATH'] = os.environ.get('PKG_CONFIG_PATH', '')
 add_options()
+
+do_cuda = GetOption('do_cuda')
+do_pthreads = GetOption('do_pthreads')
+build_header(env, do_pthreads=do_pthreads, do_cuda=do_cuda)
+
 
 link_against_casa = GetOption('link_against_casa')
 if link_against_casa is None:
