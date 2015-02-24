@@ -34,6 +34,10 @@ def get_cuda_paths():
     lib_path = os.path.abspath(os.environ['CUDA_LIB_PATH'])
   if 'CUDA_INC_PATH' in os.environ:
     inc_path = os.path.abspath(os.environ['CUDA_INC_PATH'])
+  
+  import os
+  if not os.access(lib_path, os_F_OK):
+      raise OSError(strerror='Could not find CUDA.')
 
   return (bin_path,lib_path,inc_path)
 

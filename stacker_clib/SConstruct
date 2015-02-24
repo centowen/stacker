@@ -1,9 +1,10 @@
 import os
 import os.path
+
 try:
     Import('env')
 except:
-    exec open('build-env.py')
+#     exec open('build-env.py')
     env = Environment()
 
 
@@ -120,6 +121,7 @@ if link_against_casa:
     casapath = GetOption('casapath')
     if casapath is None:
         casapath = whichpath('casapy')
+        print('Found casa - {}'.format(casapath))
 
     if casapath is None:
         print('Can not locate casa. Please specify --casapath.')
@@ -147,9 +149,14 @@ if link_against_casa :
         env.Append(CPPPATH = [dl_casacore_path, casapyinclude])
     else:
         env.Append(CPPPATH = [casapyinclude, os.path.join(casapyinclude, 'casacore')])
+    print('casalibpath', casalibpath)
     env.Append(LIBPATH = [casalibpath])
+    print(env['LIBPATH'])
 
-conf = Configure(env, custom_tests = {'CheckPKGConfig': CheckPKGConfig, 'CheckPKG': CheckPKG})
+if link_against_casa:
+    conf = Configure(env, custom_tests = {'CheckPKGConfig': CheckPKGConfig, 'CheckPKG': CheckPKG})
+else:
+    conf = Configure(env)
 if not link_against_casa and conf.CheckPKGConfig('0.15.0') and conf.CheckPKG('casacore'):
     env.ParseConfig('pkg-config --cflags --libs casacore')
 elif conf.CheckLib('casa_casa'):
