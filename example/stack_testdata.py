@@ -72,6 +72,7 @@ corrected_data = ms.getdata(['corrected_data'])['corrected_data']
 ms.done()
 
 simplenoise['image'] = np.sum([c.weight for c in coords])**-.5
+flux['uv'] = np.mean(np.real(corrected_data))
 simplenoise['uv'] = np.std(np.real(corrected_data))/np.sqrt(np.prod(corrected_data.shape))
 
 # image flux

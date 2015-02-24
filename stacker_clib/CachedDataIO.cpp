@@ -24,7 +24,7 @@ CachedDataIO::CachedDataIO(DataIO* dataio, size_t max_chunks) : DataIO(), max_ch
 	x_phase_centre = new float[nfields];
 	y_phase_centre = new float[nfields];
 
-	for(int fieldID = 0; fieldID < nfields; fieldID)
+	for(int fieldID = 0; fieldID < nfields; fieldID++)
 	{
 		x_phase_centre[fieldID] = dataio->xPhaseCentre(fieldID);
 		y_phase_centre[fieldID] = dataio->yPhaseCentre(fieldID);
@@ -49,13 +49,13 @@ CachedDataIO::CachedDataIO(DataIO* dataio, size_t max_chunks) : DataIO(), max_ch
 	cache_iterator = cache.begin();
 
 	freq = new float[nchan*nspw];
-	for(int spw = 0; spw < nspw; spw++)
+	for(size_t spw = 0; spw < nspw; spw++)
 	{
 		std::copy(dataio->getFreq(spw), &dataio->getFreq(spw)[nchan], freq);
 	}
 }
 
-int CachedDataIO::nvis()
+size_t CachedDataIO::nvis()
 {
 	return n_vis;
 }
@@ -66,6 +66,7 @@ void CachedDataIO::writeChunk(Chunk& chunk)/*{{{*/
 
 int CachedDataIO::readChunk(Chunk& chunk)/*{{{*/
 {
+	// FIXME: I have no idea what I am doing here !!!
 	if(cache_iterator == cache.end())
 		return 0;
 
@@ -105,6 +106,8 @@ int CachedDataIO::readChunk(Chunk& chunk)/*{{{*/
 			  chunk.outVis);
 
 	chunk.update_datalinks();
+
+	return 0;
 }/*}}}*/
 
 int CachedDataIO::nPointings()

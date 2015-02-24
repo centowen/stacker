@@ -46,7 +46,7 @@ class Chunk;
 class ChunkComputer
 {
 	public:
-		virtual float computeChunk(Chunk* chunk) = 0;
+		virtual void computeChunk(Chunk* chunk) = 0;
 
 		// Called before and after actual computation.
 		// Allows full access to all data,
@@ -57,6 +57,7 @@ class ChunkComputer
 class MSComputer
 {
 	private:
+		int n_thread_;
 		ChunkComputer* cc;
 		Chunk** chunks;
 
@@ -78,7 +79,8 @@ class MSComputer
 	public:
 		MSComputer(ChunkComputer* cc, 
 				   int infiletype, const char* infilename, int infileoptions,
-				   int outfiletype, const char* outfilename, int outfileoptions);
+				   int outfiletype, const char* outfilename, int outfileoptions,
+				   int n_thread = N_THREAD);
 		~MSComputer();
 
 		float run();

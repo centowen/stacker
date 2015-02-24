@@ -59,7 +59,7 @@ class DataIO
 
 		const int dataset_id;
 
-		virtual int nvis() = 0;
+		virtual size_t nvis() = 0;
 		virtual int readChunk(Chunk& chunk) = 0;
 		virtual void writeChunk(Chunk& chunk) = 0;
 		virtual int nPointings() = 0;

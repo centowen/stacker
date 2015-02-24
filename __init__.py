@@ -66,15 +66,26 @@ def _casa_svnversion(casapath):
 
     return svnversion
 
-from taskinit import casa
+try:
+    # If this was imported from casa we need to ensure that the version
+    # of stacker is compatible with the version of casa.
+    from taskinit import casa
+    _svnversion = _casa_svnversion(casa['dirs']['root'])
+    _libpath = os.path.join(clib_path, 'libstacker-r{0}.so'.format(_svnversion))
+    in_casapy = True
+except ImportError:
+    # We are in a pure python session.
+    # Not that there is anything wrong with that.
+    _libname = 'libstacker.so'
+    _libpath = os.path.join(clib_path, _libname)
+    in_casapy = False
+
 import os
-_svnversion = _casa_svnversion(casa['dirs']['root'])
-_libname = 'libstacker.so'
-_libpath = os.path.join(clib_path, 'libstacker-r{0}.so'.format(_svnversion))
-if _svnversion is not None and os.access(_libpath, os.F_OK):
+
+if in_casapy and _svnversion is not None and os.access(_libpath, os.F_OK):
     print('Loading stacking library for casapy svn revision {0}'.format(
         _svnversion))
-else:
+elif in_casapy:
     print('warning, no precompiled library compatible with your version of casa exists.')
     print('It is recommended to recompile stacker for your casa version.')
     import re
@@ -134,6 +145,12 @@ class CoordList(list):
         new_a = CoordList(self.imagenames, self.coord_type, self.unit)
         new_a.coords = self.coords.__getslice__(i, j)
         return new_a
+
+    def __repr__(self):
+        ret = []
+        for x in self.coords:
+            ret.append('(' + x.__str__() + ')')
+        return '\n'.join(ret)
 
     def __str__(self):
         ret = []
@@ -208,9 +225,18 @@ def readCoords(coordfile, unit='deg'):
 def _checkfile(filename, datacolumn):
     import re
     if re.match('^.*[mM][sS]/*$', filename) is not None:
-        from taskinit import ms
-        ms.open(filename)
-        ms.done()
+        try:
+            from taskinit import ms
+            ms.open(filename)
+            ms.done()
+        except ImportError:
+            # This probably means that it was run from a pure python session.
+            # We will relegate any checks that it is a valid ms file to the 
+            # stacker.
+            if not os.access(filename, os.F_OK):
+                raise RuntimeError('Could not find data file "{}".'.format(
+                    filename))
+
         filename = filename
         filetype = FILE_TYPE_MS
         fileoptions = 0
@@ -362,7 +388,7 @@ def make_pbfile(vis, pbfile):
     from scipy.constants import c
 
     ms.open(vis)
-    fields = ms.getrange('field_id')['field_id']
+    fields = ms.range('field_id')['field_id']
     ms.done()
     im.open(vis)
     im.selectvis(field=fields[0])

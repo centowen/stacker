@@ -24,7 +24,7 @@ class CachedDataIO : public DataIO
 
 	public:
 		CachedDataIO(DataIO* dataio, size_t max_chunks);
-		int nvis();
+		size_t nvis();
 
 		int readChunk(Chunk& chunk);
 		void writeChunk(Chunk& chunk);

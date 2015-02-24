@@ -20,10 +20,17 @@
 #ifndef __DEFINITIONS_H__
 #define __DEFINITIONS_H__
 
+#include <stdio.h>
+#include <stdlib.h>
+
 const double tol = 1e-9;
 const int N_THREAD = 24;
 const int N_CHUNK = 2*N_THREAD;
 const int CHUNK_SIZE = 10000;
+const size_t N_MAX_COORDS = 4000;
+const int THREADS = 128;
+const int BLOCKS = 128;
+
 const double c = 299792458;
 
 const int PB_CONST = 0;

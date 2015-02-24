@@ -62,7 +62,7 @@ class msio : public DataIO
 		ROMSColumns* msincols;
 		MeasurementSet* msout;
 		MSColumns* msoutcols;
-		int currentVisibility;
+		size_t currentVisibility;
 		int readChunkDummy(Chunk& chunk);
 		int readChunkSimple(Chunk& chunk);
 		int readChunkIteratorbased(Chunk& chunk);
@@ -79,7 +79,7 @@ class msio : public DataIO
 		msio(const char* msinfile, const char* msoutfile, 
 		     bool workondatacolumn = false);
 		~msio();
-		int nvis();
+		size_t nvis();
 
 		int readChunk(Chunk& chunk);
 		void writeChunk(Chunk& chunk);

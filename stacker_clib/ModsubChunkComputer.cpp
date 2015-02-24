@@ -31,9 +31,9 @@ ModsubChunkComputer::ModsubChunkComputer(Model* model, PrimaryBeam* pb)
 
 ModsubChunkComputer::~ModsubChunkComputer() {}
 
-float ModsubChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
+void ModsubChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 {
-	for(int uvrow = 0; uvrow < chunk->size(); uvrow++)
+	for(size_t uvrow = 0; uvrow < chunk->size(); uvrow++)
 	{
 		// Shorthands to make code more readable.
 		Visibility& inVis = chunk->inVis[uvrow];
@@ -44,17 +44,11 @@ float ModsubChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 
 		int fieldID = inVis.fieldID;
 
-		float* data_real = inVis.data_real;
-		float* data_imag = inVis.data_imag;
-		float* visWeight = inVis.weight;
-
-
 		for(int j = 0; j < inVis.nchan; j++)
 		{
 			for(int i = 0; i < inVis.nstokes; i++)
 			{
 				float dd_real = 0., dd_imag = 0.;
-				float weightNorm = 0.;
 				float d;
 				float freq = float(inVis.freq[j]);
 
@@ -97,7 +91,6 @@ float ModsubChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 // 		visWeightit->next();
 // 		datait->next();
 	}
-	return 0.;
 }/*}}}*/
 
 void ModsubChunkComputer::preCompute(DataIO* ms)

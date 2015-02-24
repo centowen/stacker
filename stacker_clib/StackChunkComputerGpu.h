@@ -18,22 +18,30 @@
 // Library to stack and modsub ms data.
 
 #include "MSComputer.h"
-#include "Model.h"
+#include "Coords.h"
 #include "PrimaryBeam.h"
 #include "DataIO.h"
+#include <pthread.h>
 
-#ifndef __MODSUB_CHUNK_COMPUTER_H__
-#define __MODSUB_CHUNK_COMPUTER_H__
+#include "StackChunkComputerGpu_cuda.h"
 
-class ModsubChunkComputer: public ChunkComputer
+#ifndef __STACK_CHUNK_COMPUTER_GPU_H__
+#define __STACK_CHUNK_COMPUTER_GPU_H__
+
+class StackChunkComputerGpu: public ChunkComputer
 {
 	private:
-		Model* model;
+		Coords* coords;
 		PrimaryBeam* pb;
+		DataContainer dev_data;
+		CoordContainer dev_coords;
+		bool redoWeights;
+        double sumvisweight, sumweight;
+
+		pthread_mutex_t fluxMutex;
 
 	public:
-		ModsubChunkComputer(Model* model, PrimaryBeam* pb);
-		~ModsubChunkComputer();
+		StackChunkComputerGpu(Coords* coords, PrimaryBeam* pb);
 
 		// Called from computer and allows to access data,
 		// unlike normal constructor which is called before computer
@@ -41,6 +49,8 @@ class ModsubChunkComputer: public ChunkComputer
 		void preCompute(DataIO* ms);
 		virtual void computeChunk(Chunk* chunk);
 		void postCompute(DataIO* ms);
+
+        double flux();
 };
 
 #endif // inclusion guard

@@ -25,6 +25,7 @@ def guesspb(vis):
     """
     Produces a PrimaryBeamModel from a measurementset
     """
+    print(vis)
     from taskinit import ms,tb,qa
     ms.open(vis)
     freq = (np.mean(ms.range('chan_freq')['chan_freq'])/1e9)

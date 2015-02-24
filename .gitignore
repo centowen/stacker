@@ -5,3 +5,8 @@ example/output
 example/*.pb
 *.log
 *.last
+*.so
+.sconf_temp/
+.sconsign.dblite
+casacore-for-casapy-r*
+config.h

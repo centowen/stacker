@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA  02110-1301, USA.
-from ctypes import c_double, POINTER, c_char_p, c_int
+from ctypes import c_double, POINTER, c_char_p, c_int, c_bool
 import numpy as np
 import stacker
 import stacker.pb
@@ -26,11 +26,11 @@ c_stack.argtype = [c_int, c_char_p, c_int,
                    c_int, c_char_p, c_int,
                    c_int, c_char_p, POINTER(c_double), c_int,
                    POINTER(c_double), POINTER(c_double), POINTER(c_double),
-                   c_int]
+                   c_int, c_bool]
 
 
 def stack(coords, vis, outvis='', imagename='', cell='1arcsec', stampsize=32,
-          primarybeam='guess', datacolumn='corrected'):
+          primarybeam='guess', datacolumn='corrected', use_cuda = False):
     """
          Performs stacking in the uv domain.
 
@@ -91,6 +91,8 @@ def stack(coords, vis, outvis='', imagename='', cell='1arcsec', stampsize=32,
 # primary beam
     if primarybeam == 'guess':
         primarybeam = stacker.pb.guesspb(vis)
+    elif primarybeam in ['constant', 'none'] or primarybeam is None:
+        primarybeam = stacker.pb.PrimaryBeamModel()
 
     pbtype, pbfile, pbnpars, pbpars = primarybeam.cdata()
 
@@ -107,7 +109,7 @@ def stack(coords, vis, outvis='', imagename='', cell='1arcsec', stampsize=32,
     flux = c_stack(infiletype, c_char_p(infilename), infileoptions,
                    outfiletype, c_char_p(outfilename), outfileoptions,
                    pbtype, c_char_p(pbfile), pbpars, pbnpars,
-                   x, y, weight, c_int(len(coords)))
+                   x, y, weight, c_int(len(coords)), c_bool(use_cuda))
     stop = time.time()
 #     print("Started stack at {}".format(start))
 #     print("Finished stack at {}".format(stop))

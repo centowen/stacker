@@ -20,15 +20,21 @@
 #include "MSComputer.h"
 #include "Chunk.h"
 #include <iostream>
+#include "config.h"
+
 /*}}}*/
 
 using std::cout;
 using std::endl;
 
-MSComputer::MSComputer(ChunkComputer* cc, 
-				   int infiletype, const char* infilename, int infileoptions,
-				   int outfiletype, const char* outfilename, int outfileoptions)/*{{{*/
+MSComputer::MSComputer(ChunkComputer* cc,
+                       int infiletype, const char* infilename,
+                       int infileoptions,
+                       int outfiletype, const char* outfilename,
+                       int outfileoptions,
+                       int n_thread)/*{{{*/
 {
+	n_thread_ = n_thread;
 	this->cc = cc;
 
 	pthread_mutex_init(&mutex, NULL);
@@ -106,9 +112,9 @@ float MSComputer::run()/*{{{*/
 
 	cc->preCompute(data);
 
-	pthread_t threads[N_THREAD];
+	pthread_t threads[n_thread_];
 
-	for(int i = 0; i < N_THREAD; i++)
+	for(int i = 0; i < n_thread_; i++)
 	{
 		pthread_create(&threads[i], NULL, startComputerThread, (void*)this);
 	}
@@ -183,7 +189,7 @@ float MSComputer::run()/*{{{*/
 		// When all data is read we only need to wait for computer thread to finish
 		if(allDataRead && threadsStillRunning)
 		{
-			for(int i = 0; i < N_THREAD; i++)
+			for(int i = 0; i < n_thread_; i++)
 			{
 				pthread_join(threads[i], NULL);
 			}

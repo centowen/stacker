@@ -71,7 +71,7 @@ size_t Chunk::size()
 	return nvis;
 }
 
-void Chunk::setSize(int size)
+void Chunk::setSize(size_t size)
 {
 	if(size < 0)
 		nvis = 0;
@@ -81,7 +81,8 @@ void Chunk::setSize(int size)
 	}
 	else
 	{
-		delete[] inVis, outVis;
+		delete[] inVis;
+		delete[] outVis;
 		inVis = new Visibility[size];
 		outVis = new Visibility[size];
 		nvis = size;
@@ -142,9 +143,9 @@ void Chunk::set_dataset_id(int id)
 
 void Chunk::update_datalinks()
 {
-    if(nchan == 0 or nstokes == 0)
+    if(nchan == (size_t)0 or nstokes == (size_t)0)
     {
-        for(int i = 0; i < max_nvis; i++)
+        for(size_t i = 0; i < max_nvis; i++)
         {
             inVis[i].data_real  = NULL;
             inVis[i].data_imag  = NULL;
@@ -158,7 +159,7 @@ void Chunk::update_datalinks()
     if(nvis <= 0)
         return;
 
-    for(int i = 0; i < nvis; i++)
+    for(size_t i = 0; i < nvis; i++)
     {
         inVis[i].data_real = &data_real_in[i*nchan*nstokes];
         inVis[i].data_imag = &data_imag_in[i*nchan*nstokes];

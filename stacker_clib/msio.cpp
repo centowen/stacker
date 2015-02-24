@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <tables/Tables/TableError.h>
 using casa::TableError;
+using std::cout;
+using std::endl;
 
 msio::msio(const char* msinfile,
            const char * msoutfile,
@@ -78,22 +80,24 @@ msio::msio(const char* msinfile,
 	nchan = 0;
 
 	// First figure out the largest nchan value.
-	for(int row =0 ; row < nspw; row++)
+	for(size_t row =0 ; row < nspw; row++)
 	{
 		casa::Vector<double> freqbuff = freqinit->vector();
 		if((size_t)freqbuff.shape()(0) > nchan)
 			nchan = (size_t)freqbuff.shape()(0);
+		freqinit->next();
 	}
 
+	freqinit = (casa::VectorIterator<double>*) msincols->spectralWindow().chanFreq().getColumn().makeIterator(1);
 	freq  = new float[nspw*nchan];
 
 	// Now we can read the frequency information.
-	for(int row =0 ; row < nspw; row++)
+	for(size_t row =0 ; row < nspw; row++)
 	{
 		casa::Vector<double> freqbuff = freqinit->vector();
-		int c_nchan = freqbuff.shape()(0);
+		size_t c_nchan = (size_t) freqbuff.shape()(0);
 
-		for(int col = 0; col < nchan; col++)
+		for(size_t col = 0; col < nchan; col++)
 		{
 			if(col < c_nchan) freq[row*nchan+col] = float(freqbuff(col));
 			else              freq[row*nchan+col] = float(0.0);
@@ -131,21 +135,24 @@ msio::~msio()
 	delete msincols;
 	delete msin;
 	if(msout)
-		delete msout, msoutcols;
+	{
+		delete msout;
+		delete msoutcols;
+	}
 // 	for(int i = 0; i < nspw; i++)
 // 		delete freq[i];
 // 	delete freq;
 }
 
-int msio::nvis()
+size_t msio::nvis()
 {
-	return msincols->data().nrow();
+	return (size_t)msincols->data().nrow();
 }
 
 int msio::readChunk(Chunk& chunk)
 {
 // 	readChunkIteratorbased(chunk);
-	readChunkSimple(chunk);
+	return readChunkSimple(chunk);
 }
 
 int msio::readChunkDummy(Chunk& chunk)
@@ -154,7 +161,7 @@ int msio::readChunkDummy(Chunk& chunk)
 		return 0;
 	currentVisibility += chunk.size();
 	int uvrow = 0;
-	for(int i = 0; i < chunk.size(); i++)
+	for(size_t i = 0; i < chunk.size(); i++)
 	{
 		uvrow = i+currentVisibility;
 		chunk.inVis[i].index = uvrow;
@@ -170,7 +177,7 @@ int msio::readChunkDummy(Chunk& chunk)
 
 int msio::readChunkIteratorbased(Chunk& chunk)
 {
-	readChunkDummy(chunk);
+	return readChunkDummy(chunk);
 }
 // {/*{{{*/
 // 	Vector<double> uvw;
@@ -237,7 +244,7 @@ int msio::readChunkSimple(Chunk& chunk)
 
 	chunk.set_dataset_id(dataset_id);
 
-	int currentVisibility = this->currentVisibility;
+	size_t currentVisibility = this->currentVisibility;
 	if(currentVisibility >= nvis())
 		return 0;
 	else if(currentVisibility+chunk.size() > nvis())
@@ -249,7 +256,7 @@ int msio::readChunkSimple(Chunk& chunk)
 	chunk.reshape_data(this->nchan, this->nstokes);
 
 	int uvrow = 0, nchan, nstokes;
-	for(int i = 0; i < chunk.size(); i++)
+	for(size_t i = 0; i < chunk.size(); i++)
 	{
 		uvrow = i+currentVisibility;
 		if(datacolumn == col_data)
@@ -264,12 +271,15 @@ int msio::readChunkSimple(Chunk& chunk)
 		uvw = msincols->uvw()(uvrow);
 
 		chunk.inVis[i].index = uvrow;
+		chunk.outVis[i].index = uvrow;
 
         nchan = data.ncolumn();
         nstokes = data.nrow();
 
 		chunk.inVis[i].nchan = nchan;
 		chunk.inVis[i].nstokes = nstokes;
+		chunk.outVis[i].nchan = nchan;
+		chunk.outVis[i].nstokes = nstokes;
 
         for(int stokes = 0; stokes < nstokes; stokes++)
         {
@@ -285,18 +295,12 @@ int msio::readChunkSimple(Chunk& chunk)
 		chunk.inVis[i].v = float(uvw[1]);
 		chunk.inVis[i].w = float(uvw[2]);
 		chunk.inVis[i].fieldID = msincols->fieldId()(uvrow);
+		chunk.outVis[i].fieldID = msincols->fieldId()(uvrow);
 
 		chunk.inVis[i].spw  = msincols->dataDescId()(chunk.inVis[i].index);
 		chunk.inVis[i].freq = &freq[nchan*chunk.inVis[i].spw];
-
-        if(nchan != chunk.outVis[i].nchan || nstokes != chunk.outVis[i].nstokes)
-        {
-            chunk.outVis[i].nchan = nchan;
-            chunk.outVis[i].nstokes = nstokes;
-            chunk.outVis[i].data_real = new float[nchan*nstokes];
-            chunk.outVis[i].data_imag = new float[nchan*nstokes];
-            chunk.outVis[i].weight = new float[nstokes];
-        }
+		chunk.outVis[i].spw  = chunk.inVis[i].spw;
+		chunk.outVis[i].freq  = chunk.inVis[i].freq;
 	}
 	return chunk.size();
 }
@@ -307,7 +311,7 @@ void msio::writeChunk(Chunk& chunk)
 		return;
 
 	Vector<double> uvw;
-	for(int i = 0; i < chunk.size(); i++)
+	for(size_t i = 0; i < chunk.size(); i++)
 	{
 		int nchan = chunk.outVis[i].nchan, 
 			nstokes = chunk.outVis[i].nstokes;
@@ -331,16 +335,16 @@ void msio::writeChunk(Chunk& chunk)
 			msoutcols->correctedData().put(chunk.outVis[i].index, data);
 		}
 	}
-	for(int i = 0; i < chunk.size(); i++)
+	for(size_t i = 0; i < chunk.size(); i++)
 	{
-		int nstokes = chunk.outVis[i].nstokes;
+		size_t nstokes = chunk.outVis[i].nstokes;
 		Vector<Float> weight(nstokes);
-		for(int stokes = 0; stokes<nstokes; stokes++)
+		for(size_t stokes = 0; stokes<nstokes; stokes++)
 			weight(stokes) = chunk.outVis[i].weight[stokes];
 
 		msoutcols->weight().put(chunk.outVis[i].index, weight);
 	}
-	for(int i = 0; i < chunk.size(); i++)
+	for(size_t i = 0; i < chunk.size(); i++)
 	{
 		msoutcols->fieldId().put(chunk.outVis[i].index, chunk.outVis[i].fieldID);
 	}

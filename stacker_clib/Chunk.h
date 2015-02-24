@@ -70,7 +70,7 @@ public:
 	~Chunk();
 
 	size_t size();
-	void setSize(int size);
+	void setSize(size_t size);
 
 	size_t nChan();
 	size_t nStokes();

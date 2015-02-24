@@ -36,10 +36,10 @@ void StackChunkComputer::setStackingMode(int mode)
 	stackingMode = mode;
 }
 
-float StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
+void StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 {
 	float sum = 0., normsum = 0.;
-	for(int uvrow = 0; uvrow < chunk->size(); uvrow++)
+	for(size_t uvrow = 0; uvrow < chunk->size(); uvrow++)
 	{
 		// Shorthands to make code more readable.
 		Visibility& inVis = chunk->inVis[uvrow];
@@ -53,13 +53,8 @@ float StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 
 		// Data is in a matrix where columns are different frequencies
 		// and rows are different polarizations.
-		float* data_real = inVis.data_real;
-		float* data_imag = inVis.data_imag;
-
 		// For weights we only have a vector, ie. only one weight for all frequencies
 		// and the rows represents different polarizations.
-		float* visWeight = inVis.weight;
-// 		outVis.weight = casa::Vector<Float>(inVis.weight.shape());
 
 		// Looping over frequency.
 		for(int j = 0; j < inVis.nchan; j++)
@@ -130,7 +125,6 @@ float StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 			outVis.fieldID = 1;
 		outVis.index = inVis.index;
 	}
-	float retval = 0;
     pthread_mutex_lock(&fluxMutex);
 	if( normsum > 0)
     {
@@ -138,7 +132,6 @@ float StackChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
         sumweight += normsum;
     }
     pthread_mutex_unlock(&fluxMutex);
-// 	return 1.;
 }/*}}}*/
 
 void StackChunkComputer::preCompute(DataIO* data)

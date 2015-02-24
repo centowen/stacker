@@ -1,6 +1,10 @@
 import os
 import os.path
-env = Environment()
+try:
+    Import('env')
+except:
+    exec open('build-env.py')
+    env = Environment()
 
 
 def build_header(env, do_pthreads = True, do_cuda = False):
@@ -99,6 +103,11 @@ env['ENV']['PKG_CONFIG_PATH'] = os.environ.get('PKG_CONFIG_PATH', '')
 add_options()
 
 do_cuda = GetOption('do_cuda')
+
+if do_cuda:
+#     env.Tool('cuda')
+    env.Append(LIBS=['cuda', 'cudart'])
+
 do_pthreads = GetOption('do_pthreads')
 build_header(env, do_pthreads=do_pthreads, do_cuda=do_cuda)
 
@@ -176,6 +185,10 @@ Sources.append("PrimaryBeam.cpp")
 Sources.append("MSPrimaryBeam.cpp")
 Sources.append("ModsubChunkComputer.cpp")
 Sources.append("StackChunkComputer.cpp")
+if do_cuda:
+    Sources.append("StackChunkComputerGpu.cpp")
+    Sources.append("StackChunkComputerGpu_cuda.cu")
+
 Sources.append("MSComputer.cpp")
 Sources.append('stacker.cpp')
 

@@ -46,7 +46,7 @@ class StackChunkComputer: public ChunkComputer
 		// unlike normal constructor which is called before computer
 		// is created.
 		void preCompute(DataIO* ms);
-		virtual float computeChunk(Chunk* chunk);
+		virtual void computeChunk(Chunk* chunk);
 		void postCompute(DataIO* ms);
 
         double flux();
