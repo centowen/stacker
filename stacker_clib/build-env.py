@@ -35,9 +35,10 @@ def get_cuda_paths():
   if 'CUDA_INC_PATH' in os.environ:
     inc_path = os.path.abspath(os.environ['CUDA_INC_PATH'])
   
-  import os
-  if not os.access(lib_path, os_F_OK):
-      raise OSError(strerror='Could not find CUDA.')
+#   import os
+# 
+#   if not os.access(lib_path, os_F_OK):
+#       raise OSError(strerror='Could not find CUDA.')
 
   return (bin_path,lib_path,inc_path)
 
@@ -198,8 +199,10 @@ def Environment(*args, **keywords):
    
   # get CUDA paths
   (cuda_exe_path,cuda_lib_path,cuda_inc_path) = get_cuda_paths()
-  env.Append(LIBPATH = [cuda_lib_path])
-  env.Append(CPPPATH = [cuda_inc_path])
+  if os.access(cuda_lib_path, os.F_OK):
+    env.Append(LIBPATH = [cuda_lib_path])
+  if os.access(cuda_inc_path, os.F_OK):
+    env.Append(CPPPATH = [cuda_inc_path])
 
   # link against the standard library
   # we don't have to do this on Windows
