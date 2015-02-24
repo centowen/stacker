@@ -153,10 +153,8 @@ if link_against_casa :
     env.Append(LIBPATH = [casalibpath])
     print(env['LIBPATH'])
 
-if link_against_casa:
-    conf = Configure(env, custom_tests = {'CheckPKGConfig': CheckPKGConfig, 'CheckPKG': CheckPKG})
-else:
-    conf = Configure(env)
+conf = Configure(env, custom_tests = {'CheckPKGConfig': CheckPKGConfig, 'CheckPKG': CheckPKG})
+
 if not link_against_casa and conf.CheckPKGConfig('0.15.0') and conf.CheckPKG('casacore'):
     env.ParseConfig('pkg-config --cflags --libs casacore')
 elif conf.CheckLib('casa_casa'):
