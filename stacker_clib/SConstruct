@@ -139,6 +139,8 @@ add_options()
 do_cuda = GetOption('do_cuda')
 
 if do_cuda:
+    thisFile = inspect.getabsfile(Environment)
+    thisDir = os.path.dirname(thisFile)
     env.Tool('nvcc', toolpath = [os.path.join(thisDir)])
     env.Append(LIBPATH = [cuda_lib_path])
     env.Append(CPPPATH = [cuda_inc_path])
