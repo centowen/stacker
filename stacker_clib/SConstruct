@@ -1,5 +1,6 @@
 import os
 import os.path
+import platform
 
 # try:
 #     Import('env')
@@ -139,9 +140,13 @@ add_options()
 do_cuda = GetOption('do_cuda')
 
 if do_cuda:
-    thisFile = inspect.getabsfile(Environment)
-    thisDir = os.path.dirname(thisFile)
+    import inspect
+#     thisFile = inspect.getabsfile(__path__[0])
+#     thisDir = os.path.dirname(thisFile)
+    thisDir = '.'
+    print(thisDir)
     env.Tool('nvcc', toolpath = [os.path.join(thisDir)])
+    cuda_exe_path, cuda_lib_path, cuda_inc_path = get_cuda_paths()
     env.Append(LIBPATH = [cuda_lib_path])
     env.Append(CPPPATH = [cuda_inc_path])
     env.Append(LIBS=['cuda', 'cudart'])
