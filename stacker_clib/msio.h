@@ -71,13 +71,16 @@ class msio : public DataIO
 		float* x_phase_centre;
 		float* y_phase_centre;
 		int datacolumn;
+		bool one_ptg_per_chunk_;
+		int ptg_breaks_in_a_row;
 
 		static const int col_data = 0;
 		static const int col_corrected_data = 1;
 
 	public:
 		msio(const char* msinfile, const char* msoutfile, 
-		     bool workondatacolumn = false);
+		     bool workondatacolumn = false,
+			 bool one_ptg_per_chunk = true);
 		~msio();
 		size_t nvis();
 

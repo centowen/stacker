@@ -71,6 +71,12 @@ size_t Chunk::size()
 	return nvis;
 }
 
+void Chunk::resetSize()
+{
+	nvis = max_nvis;
+    update_datalinks();
+}
+
 void Chunk::setSize(size_t size)
 {
 	if(size < 0)

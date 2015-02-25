@@ -27,10 +27,12 @@ using std::endl;
 
 msio::msio(const char* msinfile,
            const char * msoutfile,
-           bool workondatacolumn) : DataIO()
+           bool workondatacolumn,
+		   bool one_ptg_per_chunk) : DataIO()
 {
 	msin = new MeasurementSet(msinfile);
 	msincols = new ROMSColumns(*msin);
+	one_ptg_per_chunk_ = one_ptg_per_chunk;
 
 	if(workondatacolumn)
 	{
@@ -242,6 +244,7 @@ int msio::readChunkSimple(Chunk& chunk)
 	Matrix<Complex> data;
 	Vector<float> weight;
 
+	chunk.resetSize();
 	chunk.set_dataset_id(dataset_id);
 
 	size_t currentVisibility = this->currentVisibility;
@@ -251,6 +254,34 @@ int msio::readChunkSimple(Chunk& chunk)
 	{
 		chunk.setSize(nvis()-currentVisibility);
 	}
+
+
+	if(one_ptg_per_chunk_)
+	{
+		int fieldID = msincols->fieldId()(currentVisibility);
+		int inField = 0;
+		while(inField < chunk.size() and msincols->fieldId()(inField+currentVisibility) == fieldID)
+		{
+			inField += 1;
+		}
+		if(inField < chunk.size())
+		{
+			ptg_breaks_in_a_row += 1;
+			if(ptg_breaks_in_a_row > 1)
+			{
+				cout << "\nWarning! Few visibilities (" << inField 
+				     << ") found in field " << fieldID << ". "
+				     << "Code running on gpu may be inefficient if "
+				     << "visibilties are not ordered after field. " << endl;
+			}
+			chunk.setSize(inField);
+		}
+		else
+		{
+			ptg_breaks_in_a_row = 0;
+		}
+	}
+
 	this->currentVisibility += chunk.size();
 
 	chunk.reshape_data(this->nchan, this->nstokes);

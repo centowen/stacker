@@ -115,7 +115,6 @@ void setup_freq(DataContainer& data, DataIO& dataio)/*{{{*/
         for(size_t spwID = 0; spwID < dataio.nSpw(); spwID++)
         {   
             freq[spwID*dataio.nChan()+chanID] = (float)dataio.getFreq(spwID)[chanID];
-			cout << "Freq is: " << (float)dataio.getFreq(spwID)[chanID] << endl;
         }   
     }   
     
