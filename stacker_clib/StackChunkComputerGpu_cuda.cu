@@ -38,11 +38,15 @@ __global__ void cuVisStack(DataContainer data, CoordContainer coords, /*{{{*/
     float exponent, sin_exponent, cos_exponent, pbcor;
     float m_num_imag, m_num_real, norm;
 	float m_real, m_imag;
+	float m_real_avg, m_imag_avg;
     float data_real_buff, data_imag_buff;
 
     while(uvrow < chunk_size)
     {
         float* freq = &data.freq[data.spw[uvrow]*nchan];
+		m_real_avg = 0.;
+		m_imag_avg = 0.;
+
         for(size_t chanID = 0; chanID < nchan; chanID++)
         {
             m_num_real = 0.;
@@ -66,6 +70,8 @@ __global__ void cuVisStack(DataContainer data, CoordContainer coords, /*{{{*/
 
             m_real = m_num_real/norm;
             m_imag = m_num_imag/norm;
+			m_real_avg += m_real;
+			m_imag_avg += m_imag;
 
             for(size_t stokesID = 0; stokesID < nstokes; stokesID++)
             {
@@ -85,6 +91,15 @@ __global__ void cuVisStack(DataContainer data, CoordContainer coords, /*{{{*/
 				data.data_imag[dataindex] = data_imag_buff;
             }
         }
+
+		m_real_avg /= (float)nchan;
+		m_imag_avg /= (float)nchan;
+
+		for(size_t stokesID = 0; stokesID < nstokes; stokesID++)
+		{
+			size_t weightindex = uvrow*nstokes+stokesID;
+			data.data_weight[weightindex] *= m_real_avg*m_real_avg+m_imag_avg*m_imag_avg;
+		}
 
         uvrow += blockDim.x*gridDim.x;
     }
