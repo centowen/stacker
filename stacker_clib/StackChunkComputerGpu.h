@@ -37,6 +37,9 @@ class StackChunkComputerGpu: public ChunkComputer
 		CoordContainer dev_coords;
 		bool redoWeights;
         double sumvisweight, sumweight;
+		int field;
+		float* freq;
+		int nspw;
 
 		pthread_mutex_t fluxMutex;
 

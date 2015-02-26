@@ -31,9 +31,9 @@ __constant__ float dev_weight[N_MAX_COORDS];
 //                          int chunk_size, int nchan, int n_coords);
 
 __global__ void cuVisStack(DataContainer data, CoordContainer coords, /*{{{*/
-              int chunk_size, int nchan, int nstokes)
+                           size_t chunk_size, size_t nchan, size_t nstokes)
 {
-    int uvrow = threadIdx.x + blockIdx.x*blockDim.x;
+    size_t uvrow = threadIdx.x + blockIdx.x*blockDim.x;
 
     float exponent, sin_exponent, cos_exponent, pbcor;
     float m_num_imag, m_num_real, norm;
@@ -43,13 +43,13 @@ __global__ void cuVisStack(DataContainer data, CoordContainer coords, /*{{{*/
     while(uvrow < chunk_size)
     {
         float* freq = &data.freq[data.spw[uvrow]*nchan];
-        for(int chanID = 0; chanID < nchan; chanID++)
+        for(size_t chanID = 0; chanID < nchan; chanID++)
         {
             m_num_real = 0.;
             m_num_imag = 0.;
             norm = 0.;
 
-            for(int posID = 0; posID < coords.n_coords; posID++)
+            for(size_t posID = 0; posID < coords.n_coords; posID++)
             {
                 size_t pbindex = data.spw[uvrow]*nchan*coords.n_coords
                                + chanID*coords.n_coords
@@ -67,10 +67,10 @@ __global__ void cuVisStack(DataContainer data, CoordContainer coords, /*{{{*/
             m_real = m_num_real/norm;
             m_imag = m_num_imag/norm;
 
-            for(int stokesID = 0; stokesID < nstokes; stokesID++)
+            for(size_t stokesID = 0; stokesID < nstokes; stokesID++)
             {
-                int weightindex = uvrow*nstokes+stokesID;
-                int dataindex = nchan*weightindex + chanID;
+                size_t weightindex = uvrow*nstokes+stokesID;
+                size_t dataindex = nchan*weightindex + chanID;
 
                 data_real_buff = data.data_real[dataindex]*m_real -
                                  data.data_imag[dataindex]*m_imag;
@@ -90,8 +90,10 @@ __global__ void cuVisStack(DataContainer data, CoordContainer coords, /*{{{*/
     }
 };/*}}}*/
 
-void allocate_cuda_data(DataContainer& data, const int nchan,/*{{{*/
-		                const int nstokes, const int chunk_size)
+void allocate_cuda_data(DataContainer& data, CoordContainer& dev_coords,/*{{{*/
+                        const size_t nchan, const size_t nstokes,
+                        const size_t chunk_size, const size_t nmaxcoords,
+                        const size_t nspw)
 {
     CudaSafeCall(cudaMalloc( (void**)&data.u, sizeof(float)*chunk_size));
     CudaSafeCall(cudaMalloc( (void**)&data.v, sizeof(float)*chunk_size));
@@ -101,61 +103,61 @@ void allocate_cuda_data(DataContainer& data, const int nchan,/*{{{*/
     CudaSafeCall(cudaMalloc( (void**)&data.data_weight, sizeof(float)*chunk_size*nstokes));
     CudaSafeCall(cudaMalloc( (void**)&data.spw, sizeof(int)*chunk_size));
     CudaSafeCall(cudaMalloc( (void**)&data.field, sizeof(int)*chunk_size));
+	size_t pb_size = sizeof(float)*nmaxcoords*nchan*nspw;
+	cudaError err;
+	err = cudaMalloc( (void**)&dev_coords.pb, pb_size);
+	if(err != cudaSuccess)
+	{
+		if(err == cudaErrorMemoryAllocation)
+		{
+			fprintf(stderr, "Insuficient memory for primary beam data on device!");
+			fprintf(stderr, "n_coords: %zu, nchan: %zu, nspw: %zu, size: %zu",
+					nmaxcoords, nchan, nspw, pb_size);
+		}
+		else
+		{
+			fprintf(stderr, "Unknown error in allocation of dev_coords.pb (not cudaErrorMemoryAllocation)");
+		}
+
+		exit(-1);
+	}
 }/*}}}*/
-void setup_freq(DataContainer& data, DataIO& dataio)/*{{{*/
+void setup_freq(DataContainer& data, float* freq, const size_t nchan,/*{{{*/
+                const size_t nspw)
 {
-    // Buffer for data in CPU memory. Allows to reorder data for efficient copy to device.
-    float* freq = new float[dataio.nChan()*dataio.nSpw()];
-
-    CudaSafeCall(cudaMalloc( (void**)&data.freq, sizeof(float)*dataio.nChan()*dataio.nSpw()));
-
-    // Load frequencies into freq[].
-    for(size_t chanID = 0; chanID < dataio.nChan(); chanID++)
-    {   
-        for(size_t spwID = 0; spwID < dataio.nSpw(); spwID++)
-        {   
-            freq[spwID*dataio.nChan()+chanID] = (float)dataio.getFreq(spwID)[chanID];
-        }   
-    }   
-    
-    // Copy to device
-    CudaSafeCall(cudaMemcpy(data.freq, freq,
-                sizeof(float)*dataio.nChan()*dataio.nSpw(),
+    CudaSafeCall(cudaMalloc( (void**)&data.freq, sizeof(float)*nchan*nspw));
+    CudaSafeCall(cudaMemcpy(data.freq, freq, sizeof(float)*nchan*nspw,
                 cudaMemcpyHostToDevice));
-
-    // Remove buffer from cpu memory.
-    delete[] freq;
 }/*}}}*/
 void copy_coords_to_cuda(/*{{{*/
                          Coords& coords, CoordContainer& dev_coords, 
-                         DataIO& dataio, PrimaryBeam& pb)
+                         float* freq, PrimaryBeam& pb, 
+                         const int field, const size_t nchan,
+                         const size_t nspw)
 {
-    dev_coords.n_coords = (size_t)coords.nStackPoints[0];
+    dev_coords.n_coords = (size_t)coords.nStackPoints[field];
 
-//     float *pb_array = new float[dev_coords.n_max_coords*dataio.nPointings()];
-//     float *pb_array = new float[dev_coords.n_max_coords*dataio.nPointings()];
-//     float *pb_array = new float[dev_coords.n_max_coords*dataio.nChan()*dataio.nSpw()*dataio.nPointings()];
     float *omega = new float[dev_coords.n_coords*3];
     float *weight = new float[dev_coords.n_coords];
-    float *pb_array = new float[dev_coords.n_coords*dataio.nChan()*dataio.nSpw()];
+    float *pb_array = new float[dev_coords.n_coords*nchan*nspw];
 
-    for(int coordID = 0; coordID < dev_coords.n_coords; coordID++)
+    for(size_t coordID = 0; coordID < dev_coords.n_coords; coordID++)
     {
-        omega[coordID*3+0] = coords.omega_x[0][coordID];
-        omega[coordID*3+1] = coords.omega_y[0][coordID];
-        omega[coordID*3+2] = coords.omega_z[0][coordID];
-        weight[coordID]    = coords.weight[0][coordID];
+        omega[coordID*3+0] = coords.omega_x[field][coordID];
+        omega[coordID*3+1] = coords.omega_y[field][coordID];
+        omega[coordID*3+2] = coords.omega_z[field][coordID];
+        weight[coordID]    = coords.weight[field][coordID];
         
-        for(size_t spwID = 0; spwID < dataio.nSpw(); spwID++)
+        for(size_t spwID = 0; spwID < nspw; spwID++)
         {
-            for(size_t chanID = 0; chanID < dataio.nChan(); chanID++)
+            for(size_t chanID = 0; chanID < nchan; chanID++)
             {
-                size_t index = spwID*dataio.nChan()*dev_coords.n_coords
+                size_t index = spwID*nchan*dev_coords.n_coords
                              + chanID*dev_coords.n_coords
                              + coordID;
-                pb_array[index] = pb.calc(coords.dx[0][coordID],
-                                          coords.dy[0][coordID],
-                                          dataio.getFreq(spwID)[chanID]);
+                pb_array[index] = pb.calc(coords.dx[field][coordID],
+                                          coords.dy[field][coordID],
+                                          freq[spwID*nchan+chanID]);
             }
         }
     }
@@ -183,32 +185,14 @@ void copy_coords_to_cuda(/*{{{*/
 				sizeof(float)*dev_coords.n_coords);
 		exit(-1);
 	}
-	size_t pb_size = sizeof(float)*dev_coords.n_coords
-		           * dataio.nChan()*dataio.nSpw();
-	err = cudaMalloc( (void**)&dev_coords.pb, pb_size);
-	if(err != cudaSuccess)
-	{
-		if(err == cudaErrorMemoryAllocation)
-		{
-			fprintf(stderr, "Insuficient memory for primary beam data on device!");
-			fprintf(stderr, "n_coords: %zu, nchan: %zu, nspw: %zu, size: %zu",
-					dev_coords.n_coords, dataio.nChan(), dataio.nSpw(),
-					pb_size);
-		}
-		else
-		{
-			fprintf(stderr, "Unknown error in allocation of dev_coords.pb (not cudaErrorMemoryAllocation)");
-		}
-
-		exit(-1);
-	}
+	size_t pb_size = sizeof(float)*dev_coords.n_coords*nchan*nspw;
     err = cudaMemcpy( dev_coords.pb, pb_array, 
 	                  pb_size, cudaMemcpyHostToDevice);
 	if(err != cudaSuccess)
 	{
 		fprintf(stderr, "Failed to copy pb to device.");
 		fprintf(stderr, "n_coords: %zu, size: %zu", dev_coords.n_coords,
-				sizeof(float)*dev_coords.n_coords*dataio.nChan()*dataio.nSpw());
+				sizeof(float)*dev_coords.n_coords*nchan*nspw);
 		exit(-1);
 	}
 
@@ -273,7 +257,7 @@ void copy_data_to_host(DataContainer& data, Chunk& chunk)/*{{{*/
                 cudaMemcpyDeviceToHost));
 }/*}}}*/
 void visStack(DataContainer data, CoordContainer coords,/*{{{*/
-              int chunk_size, int nchan, int nstokes)
+              size_t chunk_size, size_t nchan, size_t nstokes)
 {
 	cuVisStack<<<BLOCKS,THREADS>>>(data, coords, chunk_size, nchan, nstokes);
 }/*}}}*/

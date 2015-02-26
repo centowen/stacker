@@ -46,15 +46,20 @@ typedef struct _CoordContainer
     float* pb; 
 } CoordContainer;
 
-void allocate_cuda_data(DataContainer& data, const int nchan,
-                        const int nstokes, const int chunk_size);
-void setup_freq(DataContainer& data, DataIO& dataio);
-void copy_coords_to_cuda(Coords& coords, CoordContainer& dev_coords,
-                         DataIO& dataio, PrimaryBeam& pb);
+void allocate_cuda_data(DataContainer& data, CoordContainer& dev_coords,
+                        const size_t nchan, const size_t nstokes,
+                        const size_t chunk_size, const size_t nmaxcoords,
+                        const size_t nspw);
+void setup_freq(DataContainer& data, float* freq,
+                const size_t nchan, const size_t nspw);
+void copy_coords_to_cuda(Coords& coords, CoordContainer& dev_coords, 
+                         float* freq, PrimaryBeam& pb, 
+                         const int field, const size_t nchan,
+                         const size_t nspw);
 void copy_data_to_cuda(DataContainer& data, Chunk& chunk);
 void copy_data_to_host(DataContainer& data, Chunk& chunk);
 void visStack(DataContainer data, CoordContainer coords, 
-                         int chunk_size, int nchan, int n_stokes);
+              size_t chunk_size, size_t nchan, size_t n_stokes);
 
 #endif // inclusion guard
 

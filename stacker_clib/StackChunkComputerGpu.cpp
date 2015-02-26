@@ -26,9 +26,18 @@ StackChunkComputerGpu::StackChunkComputerGpu(Coords* coords, PrimaryBeam* pb)/*{
 {
 	this->coords = coords;
 	this->pb = pb;
+	field = -999;
+	freq = NULL;
+	nspw = 0;
+
 }/*}}}*/
 void StackChunkComputerGpu::computeChunk(Chunk* chunk) /*{{{*/
 {
+	if(chunk->inVis[0].fieldID != field)
+	{
+		field = chunk->inVis[0].fieldID;
+		copy_coords_to_cuda(*coords, dev_coords, freq, *pb, field, chunk->nChan(), nspw);
+	}
 	copy_data_to_cuda(dev_data, *chunk);
 	for(size_t uvrow = 0; uvrow < chunk->size(); uvrow++)
 	{
@@ -59,10 +68,27 @@ void StackChunkComputerGpu::preCompute(DataIO* dataio)/*{{{*/
 
 	coords->computeCoords(dataio, *pb);
 
-	allocate_cuda_data(dev_data, dataio->nChan(),
-	                   dataio->nStokes(), CHUNK_SIZE);
-	setup_freq(dev_data, *dataio);
-	copy_coords_to_cuda(*coords, dev_coords, *dataio, *pb);
+	int nmaxcoords = 0;
+	for(int i = 0; i < coords->nPointings; i++)
+		if(coords->nStackPoints[i] > nmaxcoords)
+			nmaxcoords = coords->nStackPoints[i];
+
+	allocate_cuda_data(dev_data, dev_coords, dataio->nChan(),
+	                   dataio->nStokes(), CHUNK_SIZE, 
+					   nmaxcoords, dataio->nSpw());
+
+	nspw = dataio->nSpw();
+    freq = new float[dataio->nChan()*dataio->nSpw()];
+    // Load frequencies into freq[].
+    for(size_t chanID = 0; chanID < dataio->nChan(); chanID++)
+    {   
+        for(size_t spwID = 0; spwID < dataio->nSpw(); spwID++)
+        {   
+            freq[spwID*dataio->nChan()+chanID] = (float)dataio->getFreq(spwID)[chanID];
+        }   
+    }   
+	// Copy freq to device.
+	setup_freq(dev_data, freq, dataio->nChan(), dataio->nSpw());
 }/*}}}*/
 void StackChunkComputerGpu::postCompute(DataIO* data)/*{{{*/
 {
@@ -70,6 +96,7 @@ void StackChunkComputerGpu::postCompute(DataIO* data)/*{{{*/
 	// Set centre to 0., 0. to indicate that coordinates at this point are
 	// arbitrary.
 	data->setPhaseCentre(0, 0., 0.);
+	delete[] freq;
 
 	// Maybe it would be nice to also remove all the other fields?
 	// Also should properly flag visibilities that got bad in stacking.
