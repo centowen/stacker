@@ -28,7 +28,7 @@ from ctypes import cdll
 __author__ = 'Lukas Lindroos'
 __copyright__ = 'Copyright 2014'
 __license__ = 'GPL'
-__version__ = '1.0.0'
+__version__ = '1.0.3'
 __maintainer__ = 'Lukas Lindroos'
 __email__ = 'lindroos@chalmers.se'
 
@@ -224,26 +224,29 @@ def readCoords(coordfile, unit='deg'):
 
 def _checkfile(filename, datacolumn):
     import re
-    if re.match('^.*[mM][sS]/*$', filename) is not None:
-        try:
-            from taskinit import ms
-            ms.open(filename)
-            ms.done()
-        except ImportError:
-            # This probably means that it was run from a pure python session.
-            # We will relegate any checks that it is a valid ms file to the 
-            # stacker.
-            if not os.access(filename, os.F_OK):
-                raise RuntimeError('Could not find data file "{}".'.format(
-                    filename))
+    # Currently this supports only ms files
+    # As such there is no reason to check filetype.
+    # If it cannot be opened as ms it will not be supported.
+#     if re.match('^.*[mM][sS]/*$', filename) is not None:
+    try:
+        from taskinit import ms
+        ms.open(filename)
+        ms.done()
+    except ImportError:
+        # This probably means that it was run from a pure python session.
+        # We will relegate any checks that it is a valid ms file to the 
+        # stacker.
+        if not os.access(filename, os.F_OK):
+            raise RuntimeError('Could not find data file "{}".'.format(
+                filename))
 
-        filename = filename
-        filetype = FILE_TYPE_MS
-        fileoptions = 0
-        if datacolumn == 'data':
-            fileoptions = MS_DATACOLUMN_DATA
-    elif re.match('^.*[fF][iI][tT][sS]$'. filename) is not None:
-        raise NotImplementedError('FITS format is currently not supported.')
+    filename = filename
+    filetype = FILE_TYPE_MS
+    fileoptions = 0
+    if datacolumn == 'data':
+        fileoptions = MS_DATACOLUMN_DATA
+#     elif re.match('^.*[fF][iI][tT][sS]$', filename) is not None:
+#         raise NotImplementedError('FITS format is currently not supported.')
     return filetype, filename, fileoptions
 
 
