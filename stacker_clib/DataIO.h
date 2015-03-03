@@ -56,6 +56,7 @@ class DataIO
 		static int id_counter;
 	public:
 		DataIO();
+		virtual ~DataIO();
 
 		const int dataset_id;
 
