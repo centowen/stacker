@@ -28,6 +28,7 @@ const int N_THREAD = 24;
 const int N_CHUNK = 2*N_THREAD;
 const int CHUNK_SIZE = 10000;
 const size_t N_MAX_COORDS = 4000;
+const size_t N_MAX_MOD_COMP = 3000;
 const int THREADS = 128;
 const int BLOCKS = 128;
 

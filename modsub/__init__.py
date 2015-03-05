@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from ctypes import c_double, POINTER, c_char_p, cdll, c_int
+from ctypes import c_double, c_bool, POINTER, c_char_p, cdll, c_int
 import numpy as np
 import stacker
 
@@ -27,9 +27,10 @@ c_modsub.argtype = [c_char_p, c_char_p, c_char_p,c_char_p]
 c_modsub.argtype = [c_int, c_char_p, c_int,
                     c_int, c_char_p, c_int,
                     c_char_p,
-                    c_int, c_char_p, POINTER(c_double), c_int]
+                    c_int, c_char_p, POINTER(c_double), c_int,
+                    c_bool]
 
-def modsub(model, vis, outvis='', datacolumn='corrected', primarybeam='guess'):
+def modsub(model, vis, outvis='', datacolumn='corrected', primarybeam='guess', use_cuda=False):
     import shutil
     import os
 
@@ -66,7 +67,8 @@ def modsub(model, vis, outvis='', datacolumn='corrected', primarybeam='guess'):
     flux = c_modsub(infiletype, c_char_p(infilename), infileoptions,
                     outfiletype, c_char_p(outfilename), outfileoptions,
                     c_char_p(model), 
-                    pbtype, c_char_p(pbfile), pbpars, pbnpars)
+                    pbtype, c_char_p(pbfile), pbpars, pbnpars,
+                    c_bool(use_cuda))
     return 0
 
 

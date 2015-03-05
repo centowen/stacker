@@ -1,4 +1,5 @@
 // Define this to turn on error checking
+#include <stdio.h>
 #define CUDA_ERROR_CHECK
 
 #define CudaSafeCall( err ) __cudaSafeCall( err, __FILE__, __LINE__ )

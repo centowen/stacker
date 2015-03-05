@@ -17,58 +17,39 @@
 //
 // Library to stack and modsub ms data.
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <vector>
-#include <stdlib.h>
-#include <cmath>
-
-#include <sys/stat.h>
-
+#include "MSComputer.h"
+#include "Model.h"
 #include "PrimaryBeam.h"
-#include "definitions.h"
 #include "DataIO.h"
 
-#ifndef __MODEL_H__
-#define __MODEL_H__
+#include "ModsubChunkComputerGpu_cuda.h"
 
-using std::vector;
-using std::ifstream;
-using std::stringstream;
-using std::sin;
-using std::asin;
-using std::cos;
-using std::exp;
-using std::log;
-using std::cerr;
-using std::cout;
-using std::endl;
+#ifndef __MODSUB_CHUNK_COMPUTER_GPU_H__
+#define __MODSUB_CHUNK_COMPUTER_GPU_H__
 
-class Model
+class ModsubChunkComputerGpu: public ChunkComputer
 {
-private:
-	struct stat statbuffer;
-	string clfile;
-public:
-	Model(string file);
-	~Model();
-	void compute(DataIO* ms, PrimaryBeam* pb);
+	private:
+		Model* model;
+		PrimaryBeam* pb;
 
-public:
-	int nPointings;
-	int* nStackPoints;
-	float** omega_x;
-	float** omega_y;
-	float** omega_z;
-	float** omega_size;
-	float** dx;
-	float** dy;
-	float** x;
-	float** y;
-	float** flux;
-	float** size;
+		DataContainer dev_data;
+		ModelContainer dev_model;
+
+		int field;
+		float* freq;
+		int nspw;
+
+	public:
+		ModsubChunkComputerGpu(Model* coords, PrimaryBeam* pb);
+
+		// Called from computer and allows to access data,
+		// unlike normal constructor which is called before computer
+		// is created.
+		void preCompute(DataIO* ms);
+		virtual void computeChunk(Chunk* chunk);
+		void postCompute(DataIO* ms);
 };
 
-#endif
+#endif // inclusion guard
 

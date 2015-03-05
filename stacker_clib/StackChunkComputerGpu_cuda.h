@@ -22,23 +22,11 @@
 #include "Coords.h"
 #include "Chunk.h"
 #include "DataIO.h"
+#include "CommonCuda.h"
 // class PrimaryBeam;
 // class Coords;
 // class Chunk;
 // class DataIO;
-
-typedef struct _DataContainer
-{
-    float* u;
-    float* v;
-    float* w;
-    float* freq;
-    float* data_real;
-    float* data_imag;
-    float* data_weight;
-    int* spw;
-	int* field;
-} DataContainer;
 
 typedef struct _CoordContainer
 {
@@ -46,18 +34,14 @@ typedef struct _CoordContainer
     float* pb; 
 } CoordContainer;
 
-void allocate_cuda_data(DataContainer& data, CoordContainer& dev_coords,
-                        const size_t nchan, const size_t nstokes,
-                        const size_t chunk_size, const size_t nmaxcoords,
-                        const size_t nspw);
-void setup_freq(DataContainer& data, float* freq,
-                const size_t nchan, const size_t nspw);
+void allocate_cuda_data_stack(DataContainer& data, CoordContainer& dev_coords,
+                              const size_t nchan, const size_t nstokes,
+                              const size_t chunk_size, const size_t nmaxcoords,
+                              const size_t nspw);
 void copy_coords_to_cuda(Coords& coords, CoordContainer& dev_coords, 
                          float* freq, PrimaryBeam& pb, 
                          const int field, const size_t nchan,
                          const size_t nspw);
-void copy_data_to_cuda(DataContainer& data, Chunk& chunk);
-void copy_data_to_host(DataContainer& data, Chunk& chunk);
 void visStack(DataContainer data, CoordContainer coords, 
               size_t chunk_size, size_t nchan, size_t n_stokes);
 

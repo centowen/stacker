@@ -1,3 +1,5 @@
+#ifndef __MODSUB_CHUNK_COMPUTER_GPU_CUDA_H__
+#define __MODSUB_CHUNK_COMPUTER_GPU_CUDA_H__
 // stacker, Python module for stacking of interferometric data.
 // Copyright (C) 2014  Lukas Lindroos
 //
@@ -16,59 +18,28 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 //
 // Library to stack and modsub ms data.
-
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <vector>
-#include <stdlib.h>
-#include <cmath>
-
-#include <sys/stat.h>
-
 #include "PrimaryBeam.h"
-#include "definitions.h"
+#include "Model.h"
+#include "Chunk.h"
 #include "DataIO.h"
+#include "CommonCuda.h"
 
-#ifndef __MODEL_H__
-#define __MODEL_H__
-
-using std::vector;
-using std::ifstream;
-using std::stringstream;
-using std::sin;
-using std::asin;
-using std::cos;
-using std::exp;
-using std::log;
-using std::cerr;
-using std::cout;
-using std::endl;
-
-class Model
+typedef struct _ModelContainer
 {
-private:
-	struct stat statbuffer;
-	string clfile;
-public:
-	Model(string file);
-	~Model();
-	void compute(DataIO* ms, PrimaryBeam* pb);
+    size_t n_mod_comp;
+    float* pb; 
+} ModelContainer;
 
-public:
-	int nPointings;
-	int* nStackPoints;
-	float** omega_x;
-	float** omega_y;
-	float** omega_z;
-	float** omega_size;
-	float** dx;
-	float** dy;
-	float** x;
-	float** y;
-	float** flux;
-	float** size;
-};
+void allocate_cuda_data_modsub(DataContainer& data, ModelContainer& dev_model,
+                              const size_t nchan, const size_t nstokes,
+                              const size_t chunk_size, const size_t nmax_mod_comp,
+                              const size_t nspw);
+void copy_model_to_cuda(Model& model, ModelContainer& dev_model, 
+                         float* freq, PrimaryBeam& pb, 
+                         const int field, const size_t nchan,
+                         const size_t nspw);
+void modsub_chunk(DataContainer data, ModelContainer model, 
+                  size_t chunk_size, size_t nchan, size_t n_stokes);
 
-#endif
+#endif // inclusion guard
 

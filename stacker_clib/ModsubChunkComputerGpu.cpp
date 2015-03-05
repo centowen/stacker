@@ -17,65 +17,53 @@
 //
 #include <iostream>
 
-#include "StackChunkComputerGpu.h"
+#include "ModsubChunkComputerGpu.h"
 #include "Chunk.h"
-#include "Coords.h"
+#include "Model.h"
 #include "PrimaryBeam.h"
 
-StackChunkComputerGpu::StackChunkComputerGpu(Coords* coords, PrimaryBeam* pb)/*{{{*/
+ModsubChunkComputerGpu::ModsubChunkComputerGpu(Model* model, PrimaryBeam* pb)/*{{{*/
 {
-	this->coords = coords;
+	this->model = model;
 	this->pb = pb;
 	field = -999;
 	freq = NULL;
 	nspw = 0;
 
 }/*}}}*/
-void StackChunkComputerGpu::computeChunk(Chunk* chunk) /*{{{*/
+
+void ModsubChunkComputerGpu::computeChunk(Chunk* chunk) /*{{{*/
 {
 	if(chunk->inVis[0].fieldID != field)
 	{
 		field = chunk->inVis[0].fieldID;
-		copy_coords_to_cuda(*coords, dev_coords, freq, *pb, field, chunk->nChan(), nspw);
+		copy_model_to_cuda(*model, dev_model, freq, *pb, field, chunk->nChan(), nspw);
 	}
 	copy_data_to_cuda(dev_data, *chunk);
 	for(size_t uvrow = 0; uvrow < chunk->size(); uvrow++)
 	{
 		Visibility& inVis = chunk->inVis[uvrow];
 		Visibility& outVis = chunk->outVis[uvrow];
-		if(coords->nStackPoints[inVis.fieldID] > 0)
-			outVis.fieldID = 0;
-		else
-			outVis.fieldID = 1;
+		outVis.fieldID = inVis.fieldID;
 	}
-	visStack(dev_data, dev_coords, chunk->size(),
+	modsub_chunk(dev_data, dev_model, chunk->size(),
 	         chunk->nChan(), chunk->nStokes());
 	copy_data_to_host(dev_data, *chunk);
 }/*}}}*/
-void StackChunkComputerGpu::preCompute(DataIO* dataio)/*{{{*/
+void ModsubChunkComputerGpu::preCompute(DataIO* dataio)/*{{{*/
 {
-	// If we only have one field in the data the weights do not need to be 
-	// updated. 
-	if(dataio->nPointings() > 1)
-	{
-		redoWeights = true;
-	}
+	model->compute(dataio, pb);
 
+	int nmax_model_comp = 0;
+	for(int i = 0; i < model->nPointings; i++)
+		if(model->nStackPoints[i] > nmax_model_comp)
+		{
+			nmax_model_comp = model->nStackPoints[i];
+		}
 
-	pthread_mutex_init(&fluxMutex, NULL);
-    sumvisweight = 0.;
-    sumweight = 0.;
-
-	coords->computeCoords(dataio, *pb);
-
-	int nmaxcoords = 0;
-	for(int i = 0; i < coords->nPointings; i++)
-		if(coords->nStackPoints[i] > nmaxcoords)
-			nmaxcoords = coords->nStackPoints[i];
-
-	allocate_cuda_data_stack(dev_data, dev_coords, dataio->nChan(),
-	                   dataio->nStokes(), CHUNK_SIZE, 
-					   nmaxcoords, dataio->nSpw());
+	allocate_cuda_data_modsub(dev_data, dev_model, dataio->nChan(),
+	                          dataio->nStokes(), CHUNK_SIZE, 
+					          nmax_model_comp, dataio->nSpw());
 
 	nspw = dataio->nSpw();
     freq = new float[dataio->nChan()*dataio->nSpw()];
@@ -90,18 +78,8 @@ void StackChunkComputerGpu::preCompute(DataIO* dataio)/*{{{*/
 	// Copy freq to device.
 	setup_freq(dev_data, freq, dataio->nChan(), dataio->nSpw());
 }/*}}}*/
-void StackChunkComputerGpu::postCompute(DataIO* data)/*{{{*/
+void ModsubChunkComputerGpu::postCompute(DataIO* data)/*{{{*/
 {
-	// After stacking we have all visibilities in field 0.
-	// Set centre to 0., 0. to indicate that coordinates at this point are
-	// arbitrary.
-	data->setPhaseCentre(0, 0., 0.);
+	// FIXME: Should clean up cuda here.
 	delete[] freq;
-
-	// Maybe it would be nice to also remove all the other fields?
-	// Also should properly flag visibilities that got bad in stacking.
-}/*}}}*/
-double StackChunkComputerGpu::flux()/*{{{*/
-{
-    return 0.;
 }/*}}}*/

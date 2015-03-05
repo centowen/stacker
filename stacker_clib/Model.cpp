@@ -191,11 +191,11 @@ void Model::compute(DataIO* ms, PrimaryBeam* pb)
 			                 cos(y[fieldID][i])*sin(ms->yPhaseCentre(fieldID)) *
 			                 cos(x[fieldID][i]-ms->xPhaseCentre(fieldID));
 
-			omega_x[fieldID][i] = 2*pi*sin(dx[fieldID][i])/casa::C::c;
-			omega_y[fieldID][i] = 2*pi*sin(dy[fieldID][i])/casa::C::c;
-// 			omega_z[fieldID][i] = 2*pi*(cos(sqrt(dx[fieldID][i]*dx[fieldID][i]+dy[fieldID][i]*dy[fieldID][i]))-1)/casa::C::c;
-			omega_z[fieldID][i] = 2*pi*(sqrt(1-dx[fieldID][i]*dx[fieldID][i]-dy[fieldID][i]*dy[fieldID][i])-1)/casa::C::c;
-			omega_size[fieldID][i] = pow(pi*size[fieldID][i]/casa::C::c, 2) / (4 * log(2));
+			omega_x[fieldID][i] = 2*M_PI*sin(dx[fieldID][i])/casa::C::c;
+			omega_y[fieldID][i] = 2*M_PI*sin(dy[fieldID][i])/casa::C::c;
+// 			omega_z[fieldID][i] = 2*M_PI*(cos(sqrt(dx[fieldID][i]*dx[fieldID][i]+dy[fieldID][i]*dy[fieldID][i]))-1)/casa::C::c;
+			omega_z[fieldID][i] = 2*M_PI*(sqrt(1-dx[fieldID][i]*dx[fieldID][i]-dy[fieldID][i]*dy[fieldID][i])-1)/casa::C::c;
+			omega_size[fieldID][i] = pow(M_PI*size[fieldID][i]/casa::C::c, 2) / (4 * log(2));
 		}
 	}
 

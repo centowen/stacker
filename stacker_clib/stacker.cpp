@@ -30,6 +30,7 @@
 #include "config.h"
 #ifdef USE_CUDA
 #include "StackChunkComputerGpu.h"
+#include "ModsubChunkComputerGpu.h"
 #endif
 /*}}}*/
 
@@ -40,13 +41,14 @@ using std::endl;
 
 double cpp_stack(int infiletype, const char* infile, int infileoptions, 
                  int outfiletype, const char* outfile, int outfileoptions, 
-			     int pbtype, char* pbfile, double* pbpar, int npbpar,
-				 double* x, double* y, double* weight, int nstack,
-				 bool use_cuda = false);
+                 int pbtype, char* pbfile, double* pbpar, int npbpar,
+                 double* x, double* y, double* weight, int nstack,
+                 bool use_cuda = false);
 void cpp_modsub(int infiletype, const char* infile, int infileoptions, 
                 int outfiletype, const char* outfile, int outfileoptions, 
-				const char* modelfile,
-				int pbtype, const char* pbfile, double* pbpar, int npbpar);
+                const char* modelfile,
+                int pbtype, const char* pbfile, double* pbpar, int npbpar,
+                bool use_cuda = false);
 
 // Functions to interface with python module.
 extern "C"{
@@ -69,9 +71,9 @@ extern "C"{
 	{
 		double flux;
 		flux = cpp_stack(infiletype, infile, infileoptions, 
-				         outfiletype, outfile, outfileoptions,
-						 pbtype, pbfile, pbpar, npbpar, 
-						 x, y, weight, nstack, use_cuda);
+		                 outfiletype, outfile, outfileoptions,
+		                 pbtype, pbfile, pbpar, npbpar, 
+		                 x, y, weight, nstack, use_cuda);
 		return flux;
 	};
 
@@ -82,14 +84,16 @@ extern "C"{
 	// - infile: cl file with the model to be subtracted
 	// - pbfile: A casa image of the primary beam, used to calculate primary beam correction.
 	void modsub(int infiletype, char* infile, int infileoptions, 
-			    int outfiletype, char* outfile, int outfileoptions,
-				char* modelfile, 
-				int pbtype, const char* pbfile, double* pbpar, int npbpar)
+	            int outfiletype, char* outfile, int outfileoptions,
+	            char* modelfile, 
+	            int pbtype, const char* pbfile, double* pbpar, int npbpar,
+	            bool use_cuda = false)
 	{
 		cpp_modsub(infiletype, infile, infileoptions, 
-				   outfiletype, outfile, outfileoptions,
-				   modelfile, 
-				   pbtype, pbfile, pbpar, npbpar);
+		           outfiletype, outfile, outfileoptions,
+		           modelfile, 
+		           pbtype, pbfile, pbpar, npbpar,
+		           use_cuda);
 	};
 };
 
@@ -126,12 +130,20 @@ double cpp_stack(int infiletype, const char* infile, int infileoptions,
 	{
 		cc = (ChunkComputer*) new StackChunkComputer(&coords, pb);
 	}
-	MSComputer* computer = new MSComputer(cc, 
-			                              infiletype, infile, infileoptions,
-										  outfiletype, outfile, outfileoptions,
-										  n_thread);
 
-	computer->run();
+	MSComputer* computer;
+	try
+	{
+		computer = new MSComputer(cc, 
+								  infiletype, infile, infileoptions,
+								  outfiletype, outfile, outfileoptions,
+								  n_thread);
+		computer->run();
+	}
+	catch(fileException e)
+	{
+		std::cerr << e.what() << std::endl;
+	}
 // 	double averageFlux =  (double)cc->flux();
 
 	delete computer;
@@ -144,10 +156,11 @@ double cpp_stack(int infiletype, const char* infile, int infileoptions,
 }/*}}}*/
 
 // Subtract a cl model from measurement set.
-void cpp_modsub(int infiletype, const char* infile, int infileoptions, 
+void cpp_modsub(int infiletype, const char* infile, int infileoptions, /*{{{*/
                 int outfiletype, const char* outfile, int outfileoptions, 
-				const char* modelfile, 
-				int pbtype, const char* pbfile, double* pbpar, int npbpar) /*{{{*/
+                const char* modelfile, 
+                int pbtype, const char* pbfile, double* pbpar, int npbpar,
+                bool use_cuda)
 {
 	PrimaryBeam* pb;// = new ImagePrimaryBeam(pbfile);
 	if(pbtype == PB_CONST)
@@ -160,14 +173,29 @@ void cpp_modsub(int infiletype, const char* infile, int infileoptions,
 	Model* model = new Model(modelfile);
 
 
-	ModsubChunkComputer* cc = new ModsubChunkComputer(model, pb);
+	ChunkComputer* cc;
+	int n_thread = N_THREAD;
+	if(use_cuda)
+	{
+#ifdef USE_CUDA
+		cc = (ChunkComputer*) new ModsubChunkComputerGpu(model, pb);
+		n_thread = 1;
+#else
+		cout << "CUDA support is not compiled. Recompile to enable." << endl;
+		return 0.;
+#endif
+	}
+	else
+	{
+		cc = (ChunkComputer*) new ModsubChunkComputer(model, pb);
+	}
 	MSComputer* computer = NULL;
 	try
 	{
-		computer = new MSComputer((ChunkComputer*)cc, 
-											infiletype, infile, infileoptions,
-											outfiletype, outfile, outfileoptions);
-
+		computer = new MSComputer(cc, 
+		                          infiletype, infile, infileoptions,
+		                          outfiletype, outfile, outfileoptions,
+		                          n_thread);
 		computer->run();
 
 	}

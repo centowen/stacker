@@ -231,8 +231,11 @@ Sources.append("MSPrimaryBeam.cpp")
 Sources.append("ModsubChunkComputer.cpp")
 Sources.append("StackChunkComputer.cpp")
 if do_cuda:
+    Sources.append("CommonCuda.cu")
     Sources.append("StackChunkComputerGpu.cpp")
     Sources.append("StackChunkComputerGpu_cuda.cu")
+    Sources.append("ModsubChunkComputerGpu.cpp")
+    Sources.append("ModsubChunkComputerGpu_cuda.cu")
 
 Sources.append("MSComputer.cpp")
 Sources.append('stacker.cpp')
