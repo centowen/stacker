@@ -28,9 +28,9 @@ c_modsub.argtype = [c_int, c_char_p, c_int,
                     c_int, c_char_p, c_int,
                     c_char_p,
                     c_int, c_char_p, POINTER(c_double), c_int,
-                    c_bool]
+                    c_bool, c_bool]
 
-def modsub(model, vis, outvis='', datacolumn='corrected', primarybeam='guess', use_cuda=False):
+def modsub(model, vis, outvis='', datacolumn='corrected', primarybeam='guess', subtract=True, use_cuda=False):
     import shutil
     import os
 
@@ -68,7 +68,7 @@ def modsub(model, vis, outvis='', datacolumn='corrected', primarybeam='guess', u
                     outfiletype, c_char_p(outfilename), outfileoptions,
                     c_char_p(model), 
                     pbtype, c_char_p(pbfile), pbpars, pbnpars,
-                    c_bool(use_cuda))
+                    c_bool(subtract), c_bool(use_cuda))
     return 0
 
 

@@ -27,20 +27,33 @@ using std::endl;
 
 msio::msio(const char* msinfile,
            const char * msoutfile,
-           bool workondatacolumn,
+		   int datacolumn,
 		   bool one_ptg_per_chunk) : DataIO()
 {
 	msin = new MeasurementSet(msinfile);
 	msincols = new ROMSColumns(*msin);
 	one_ptg_per_chunk_ = one_ptg_per_chunk;
 
-	if(workondatacolumn)
+	if(datacolumn == col_data)
 	{
-		datacolumn = col_data;
+		datacolumn_ = col_data;
+	}
+	else if(datacolumn == col_model_data)
+	{
+		datacolumn_ = col_model_data;
+		try
+		{
+			msin->isColumnStored("MODEL_DATA");
+		}
+		catch(TableError e)
+		{
+			throw fileException(fileException::MODEL_DATA_MISSING,
+					"No \'model_data\' column exists in input mstable.");
+		}
 	}
 	else
 	{
-		datacolumn = col_corrected_data;
+		datacolumn_ = col_corrected_data;
 		try
 		{
 			msin->isColumnStored("CORRECTED_DATA");
@@ -56,13 +69,22 @@ msio::msio(const char* msinfile,
 	{
 		msout = new MeasurementSet(msoutfile, casa::Table::Update);
 		msoutcols = new MSColumns(*msout);
-		if(datacolumn == col_corrected_data) 
+		if(datacolumn_ == col_corrected_data) 
 		{
 			try{ msout->isColumnStored("CORRECTED_DATA");}
 			catch(TableError e) 
 			{
 				throw fileException(fileException::CORRECTED_DATA_MISSING, 
 						"No \'corrected_data\' column exists in output mstable.");
+			}
+		}
+		else if(datacolumn_ == col_model_data)
+		{
+			try { msin->isColumnStored("MODEL_DATA"); }
+			catch(TableError e)
+			{
+				throw fileException(fileException::MODEL_DATA_MISSING,
+						"No \'model_data\' column exists in input mstable.");
 			}
 		}
 	}
@@ -293,11 +315,15 @@ int msio::readChunkSimple(Chunk& chunk)
 	for(size_t i = 0; i < chunk.size(); i++)
 	{
 		uvrow = i+currentVisibility;
-		if(datacolumn == col_data)
+		if(datacolumn_ == col_data)
 		{
 			data = msincols->data()(uvrow);
 		}
-		else if(datacolumn == col_corrected_data)
+		else if(datacolumn_ == col_model_data)
+		{
+			data = msincols->modelData()(uvrow);
+		}
+		else if(datacolumn_ == col_corrected_data)
 		{
 			data = msincols->correctedData()(uvrow);
 		}
@@ -365,11 +391,15 @@ void msio::writeChunk(Chunk& chunk)
 			}
 		}
 // 		msoutcols->data().put(chunk.outVis[i].index, data);
-		if(datacolumn == col_data)
+		if(datacolumn_ == col_data)
 		{
 			msoutcols->data().put(chunk.outVis[i].index, data);
 		}
-		else if(datacolumn == col_corrected_data)
+		else if(datacolumn_ == col_model_data)
+		{
+			msoutcols->modelData().put(chunk.outVis[i].index, data);
+		}
+		else if(datacolumn_ == col_corrected_data)
 		{
 			msoutcols->correctedData().put(chunk.outVis[i].index, data);
 		}

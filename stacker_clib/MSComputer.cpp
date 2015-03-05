@@ -47,11 +47,15 @@ MSComputer::MSComputer(ChunkComputer* cc,
 	{
 		if(infileoptions & MS_DATACOLUMN_DATA)
 		{
-			data = (DataIO*)(new msio(infilename, outfilename, true));
+			data = (DataIO*)(new msio(infilename, outfilename, msio::col_data));
+		}
+		else if(infileoptions & MS_MODELCOLUMN_DATA)
+		{
+			data = (DataIO*)(new msio(infilename, outfilename, msio::col_model_data));
 		}
 		else
 		{
-			data = (DataIO*)(new msio(infilename, outfilename, false));
+			data = (DataIO*)(new msio(infilename, outfilename, msio::col_corrected_data));
 		}
 	}
 	else

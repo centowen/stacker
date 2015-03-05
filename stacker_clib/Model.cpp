@@ -49,8 +49,9 @@ using casa::ComponentShape;
 using casa::Unit;
 using casa::MDirection;
 
-Model::Model(string file)
+Model::Model(string file, bool subtract)
 {
+	subtract_ = subtract;
 	clfile = file;
 
 	nPointings = 0;
@@ -181,7 +182,10 @@ void Model::compute(DataIO* ms, PrimaryBeam* pb)
 		{
 			x[fieldID][i] = cx[fieldID][i];
 			y[fieldID][i] = cy[fieldID][i];
-			flux[fieldID][i] = cflux[fieldID][i];
+			if(subtract_)
+				flux[fieldID][i] = cflux[fieldID][i];
+			else
+				flux[fieldID][i] = -1.*cflux[fieldID][i];
 			size[fieldID][i] = csize[fieldID][i];
 
 // 			dx[fieldID][i] = (x[fieldID][i] - float(ms->xPhaseCentre(fieldID)))*cos(y[fieldID][i]);

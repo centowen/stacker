@@ -48,7 +48,7 @@ void cpp_modsub(int infiletype, const char* infile, int infileoptions,
                 int outfiletype, const char* outfile, int outfileoptions, 
                 const char* modelfile,
                 int pbtype, const char* pbfile, double* pbpar, int npbpar,
-                bool use_cuda = false);
+				bool subtract = true, bool use_cuda = false);
 
 // Functions to interface with python module.
 extern "C"{
@@ -87,7 +87,7 @@ extern "C"{
 	            int outfiletype, char* outfile, int outfileoptions,
 	            char* modelfile, 
 	            int pbtype, const char* pbfile, double* pbpar, int npbpar,
-	            bool use_cuda = false)
+	            bool subtract = true, bool use_cuda = false)
 	{
 		cpp_modsub(infiletype, infile, infileoptions, 
 		           outfiletype, outfile, outfileoptions,
@@ -160,7 +160,7 @@ void cpp_modsub(int infiletype, const char* infile, int infileoptions, /*{{{*/
                 int outfiletype, const char* outfile, int outfileoptions, 
                 const char* modelfile, 
                 int pbtype, const char* pbfile, double* pbpar, int npbpar,
-                bool use_cuda)
+                bool subtract, bool use_cuda)
 {
 	PrimaryBeam* pb;// = new ImagePrimaryBeam(pbfile);
 	if(pbtype == PB_CONST)
@@ -170,7 +170,7 @@ void cpp_modsub(int infiletype, const char* infile, int infileoptions, /*{{{*/
 	else
 		pb = (PrimaryBeam*)new ConstantPrimaryBeam;
 
-	Model* model = new Model(modelfile);
+	Model* model = new Model(modelfile, subtract = true);
 
 
 	ChunkComputer* cc;

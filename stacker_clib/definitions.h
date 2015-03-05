@@ -44,5 +44,6 @@ const int FILE_TYPE_FITS = 2;
 
 // Operate on the data column rather than the corrected data column.
 const int MS_DATACOLUMN_DATA = 1;
+const int MS_MODELCOLUMN_DATA = 2;
 
 #endif

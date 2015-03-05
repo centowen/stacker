@@ -45,6 +45,7 @@ FILE_TYPE_FITS = 2
 FILETYPENAME[FILE_TYPE_FITS] = 'fits'
 
 MS_DATACOLUMN_DATA = 1
+MS_MODELCOLUMN_DATA = 2
 
 
 clib_path = os.path.join(os.path.abspath(__path__[0]),
@@ -245,6 +246,8 @@ def _checkfile(filename, datacolumn):
     fileoptions = 0
     if datacolumn == 'data':
         fileoptions = MS_DATACOLUMN_DATA
+    elif datacolumn == 'model' or datacolumn == 'model_data':
+        fileoptions = MS_MODELCOLUMN_DATA
 #     elif re.match('^.*[fF][iI][tT][sS]$', filename) is not None:
 #         raise NotImplementedError('FITS format is currently not supported.')
     return filetype, filename, fileoptions

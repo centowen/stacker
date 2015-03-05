@@ -33,6 +33,7 @@ class fileException : public std::runtime_error {
 		static const int MOSAIC = 1;
 		static const int HEADER_INFO_MISSING = 2;
 		static const int CORRECTED_DATA_MISSING = 3;
+		static const int MODEL_DATA_MISSING = 4;
 
 	private:
 		string message;

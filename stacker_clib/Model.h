@@ -50,8 +50,9 @@ class Model
 private:
 	struct stat statbuffer;
 	string clfile;
+	bool subtract_;
 public:
-	Model(string file);
+	Model(string file, bool subtract);
 	~Model();
 	void compute(DataIO* ms, PrimaryBeam* pb);
 
