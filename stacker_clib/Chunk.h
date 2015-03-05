@@ -35,6 +35,7 @@ struct Visibility
 	float* freq;
 	float* data_real;
 	float* data_imag;
+	int*  data_flag;
 	float* weight;
 
 	int nstokes, nchan;
@@ -60,9 +61,11 @@ private:
 public:
 	float* data_real_in;
 	float* data_imag_in;
+	int*   data_flag_in;
 	float* weight_in;
 	float* data_real_out;
 	float* data_imag_out;
+	int*   data_flag_out;
 	float* weight_out;
 	Visibility *inVis, *outVis;
 

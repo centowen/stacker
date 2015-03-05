@@ -18,5 +18,6 @@
 #include "DataIO.h"
 
 DataIO::DataIO(): dataset_id(id_counter++) {} ;
+DataIO::~DataIO() {} ;
 int DataIO::id_counter = 0;
 

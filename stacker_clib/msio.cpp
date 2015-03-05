@@ -90,6 +90,8 @@ msio::msio(const char* msinfile,
 		freqinit->next();
 	}
 
+	cout << "nchan = " << nchan << endl;
+
 	freqinit = (casa::VectorIterator<double>*) msincols->spectralWindow().chanFreq().getColumn().makeIterator(1);
 	freq  = new float[nspw*nchan];
 
@@ -242,6 +244,7 @@ int msio::readChunkSimple(Chunk& chunk)
 {
 	Vector<double> uvw;
 	Matrix<Complex> data;
+	Matrix<bool> flag;
 	Vector<float> weight;
 
 	chunk.resetSize();
@@ -298,6 +301,7 @@ int msio::readChunkSimple(Chunk& chunk)
 		{
 			data = msincols->correctedData()(uvrow);
 		}
+		flag = msincols->flag()(uvrow);
 		weight = msincols->weight()(uvrow);
 		uvw = msincols->uvw()(uvrow);
 
@@ -319,6 +323,8 @@ int msio::readChunkSimple(Chunk& chunk)
             {
                 chunk.inVis[i].data_real[nchan*stokes+chan] = float(std::real(data(stokes,chan)));
                 chunk.inVis[i].data_imag[nchan*stokes+chan] = float(std::imag(data(stokes,chan)));
+                chunk.inVis[i].data_flag[nchan*stokes+chan] = int(flag(stokes,chan));
+                chunk.outVis[i].data_flag[nchan*stokes+chan] = int(flag(stokes,chan));
             }
         }
 
@@ -347,6 +353,7 @@ void msio::writeChunk(Chunk& chunk)
 		int nchan = chunk.outVis[i].nchan, 
 			nstokes = chunk.outVis[i].nstokes;
 		Matrix<Complex> data(nstokes, nchan);
+		Matrix<bool> flag(nstokes, nchan);
 		for(int chan = 0; chan < nchan; chan++)
 		{
 			for(int stokes = 0; stokes < nstokes; stokes++)
@@ -354,6 +361,7 @@ void msio::writeChunk(Chunk& chunk)
 				Complex vis = Complex(chunk.outVis[i].data_real[stokes*nchan+chan],
 						              chunk.outVis[i].data_imag[stokes*nchan+chan]);
 				data(stokes, chan) = vis;
+				flag(stokes, chan) = chunk.outVis[i].data_flag[stokes*nchan+chan];
 			}
 		}
 // 		msoutcols->data().put(chunk.outVis[i].index, data);
@@ -365,6 +373,7 @@ void msio::writeChunk(Chunk& chunk)
 		{
 			msoutcols->correctedData().put(chunk.outVis[i].index, data);
 		}
+		msoutcols->flag().put(chunk.outVis[i].index, flag);
 	}
 	for(size_t i = 0; i < chunk.size(); i++)
 	{

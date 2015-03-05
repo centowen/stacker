@@ -22,6 +22,7 @@ Visibility::Visibility()
 {
 	data_real = NULL;
 	data_imag = NULL;
+	data_flag = NULL;
 	weight = NULL;
 	nstokes = 0;
 	nchan = 0;
@@ -44,6 +45,8 @@ Chunk::Chunk(size_t size)
 	data_real_out = NULL;
 	data_imag_in = NULL;
 	data_imag_out = NULL;
+	data_flag_in = NULL;
+	data_flag_out = NULL;
 	weight_in = NULL;
 	weight_out = NULL;
 
@@ -59,6 +62,8 @@ Chunk::~Chunk()
 	delete[] data_real_out;
 	delete[] data_imag_in;
 	delete[] data_imag_out;
+	delete[] data_flag_in;
+	delete[] data_flag_out;
 	delete[] weight_in;
 	delete[] weight_out;
 	nvis = 0;
@@ -119,6 +124,8 @@ void Chunk::reshape_data(size_t nchan, size_t nstokes)
 	delete[] data_real_out;
 	delete[] data_imag_in;
 	delete[] data_imag_out;
+	delete[] data_flag_in;
+	delete[] data_flag_out;
 	delete[] weight_in;
 	delete[] weight_out;
 
@@ -128,6 +135,8 @@ void Chunk::reshape_data(size_t nchan, size_t nstokes)
 		data_real_out = new float[nvis*nchan*nstokes];
 		data_imag_in  = new float[nvis*nchan*nstokes];
 		data_imag_out = new float[nvis*nchan*nstokes];
+		data_flag_in  = new int[nvis*nchan*nstokes];
+		data_flag_out = new int[nvis*nchan*nstokes];
 		weight_in     = new float[nvis*nchan*nstokes];
 		weight_out    = new float[nvis*nchan*nstokes];
 		this->nchan  = nchan;
@@ -155,9 +164,11 @@ void Chunk::update_datalinks()
         {
             inVis[i].data_real  = NULL;
             inVis[i].data_imag  = NULL;
+            inVis[i].data_flag  = NULL;
             inVis[i].weight     = NULL;
             outVis[i].data_real = NULL;
             outVis[i].data_imag = NULL;
+            outVis[i].data_flag = NULL;
             outVis[i].weight    = NULL;
         }
     }
@@ -169,10 +180,12 @@ void Chunk::update_datalinks()
     {
         inVis[i].data_real = &data_real_in[i*nchan*nstokes];
         inVis[i].data_imag = &data_imag_in[i*nchan*nstokes];
+        inVis[i].data_flag = &data_flag_in[i*nchan*nstokes];
         inVis[i].weight    = &weight_in[i*nchan*nstokes];
 
         outVis[i].data_real = &data_real_out[i*nchan*nstokes];
         outVis[i].data_imag = &data_imag_out[i*nchan*nstokes];
+        outVis[i].data_flag = &data_flag_out[i*nchan*nstokes];
         outVis[i].weight    = &weight_out[i*nchan*nstokes];
     }
 }
