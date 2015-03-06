@@ -93,7 +93,7 @@ extern "C"{
 		           outfiletype, outfile, outfileoptions,
 		           modelfile, 
 		           pbtype, pbfile, pbpar, npbpar,
-		           use_cuda);
+		           subtract, use_cuda);
 	};
 };
 
@@ -170,14 +170,16 @@ void cpp_modsub(int infiletype, const char* infile, int infileoptions, /*{{{*/
 	else
 		pb = (PrimaryBeam*)new ConstantPrimaryBeam;
 
-	Model* model = new Model(modelfile, subtract = true);
+	Model* model = new Model(modelfile, subtract);
 
 
+	cout << "subtract = " << subtract << endl;
 	ChunkComputer* cc;
 	int n_thread = N_THREAD;
 	if(use_cuda)
 	{
 #ifdef USE_CUDA
+		cout << "Going to use cuda for computations." << endl;
 		cc = (ChunkComputer*) new ModsubChunkComputerGpu(model, pb);
 		n_thread = 1;
 #else
