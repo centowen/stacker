@@ -187,7 +187,7 @@ void cpp_modsub(int infiletype, const char* infile, int infileoptions, /*{{{*/
 		n_thread = 1;
 #else
 		cout << "CUDA support is not compiled. Recompile to enable." << endl;
-		return 0.;
+		return;
 #endif
 	}
 	else
