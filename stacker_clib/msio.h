@@ -59,8 +59,10 @@ class msio : public DataIO
 		size_t nchan, nspw;
 		size_t nstokes;
 		MeasurementSet* msin;
+		MeasurementSet* msin_nonsorted;
 		ROMSColumns* msincols;
 		MeasurementSet* msout;
+		MeasurementSet* msout_nonsorted;
 		MSColumns* msoutcols;
 		size_t currentVisibility;
 		int readChunkDummy(Chunk& chunk);
@@ -82,6 +84,7 @@ class msio : public DataIO
 	public:
 		msio(const char* msinfile, const char* msoutfile, 
 		     int datacolumn = col_corrected_data,
+			 const bool select_field = false, const char* field = "",
 			 bool one_ptg_per_chunk = true);
 		~msio();
 		size_t nvis();

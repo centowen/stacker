@@ -48,7 +48,8 @@ void cpp_modsub(int infiletype, const char* infile, int infileoptions,
                 int outfiletype, const char* outfile, int outfileoptions, 
                 const char* modelfile,
                 int pbtype, const char* pbfile, double* pbpar, int npbpar,
-				bool subtract = true, bool use_cuda = false);
+				bool subtract = true, bool use_cuda = false,
+				const bool selectField=false, const char* field="");
 
 // Functions to interface with python module.
 extern "C"{
@@ -87,13 +88,14 @@ extern "C"{
 	            int outfiletype, char* outfile, int outfileoptions,
 	            char* modelfile, 
 	            int pbtype, const char* pbfile, double* pbpar, int npbpar,
-	            bool subtract = true, bool use_cuda = false)
+	            bool subtract = true, bool use_cuda = false,
+				const bool selectField = false, const char* field = "")
 	{
 		cpp_modsub(infiletype, infile, infileoptions, 
 		           outfiletype, outfile, outfileoptions,
 		           modelfile, 
 		           pbtype, pbfile, pbpar, npbpar,
-		           subtract, use_cuda);
+		           subtract, use_cuda, selectField, field);
 	};
 };
 
@@ -160,7 +162,8 @@ void cpp_modsub(int infiletype, const char* infile, int infileoptions, /*{{{*/
                 int outfiletype, const char* outfile, int outfileoptions, 
                 const char* modelfile, 
                 int pbtype, const char* pbfile, double* pbpar, int npbpar,
-                bool subtract, bool use_cuda)
+                bool subtract, bool use_cuda,
+				const bool selectField, const char* field)
 {
 	PrimaryBeam* pb;// = new ImagePrimaryBeam(pbfile);
 	if(pbtype == PB_CONST)
@@ -197,7 +200,7 @@ void cpp_modsub(int infiletype, const char* infile, int infileoptions, /*{{{*/
 		computer = new MSComputer(cc, 
 		                          infiletype, infile, infileoptions,
 		                          outfiletype, outfile, outfileoptions,
-		                          n_thread);
+		                          n_thread, selectField, field);
 		computer->run();
 
 	}

@@ -21,16 +21,32 @@
 #include <iostream>
 #include <stdlib.h>
 #include <tables/Tables/TableError.h>
+#include <tables/Tables/ExprNode.h>
+#include <ms/MeasurementSets/MSSelection.h>
 using casa::TableError;
 using std::cout;
 using std::endl;
+using casa::MSSelection;
+using casa::TableExprNode;
+using casa::Table;
 
 msio::msio(const char* msinfile,
            const char * msoutfile,
 		   int datacolumn,
+		   const bool select_field, const char* field,
 		   bool one_ptg_per_chunk) : DataIO()
 {
 	msin = new MeasurementSet(msinfile);
+	msin_nonsorted = NULL;
+	if(select_field)
+	{
+		MSSelection select;
+		select.setFieldExpr(field);
+		TableExprNode node = select.toTableExprNode(msin);
+		Table tablesel(msin->tableName(), Table::Update);
+		msin_nonsorted = msin;
+		msin = new MeasurementSet(tablesel(node, node.nrow()));
+	}
 	msincols = new ROMSColumns(*msin);
 	one_ptg_per_chunk_ = one_ptg_per_chunk;
 
@@ -68,6 +84,15 @@ msio::msio(const char* msinfile,
 	if(strlen(msoutfile) > 0)
 	{
 		msout = new MeasurementSet(msoutfile, casa::Table::Update);
+		if(select_field)
+		{
+			MSSelection select;
+			select.setFieldExpr(field);
+			TableExprNode node = select.toTableExprNode(msout);
+			Table tablesel(msout->tableName(), Table::Update);
+			msout_nonsorted = msout;
+			msout = new MeasurementSet(tablesel(node, node.nrow()));
+		}
 		msoutcols = new MSColumns(*msout);
 		if(datacolumn_ == col_corrected_data) 
 		{
@@ -345,6 +370,7 @@ int msio::readChunkSimple(Chunk& chunk)
         for(int stokes = 0; stokes < nstokes; stokes++)
         {
             chunk.inVis[i].weight[stokes] = float(weight(stokes));
+            chunk.outVis[i].weight[stokes] = float(weight(stokes));
             for(int chan = 0; chan < nchan; chan++)
             {
                 chunk.inVis[i].data_real[nchan*stokes+chan] = float(std::real(data(stokes,chan)));

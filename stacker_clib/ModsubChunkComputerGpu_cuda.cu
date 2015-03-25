@@ -145,6 +145,8 @@ void copy_model_to_cuda(/*{{{*/
         omega_size[mod_comp_id] = model.omega_size[field][mod_comp_id];
         flux[mod_comp_id]       = model.flux      [field][mod_comp_id];
         
+// 		std::cout << "flux[" << mod_comp_id << "] = " << flux[mod_comp_id] << std::endl;
+// 		std::cout << "pb[" << mod_comp_id << "] = {";
         for(size_t spwID = 0; spwID < nspw; spwID++)
         {
             for(size_t chanID = 0; chanID < nchan; chanID++)
@@ -155,8 +157,100 @@ void copy_model_to_cuda(/*{{{*/
                 pb_array[index] = pb.calc(model.dx[field][mod_comp_id],
                                           model.dy[field][mod_comp_id],
                                           freq[spwID*nchan+chanID]);
+// 				std::cout << pb_array[index] << ", ";
             }
         }
+// 		std::cout << "}" << endl;
+    }
+
+
+	cudaError err;
+	err = cudaMemcpyToSymbol( dev_omega, omega, 
+			sizeof(float)*dev_model.n_mod_comp*3, 0,
+			cudaMemcpyHostToDevice);
+	if(err != cudaSuccess)
+	{
+		fprintf(stderr, "Failed to copy omega to __constant__ dev_omega\n");
+		fprintf(stderr, "n_mod_comp: %zu, size: %zu\n", dev_model.n_mod_comp,
+				sizeof(float)*dev_model.n_mod_comp*3);
+		exit(-1);
+	}
+
+	err = cudaMemcpyToSymbol( dev_omega_size, omega_size, 
+			sizeof(float)*dev_model.n_mod_comp, 0,
+			cudaMemcpyHostToDevice);
+	if(err != cudaSuccess)
+	{
+		fprintf(stderr, "Failed to copy omega_size to __constant__ dev_omega_size\n");
+		fprintf(stderr, "n_mod_comp: %zu, size: %zu\n", dev_model.n_mod_comp,
+				sizeof(float)*dev_model.n_mod_comp);
+		exit(-1);
+	}
+
+    err = cudaMemcpyToSymbol( dev_flux, flux, 
+                sizeof(float)*dev_model.n_mod_comp, 0,
+                cudaMemcpyHostToDevice);
+	if(err != cudaSuccess)
+	{
+		fprintf(stderr, "Failed to copy flux to __constant__ dev_flux\n");
+		fprintf(stderr, "n_mod_comp: %zu, size: %zu\n", dev_model.n_mod_comp,
+				sizeof(float)*dev_model.n_mod_comp);
+		exit(-1);
+	}
+	size_t pb_size = sizeof(float)*dev_model.n_mod_comp*nchan*nspw;
+    err = cudaMemcpy( dev_model.pb, pb_array, 
+	                  pb_size, cudaMemcpyHostToDevice);
+	if(err != cudaSuccess)
+	{
+		fprintf(stderr, "Failed to copy pb to device.\n");
+		fprintf(stderr, "n_model: %zu, size: %zu\n", dev_model.n_mod_comp,
+				sizeof(float)*dev_model.n_mod_comp*nchan*nspw);
+		exit(-1);
+	}
+
+    delete[] omega;
+    delete[] omega_size;
+    delete[] flux;
+    delete[] pb_array;
+}/*}}}*/
+void copy_model_to_cuda_partial(/*{{{*/
+                        Model& model, ModelContainer& dev_model, 
+                        float* freq, PrimaryBeam& pb, 
+                        const int field, const size_t nchan,
+                        const size_t nspw, 
+						const size_t n_mod_comp, const size_t first_mod_comp)
+{
+    dev_model.n_mod_comp = n_mod_comp;
+
+    float *omega = new float[dev_model.n_mod_comp*3];
+    float *omega_size = new float[dev_model.n_mod_comp];
+    float *flux = new float[dev_model.n_mod_comp];
+    float *pb_array = new float[dev_model.n_mod_comp*nchan*nspw];
+
+    for(size_t mod_comp_id = 0; mod_comp_id < dev_model.n_mod_comp; mod_comp_id++)
+    {
+        omega[mod_comp_id*3+0]  = model.omega_x   [field][first_mod_comp+mod_comp_id];
+        omega[mod_comp_id*3+1]  = model.omega_y   [field][first_mod_comp+mod_comp_id];
+        omega[mod_comp_id*3+2]  = model.omega_z   [field][first_mod_comp+mod_comp_id];
+        omega_size[mod_comp_id] = model.omega_size[field][first_mod_comp+mod_comp_id];
+        flux[mod_comp_id]       = model.flux      [field][first_mod_comp+mod_comp_id];
+        
+// 		std::cout << "flux[" << mod_comp_id << "] = " << flux[mod_comp_id] << std::endl;
+// 		std::cout << "pb[" << mod_comp_id << "] = {";
+        for(size_t spwID = 0; spwID < nspw; spwID++)
+        {
+            for(size_t chanID = 0; chanID < nchan; chanID++)
+            {
+                size_t index = spwID*nchan*dev_model.n_mod_comp
+                             + chanID*dev_model.n_mod_comp
+                             + mod_comp_id;
+                pb_array[index] = pb.calc(model.dx[field][mod_comp_id],
+                                          model.dy[field][mod_comp_id],
+                                          freq[spwID*nchan+chanID]);
+// 				std::cout << pb_array[index] << ", ";
+            }
+        }
+// 		std::cout << "}" << endl;
     }
 
 

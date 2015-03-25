@@ -34,20 +34,33 @@ ModsubChunkComputerGpu::ModsubChunkComputerGpu(Model* model, PrimaryBeam* pb)/*{
 
 void ModsubChunkComputerGpu::computeChunk(Chunk* chunk) /*{{{*/
 {
-	if(chunk->inVis[0].fieldID != field)
-	{
-		field = chunk->inVis[0].fieldID;
-		copy_model_to_cuda(*model, dev_model, freq, *pb, field, chunk->nChan(), nspw);
-	}
 	copy_data_to_cuda(dev_data, *chunk);
-	for(size_t uvrow = 0; uvrow < chunk->size(); uvrow++)
+	if((size_t)model->nStackPoints[chunk->inVis[0].fieldID] > N_MAX_MOD_COMP)
 	{
-		Visibility& inVis = chunk->inVis[uvrow];
-		Visibility& outVis = chunk->outVis[uvrow];
-		outVis.fieldID = inVis.fieldID;
+		size_t first_mod_comp = 0;
+		field = chunk->inVis[0].fieldID;
+
+		while(first_mod_comp < (size_t)model->nStackPoints[field])
+		{
+			size_t n_mod_comp = std::min(N_MAX_MOD_COMP, 
+					(size_t)model->nStackPoints[field] - first_mod_comp);
+
+			copy_model_to_cuda_partial(*model, dev_model, freq, *pb, field, chunk->nChan(), nspw, n_mod_comp, first_mod_comp);
+			modsub_chunk(dev_data, dev_model, chunk->size(),
+					chunk->nChan(), chunk->nStokes());
+			first_mod_comp += N_MAX_MOD_COMP;
+		}
 	}
-	modsub_chunk(dev_data, dev_model, chunk->size(),
-	         chunk->nChan(), chunk->nStokes());
+	else
+	{
+		if(chunk->inVis[0].fieldID != field)
+		{
+			field = chunk->inVis[0].fieldID;
+			copy_model_to_cuda(*model, dev_model, freq, *pb, field, chunk->nChan(), nspw);
+		}
+		modsub_chunk(dev_data, dev_model, chunk->size(),
+				chunk->nChan(), chunk->nStokes());
+	}
 	copy_data_to_host(dev_data, *chunk);
 }/*}}}*/
 void ModsubChunkComputerGpu::preCompute(DataIO* dataio)/*{{{*/

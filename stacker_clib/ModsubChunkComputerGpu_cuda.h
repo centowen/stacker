@@ -38,6 +38,11 @@ void copy_model_to_cuda(Model& model, ModelContainer& dev_model,
                          float* freq, PrimaryBeam& pb, 
                          const int field, const size_t nchan,
                          const size_t nspw);
+void copy_model_to_cuda_partial(Model& model, ModelContainer& dev_model, 
+                         float* freq, PrimaryBeam& pb, 
+                         const int field, const size_t nchan,
+                         const size_t nspw, 
+						 const size_t n_mod_comp, const size_t first_mod_comp);
 void modsub_chunk(DataContainer data, ModelContainer model, 
                   size_t chunk_size, size_t nchan, size_t n_stokes);
 

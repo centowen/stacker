@@ -80,7 +80,8 @@ class MSComputer
 		MSComputer(ChunkComputer* cc, 
 				   int infiletype, const char* infilename, int infileoptions,
 				   int outfiletype, const char* outfilename, int outfileoptions,
-				   int n_thread = N_THREAD);
+				   int n_thread = N_THREAD, 
+				   const bool selectField=false, const char* field = "");
 		~MSComputer();
 
 		float run();

@@ -32,7 +32,8 @@ MSComputer::MSComputer(ChunkComputer* cc,
                        int infileoptions,
                        int outfiletype, const char* outfilename,
                        int outfileoptions,
-                       int n_thread)/*{{{*/
+                       int n_thread,
+					   const bool selectField, const char* field)/*{{{*/
 {
 	n_thread_ = n_thread;
 	this->cc = cc;
@@ -47,15 +48,15 @@ MSComputer::MSComputer(ChunkComputer* cc,
 	{
 		if(infileoptions & MS_DATACOLUMN_DATA)
 		{
-			data = (DataIO*)(new msio(infilename, outfilename, msio::col_data));
+			data = (DataIO*)(new msio(infilename, outfilename, msio::col_data, selectField, field));
 		}
 		else if(infileoptions & MS_MODELCOLUMN_DATA)
 		{
-			data = (DataIO*)(new msio(infilename, outfilename, msio::col_model_data));
+			data = (DataIO*)(new msio(infilename, outfilename, msio::col_model_data, selectField, field));
 		}
 		else
 		{
-			data = (DataIO*)(new msio(infilename, outfilename, msio::col_corrected_data));
+			data = (DataIO*)(new msio(infilename, outfilename, msio::col_corrected_data, selectField, field));
 		}
 	}
 	else

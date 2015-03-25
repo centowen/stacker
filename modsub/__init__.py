@@ -30,7 +30,7 @@ c_modsub.argtype = [c_int, c_char_p, c_int,
                     c_int, c_char_p, POINTER(c_double), c_int,
                     c_bool, c_bool]
 
-def modsub(model, vis, outvis='', datacolumn='corrected', primarybeam='guess', subtract=True, use_cuda=False):
+def modsub(model, vis, outvis='', datacolumn='corrected', primarybeam='guess', subtract=True, use_cuda=False, field = None):
     import shutil
     import os
 
@@ -61,6 +61,13 @@ def modsub(model, vis, outvis='', datacolumn='corrected', primarybeam='guess', s
         pbnpars = 0
         pbpars = None
 
+    if field is not None:
+        select_field = True
+        field = str(field)
+    else:
+        select_field = False
+        field = ''
+
     infiletype, infilename, infileoptions = stacker._checkfile(vis, datacolumn)
     outfiletype, outfilename, outfileoptions = stacker._checkfile(outvis, datacolumn)
 
@@ -68,7 +75,8 @@ def modsub(model, vis, outvis='', datacolumn='corrected', primarybeam='guess', s
                     outfiletype, c_char_p(outfilename), outfileoptions,
                     c_char_p(model), 
                     pbtype, c_char_p(pbfile), pbpars, pbnpars,
-                    c_bool(subtract), c_bool(use_cuda))
+                    c_bool(subtract), c_bool(use_cuda),
+                    c_bool(select_field), c_char_p(field))
     return 0
 
 
