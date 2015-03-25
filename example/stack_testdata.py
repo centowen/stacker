@@ -84,7 +84,7 @@ else:
 # uv flux
 if donoise:
     noise['uv'] = stacker.uv.noise(coords, 'output/residual.ms', 
-            ['output/residual.image'], stampsize = stampsize, maskradius=5)
+            imagenames = ['output/residual.image'], stampsize = stampsize, maskradius=5)
 else:
     noise['uv'] = simplenoise['uv']
 
