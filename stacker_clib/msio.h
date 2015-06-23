@@ -75,6 +75,7 @@ class msio : public DataIO
 		int datacolumn_;
 		bool one_ptg_per_chunk_;
 		int ptg_breaks_in_a_row;
+		bool ptg_warning_done;
 
 	public:
 		static const int col_data = 0;

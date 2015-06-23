@@ -49,6 +49,7 @@ msio::msio(const char* msinfile,
 	}
 	msincols = new ROMSColumns(*msin);
 	one_ptg_per_chunk_ = one_ptg_per_chunk;
+	ptg_warning_done = false;
 
 	if(datacolumn == col_data)
 	{
@@ -317,12 +318,13 @@ int msio::readChunkSimple(Chunk& chunk)
 		if(inField < chunk.size())
 		{
 			ptg_breaks_in_a_row += 1;
-			if(ptg_breaks_in_a_row > 1)
+			if(!ptg_warning_done and ptg_breaks_in_a_row > 1)
 			{
 				cout << "\nWarning! Few visibilities (" << inField 
 				     << ") found in field " << fieldID << ". "
 				     << "Code running on gpu may be inefficient if "
 				     << "visibilties are not ordered after field. " << endl;
+				ptg_warning_done = true;
 			}
 			chunk.setSize(inField);
 		}
