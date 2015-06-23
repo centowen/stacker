@@ -22,7 +22,12 @@
 #include <stdlib.h>
 #include <tables/Tables/TableError.h>
 #include <tables/Tables/ExprNode.h>
+#ifdef LINKING_2_CASA_43
+#include <ms/MSSel/MSSelection.h>
+#endif
+#ifndef LINKING_2_CASA_43
 #include <ms/MeasurementSets/MSSelection.h>
+#endif
 using casa::TableError;
 using std::cout;
 using std::endl;
@@ -120,33 +125,26 @@ msio::msio(const char* msinfile,
 		msoutcols = NULL;
 	}
 	currentVisibility = 0;
-// 	datainit = (casa::MatrixIterator<Complex>*) msincols->data().getColumn().makeIterator(2);
-// 	uvwinit = (casa::VectorIterator<double>*) msincols->uvw().getColumn().makeIterator(1);
-// 	weightinit = (casa::VectorIterator<float>*) msincols->weight().getColumn().makeIterator(1);
 
-	VectorIterator<double>* freqinit = (casa::VectorIterator<double>*) msincols->spectralWindow().chanFreq().getColumn().makeIterator(1);
-	
 	nspw = (size_t)msincols->spectralWindow().nrow();
 	nchan = 0;
 
 	// First figure out the largest nchan value.
 	for(size_t row =0 ; row < nspw; row++)
 	{
-		casa::Vector<double> freqbuff = freqinit->vector();
+		casa::Vector<double> freqbuff = msincols->spectralWindow().chanFreq().getColumn()[row];
 		if((size_t)freqbuff.shape()(0) > nchan)
 			nchan = (size_t)freqbuff.shape()(0);
-		freqinit->next();
 	}
 
 	cout << "nchan = " << nchan << endl;
 
-	freqinit = (casa::VectorIterator<double>*) msincols->spectralWindow().chanFreq().getColumn().makeIterator(1);
 	freq  = new float[nspw*nchan];
 
 	// Now we can read the frequency information.
 	for(size_t row =0 ; row < nspw; row++)
 	{
-		casa::Vector<double> freqbuff = freqinit->vector();
+		casa::Vector<double> freqbuff = msincols->spectralWindow().chanFreq().getColumn()[row];
 		size_t c_nchan = (size_t) freqbuff.shape()(0);
 
 		for(size_t col = 0; col < nchan; col++)
@@ -154,7 +152,6 @@ msio::msio(const char* msinfile,
 			if(col < c_nchan) freq[row*nchan+col] = float(freqbuff(col));
 			else              freq[row*nchan+col] = float(0.0);
 		}
-		freqinit->next();
 	}
 
 	nstokes = 0;

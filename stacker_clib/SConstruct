@@ -176,7 +176,21 @@ if link_against_casa:
     if svnversion is None:
         svnversion = casa_svnversion(casapath)
 
-if link_against_casa and int(svnversion) > 22889:
+if link_against_casa and int(svnversion) > 33600:
+    import pysvn
+    print('Downloading casacore headers matching casapy svn revision {0}'.format(svnversion))
+    client = pysvn.Client()
+    casacore_svnpath = 'https://svn.cv.nrao.edu/svn/casa/trunk/casacore/'
+    dl_casacore_path = 'casacore-for-casapy-r{0}'.format(svnversion)
+    if not os.access(dl_casacore_path, os.F_OK):
+        os.mkdir(dl_casacore_path)
+    svnrevision=pysvn.Revision(pysvn.opt_revision_kind.number, svnversion)
+    rev = client.checkout(casacore_svnpath,
+                          os.path.join(dl_casacore_path, 'casacore'),
+                          svnrevision, svnrevision)
+    print('done')
+    env['CPPDEFINES'] = {'LINKING_2_CASA_43': None}
+elif link_against_casa and int(svnversion) > 22889:
     import pysvn
     print('Downloading casacore headers matching casapy svn revision {0}'.format(svnversion))
     client = pysvn.Client()
@@ -187,8 +201,17 @@ if link_against_casa and int(svnversion) > 22889:
     print('done')
 
 if link_against_casa :
-    if int(svnversion) > 22889:
-        env.Append(CPPPATH = [dl_casacore_path, casapyinclude])
+    if int(svnversion) > 33600:
+        env.Append(CPPPATH = [dl_casacore_path,
+                              os.path.join(dl_casacore_path, 'casacore'),
+                              casapyinclude,
+                              os.path.join(casapyinclude, 'casacode')
+                             ])
+    elif int(svnversion) > 22889:
+        env.Append(CPPPATH = [dl_casacore_path,
+                              os.path.join(dl_casacore_path, 'casacore'),
+                              casapyinclude,
+                             ])
     else:
         env.Append(CPPPATH = [casapyinclude, os.path.join(casapyinclude, 'casacore')])
     env.Append(LIBPATH = [casalibpath])
@@ -198,10 +221,16 @@ conf = Configure(env, custom_tests = {'CheckPKGConfig': CheckPKGConfig, 'CheckPK
 if not link_against_casa and conf.CheckPKGConfig('0.15.0') and conf.CheckPKG('casacore'):
     env.ParseConfig('pkg-config --cflags --libs casacore')
 elif conf.CheckLib('casa_casa'):
-    env.Append(LIBS = ['casa_scimath', 'casa_casa', 'casa_tables', 'casa_images', 
-                    'casa_ms', 'casa_components', 'casa_coordinates',
-                    'casa_lattices','casa_measures', 'casa_scimath_f', 'casa_fits', 
-                    'casa_msfits', 'casa_derivedmscal', 'casa_mirlib'])
+    if int(svnversion) > 33600:
+        env.Append(LIBS = ['casa_scimath', 'casa_casa', 'casa_tables', 'casa_images', 
+                        'casa_ms', 'components', 'casa_coordinates',
+                        'casa_lattices','casa_measures', 'casa_scimath_f', 'casa_fits', 
+                        'casa_msfits', 'casa_derivedmscal', 'casa_mirlib'])
+    else:
+        env.Append(LIBS = ['casa_scimath', 'casa_casa', 'casa_tables', 'casa_images', 
+                        'casa_ms', 'casa_components', 'casa_coordinates',
+                        'casa_lattices','casa_measures', 'casa_scimath_f', 'casa_fits', 
+                        'casa_msfits', 'casa_derivedmscal', 'casa_mirlib'])
 elif conf.CheckLib('casacore'):
     env.Append(LIBS = ['casacore'])
 else:
