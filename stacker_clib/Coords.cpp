@@ -16,8 +16,13 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 //
 #include "Coords.h"
+#ifdef CASACORE_VERSION_2
+#include <casacore/casa/Arrays/Array.h>
+#include <casacore/ms/MeasurementSets/MeasurementSet.h>
+#else
 #include <casa/Arrays/Array.h>
 #include <ms/MeasurementSets/MeasurementSet.h>
+#endif
 
 using casa::MeasurementSet;
 using casa::Array;

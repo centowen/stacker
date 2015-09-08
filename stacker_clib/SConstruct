@@ -224,7 +224,10 @@ if link_against_casa :
 
 conf = Configure(env, custom_tests = {'CheckPKGConfig': CheckPKGConfig, 'CheckPKG': CheckPKG})
 
-if not link_against_casa and conf.CheckPKGConfig('0.15.0') and conf.CheckPKG('casacore'):
+if not link_against_casa and conf.CheckPKGConfig('0.15.0') and conf.CheckPKG('casacore >= 2.0.0'):
+    env.ParseConfig('pkg-config --cflags --libs casacore')
+    env['CPPDEFINES'] = {'CASACORE_VERSION_2': None}
+elif not link_against_casa and conf.CheckPKGConfig('0.15.0') and conf.CheckPKG('casacore >= 1.0'):
     env.ParseConfig('pkg-config --cflags --libs casacore')
 elif conf.CheckLib('casa_casa'):
     if int(svnversion) > 32000:

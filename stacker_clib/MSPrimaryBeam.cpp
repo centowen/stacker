@@ -17,6 +17,17 @@
 //
 #include "MSPrimaryBeam.h"
 
+#ifdef CASACORE_VERSION_2
+#include <casacore/coordinates/Coordinates/CoordinateSystem.h>
+#include <casacore/images/Images/ImageOpener.h>
+#include <casacore/images/Images/ImageInfo.h>
+#include <casacore/images/Images/ImageInterface.h>
+#include <casacore/lattices/Lattices/LatticeBase.h>
+#include <casacore/lattices/Lattices/Lattice.h>
+#include <casacore/casa/Arrays/Array.h>
+#include <casacore/casa/Arrays/Vector.h>
+#include <casacore/casa/Utilities/COWPtr.h>
+#else
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <images/Images/ImageOpener.h>
 #include <images/Images/ImageInfo.h>
@@ -26,6 +37,7 @@
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/Utilities/COWPtr.h>
+#endif
 
 using casa::IPosition;
 using casa::ImageOpener;

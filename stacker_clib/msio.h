@@ -18,6 +18,18 @@
 // Library to stack and modsub ms data.
 
 #include <pthread.h>
+
+#ifdef CASACORE_VERSION_2
+#include <casacore/casa/complex.h>
+#include <casacore/casa/Arrays/Array.h>
+#include <casacore/casa/Arrays/Matrix.h>
+#include <casacore/casa/Arrays/Vector.h>
+#include <casacore/casa/Arrays/VectorIter.h>
+#include <casacore/casa/Arrays/MatrixIter.h>
+#include <casacore/ms/MeasurementSets/MSTable.h>
+#include <casacore/ms/MeasurementSets/MSColumns.h>
+#include <casacore/ms/MeasurementSets/MeasurementSet.h>
+#else
 #include <casa/complex.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Matrix.h>
@@ -27,6 +39,7 @@
 #include <ms/MeasurementSets/MSTable.h>
 #include <ms/MeasurementSets/MSColumns.h>
 #include <ms/MeasurementSets/MeasurementSet.h>
+#endif
 
 #include "DataIO.h"
 

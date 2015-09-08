@@ -16,6 +16,22 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 //
 #include "Model.h"
+
+#ifdef CASACORE_VERSION_2
+#include <casacore/casa/Arrays/Array.h>
+#include <casacore/images/Images/ImageInfo.h>
+#include <casacore/images/Images/ImageInterface.h>
+#include <casacore/images/Images/ImageOpener.h>
+#include <casacore/lattices/Lattices/LatticeBase.h>
+#include <casacore/lattices/Lattices/Lattice.h>
+#include <casacore/casa/Arrays/Array.h>
+#include <casacore/casa/Utilities/COWPtr.h>
+#include <casacore/casa/OS/Directory.h>
+#include <casarest/components/ComponentModels/ComponentList.h>
+#include <casarest/components/ComponentModels/SkyComponent.h>
+#include <casarest/components/ComponentModels/ComponentShape.h>
+#include <casarest/components/ComponentModels/Flux.h>
+#else
 #include <casa/Arrays/Array.h>
 #include <images/Images/ImageInfo.h>
 #include <images/Images/ImageInterface.h>
@@ -29,6 +45,7 @@
 #include <components/ComponentModels/SkyComponent.h>
 #include <components/ComponentModels/ComponentShape.h>
 #include <components/ComponentModels/Flux.h>
+#endif
 
 using casa::Array;
 using casa::Vector;

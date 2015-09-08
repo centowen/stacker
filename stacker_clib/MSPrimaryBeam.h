@@ -19,9 +19,15 @@
 
 #include "PrimaryBeam.h"
 
+#ifdef CASACORE_VERSION_2
+#include <casacore/casa/Arrays/Array.h>
+#include <casacore/coordinates/Coordinates/CoordinateSystem.h>
+#include <casacore/images/Images/ImageInterface.h>
+#else
 #include <casa/Arrays/Array.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <images/Images/ImageInterface.h>
+#endif
 
 #ifndef __MSPRIMARYBEAM_H__
 #define __MSPRIMARYBEAM_H__

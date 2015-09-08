@@ -20,13 +20,25 @@
 #include "definitions.h"
 #include <iostream>
 #include <stdlib.h>
+
+#ifdef CASACORE_VERSION_2
+#include <casacore/tables/Tables/TableError.h>
+#include <casacore/tables/Tables/ExprNode.h>
+#else
 #include <tables/Tables/TableError.h>
 #include <tables/Tables/ExprNode.h>
+#endif
+
+#ifdef CASACORE_VERSION_2
+#include <casacore/ms/MSSel/MSSelection.h>
+#endif
 #ifdef LINKING_2_CASA_43
 #include <ms/MSSel/MSSelection.h>
 #endif
 #ifndef LINKING_2_CASA_43
+#ifndef CASACORE_VERSION_2
 #include <ms/MeasurementSets/MSSelection.h>
+#endif
 #endif
 using casa::TableError;
 using std::cout;
