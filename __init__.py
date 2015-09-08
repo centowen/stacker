@@ -325,7 +325,7 @@ def _getPixelCoords1ImSimpleProj(coords, imagename):
 
     pixcoords = []
     for coord in coords:
-        p = cs.convert(coordin=[coords.x, coord.y, 0, 0], absin=[True]*4,
+        p = cs.convert(coordin=[coord.x, coord.y, 0, 0], absin=[True]*4,
                        unitsin=[coords.unit, coords.unit, 'pix', 'pix'],
                        absout=[True]*4, unitsout=['pix']*4)
         x = p[0]
@@ -355,8 +355,8 @@ def _getPixelCoords1Im(coords, imagename):
     pixcoords = []
     for coord in coords:
         tmpx = coord.x
-        if tmpx < 0:
-            tmpx += 2*math.pi
+#         if tmpx < 0:
+#             tmpx += 2*math.pi
         x0 = cs.referencevalue()['numeric'][0]
         y0 = cs.referencevalue()['numeric'][1]
         dx = (tmpx - x0)*math.cos(coord.y)

@@ -36,7 +36,7 @@ __global__ void cuVisStack(DataContainer data, CoordContainer coords, /*{{{*/
     size_t uvrow = threadIdx.x + blockIdx.x*blockDim.x;
 
     float exponent, sin_exponent, cos_exponent, pbcor;
-    float m_num_imag, m_num_real, norm;
+    float m_num_imag, m_num_real, norm, norm_avg;
 	float m_real, m_imag;
 	float m_real_avg, m_imag_avg;
     float data_real_buff, data_imag_buff;
@@ -46,6 +46,7 @@ __global__ void cuVisStack(DataContainer data, CoordContainer coords, /*{{{*/
         float* freq = &data.freq[data.spw[uvrow]*nchan];
 		m_real_avg = 0.;
 		m_imag_avg = 0.;
+		norm_avg = 0.;
 
         for(size_t chanID = 0; chanID < nchan; chanID++)
         {
@@ -72,6 +73,7 @@ __global__ void cuVisStack(DataContainer data, CoordContainer coords, /*{{{*/
             m_imag = m_num_imag/norm;
 			m_real_avg += m_real;
 			m_imag_avg += m_imag;
+			norm_avg += norm;
 
             for(size_t stokesID = 0; stokesID < nstokes; stokesID++)
             {
@@ -94,11 +96,12 @@ __global__ void cuVisStack(DataContainer data, CoordContainer coords, /*{{{*/
 
 		m_real_avg /= (float)nchan;
 		m_imag_avg /= (float)nchan;
+		norm_avg /= (float)nchan;
 
 		for(size_t stokesID = 0; stokesID < nstokes; stokesID++)
 		{
 			size_t weightindex = uvrow*nstokes+stokesID;
-			data.data_weight[weightindex] *= m_real_avg*m_real_avg+m_imag_avg*m_imag_avg;
+			data.data_weight[weightindex] *= norm_avg;
 		}
 
         uvrow += blockDim.x*gridDim.x;
@@ -125,13 +128,13 @@ void allocate_cuda_data_stack(DataContainer& data, CoordContainer& dev_coords,/*
 	{
 		if(err == cudaErrorMemoryAllocation)
 		{
-			fprintf(stderr, "Insuficient memory for primary beam data on device!");
-			fprintf(stderr, "n_coords: %zu, nchan: %zu, nspw: %zu, size: %zu",
+			fprintf(stderr, "Insuficient memory for primary beam data on device!\n");
+			fprintf(stderr, "n_coords: %zu, nchan: %zu, nspw: %zu, size: %zu\n",
 					nmaxcoords, nchan, nspw, pb_size);
 		}
 		else
 		{
-			fprintf(stderr, "Unknown error in allocation of dev_coords.pb (not cudaErrorMemoryAllocation)");
+			fprintf(stderr, "Unknown error in allocation of dev_coords.pb (not cudaErrorMemoryAllocation)\n");
 		}
 
 		exit(-1);
