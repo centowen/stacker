@@ -24,8 +24,8 @@
 #include "definitions.h"
 #include "cuda_error.h"
 
-__constant__ float dev_omega[3*N_MAX_COORDS];
-__constant__ float dev_weight[N_MAX_COORDS];
+// __constant__ float dev_omega[3*N_MAX_COORDS];
+// __constant__ float dev_weight[N_MAX_COORDS];
 
 // __global__ void cuVisStack(DataContainer data, CoordContainer coords, 
 //                          int chunk_size, int nchan, int n_coords);
@@ -60,13 +60,13 @@ __global__ void cuVisStack(DataContainer data, CoordContainer coords, /*{{{*/
                                + chanID*coords.n_coords
                                + posID;
                 pbcor = coords.pb[pbindex];
-                exponent = -freq[chanID]*(dev_omega[posID*3+0]*data.u[uvrow] + 
-                                          dev_omega[posID*3+1]*data.v[uvrow] + 
-                                          dev_omega[posID*3+2]*data.w[uvrow]);
+                exponent = -freq[chanID]*(coords.dev_omega[posID*3+0]*data.u[uvrow] + 
+                                          coords.dev_omega[posID*3+1]*data.v[uvrow] + 
+                                          coords.dev_omega[posID*3+2]*data.w[uvrow]);
                 sincos(exponent, &sin_exponent, &cos_exponent);
-                m_num_real += dev_weight[posID]*pbcor*cos_exponent;
-                m_num_imag += dev_weight[posID]*pbcor*sin_exponent;
-                norm += pbcor*pbcor*dev_weight[posID];
+                m_num_real += coords.dev_weight[posID]*pbcor*cos_exponent;
+                m_num_imag += coords.dev_weight[posID]*pbcor*sin_exponent;
+                norm += pbcor*pbcor*coords.dev_weight[posID];
             }
 
             m_real = m_num_real/norm;
@@ -139,6 +139,23 @@ void allocate_cuda_data_stack(DataContainer& data, CoordContainer& dev_coords,/*
 
 		exit(-1);
 	}
+	err = cudaMalloc( (void**)&dev_coords.dev_omega, sizeof(float)*nmaxcoords*3);
+	err = cudaMalloc( (void**)&dev_coords.dev_weight, sizeof(float)*nmaxcoords);
+	if(err != cudaSuccess)
+	{
+		if(err == cudaErrorMemoryAllocation)
+		{
+			fprintf(stderr, "Insuficient memory for coords on device!\n");
+			fprintf(stderr, "n_coords: %zu, nchan: %zu, nspw: %zu, size: %zu\n",
+					nmaxcoords, nchan, nspw, sizeof(float)*dev_coords.n_coords*3);
+		}
+		else
+		{
+			fprintf(stderr, "Unknown error in allocation of dev_coords.pb (not cudaErrorMemoryAllocation)\n");
+		}
+
+		exit(-1);
+	}
 }/*}}}*/
 void copy_coords_to_cuda(/*{{{*/
                          Coords& coords, CoordContainer& dev_coords, 
@@ -175,24 +192,32 @@ void copy_coords_to_cuda(/*{{{*/
 
 
 	cudaError err;
-	err = cudaMemcpyToSymbol( dev_omega, omega, 
-			sizeof(float)*dev_coords.n_coords*3, 0,
+	err = cudaMemcpy( dev_coords.dev_omega, omega, 
+			sizeof(float)*dev_coords.n_coords*3,
 			cudaMemcpyHostToDevice);
+// 	err = cudaMemcpyToSymbol( dev_omega, omega, 
+// 			sizeof(float)*dev_coords.n_coords*3, 0,
+// 			cudaMemcpyHostToDevice);
 	if(err != cudaSuccess)
 	{
-		fprintf(stderr, "Failed to copy omega to __constant__ dev_omega");
-		fprintf(stderr, "n_coords: %zu, size: %zu", dev_coords.n_coords,
+// 		fprintf(stderr, "Failed to copy omega to __constant__ dev_omega");
+		fprintf(stderr, "Failed to copy omega to dev_omega\n");
+		fprintf(stderr, "n_coords: %zu, size: %zu\n", dev_coords.n_coords,
 				sizeof(float)*dev_coords.n_coords*3);
 		exit(-1);
 	}
 
-    err = cudaMemcpyToSymbol( dev_weight, weight, 
-                sizeof(float)*dev_coords.n_coords, 0,
+    err = cudaMemcpy( dev_coords.dev_weight, weight, 
+                sizeof(float)*dev_coords.n_coords,
                 cudaMemcpyHostToDevice);
+//     err = cudaMemcpyToSymbol( dev_weight, weight, 
+//                 sizeof(float)*dev_coords.n_coords, 0,
+//                 cudaMemcpyHostToDevice);
 	if(err != cudaSuccess)
 	{
-		fprintf(stderr, "Failed to copy weight to __constant__ dev_weight");
-		fprintf(stderr, "n_coords: %zu, size: %zu", dev_coords.n_coords,
+// 		fprintf(stderr, "Failed to copy weight to __constant__ dev_weight");
+		fprintf(stderr, "Failed to copy weight to dev_weight\n");
+		fprintf(stderr, "n_coords: %zu, size: %zu\n", dev_coords.n_coords,
 				sizeof(float)*dev_coords.n_coords);
 		exit(-1);
 	}

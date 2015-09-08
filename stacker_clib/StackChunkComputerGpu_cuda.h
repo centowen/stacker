@@ -32,6 +32,8 @@ typedef struct _CoordContainer
 {
     size_t n_coords;
     float* pb; 
+	float* dev_omega;
+	float* dev_weight;
 } CoordContainer;
 
 void allocate_cuda_data_stack(DataContainer& data, CoordContainer& dev_coords,
