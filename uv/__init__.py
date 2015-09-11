@@ -119,7 +119,7 @@ def stack(coords, vis, outvis='', imagename='', cell='1arcsec', stampsize=32,
     stop = time.time()
 #     print("Started stack at {}".format(start))
 #     print("Finished stack at {}".format(stop))
-    print("Time used to stack: {}".format(stop-start))
+    print("Time used to stack: {0}".format(stop-start))
 
     if imagename != '':
         import clean
