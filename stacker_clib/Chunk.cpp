@@ -53,6 +53,44 @@ Chunk::Chunk(size_t size)
     update_datalinks();
 }
 
+Chunk::Chunk(const Chunk& c)
+{
+	dataset_id = c.dataset_id;
+	nvis = c.nvis;
+	max_nvis = c.max_nvis;
+
+	inVis = new Visibility[this->max_nvis];
+	outVis = new Visibility[this->max_nvis];
+
+	nchan = c.nchan;
+	nstokes = c.nstokes;
+
+	if(nchan > 0 and nstokes > 0 and nvis > 0)
+	{
+		data_real_in  = new float[nvis*nchan*nstokes];
+		data_real_out = new float[nvis*nchan*nstokes];
+		data_imag_in  = new float[nvis*nchan*nstokes];
+		data_imag_out = new float[nvis*nchan*nstokes];
+		data_flag_in  = new int[nvis*nchan*nstokes];
+		data_flag_out = new int[nvis*nchan*nstokes];
+		weight_in     = new float[nvis*nchan*nstokes];
+		weight_out    = new float[nvis*nchan*nstokes];
+		for(int i = 0; i < nchan*nstokes*nvis; i++)
+		{
+			data_real_in [i] = c.data_real_in [i];
+			data_real_out[i] = c.data_real_out[i];
+			data_imag_in [i] = c.data_imag_in [i];
+			data_imag_out[i] = c.data_imag_out[i];
+			data_flag_in [i] = c.data_flag_in [i];
+			data_flag_out[i] = c.data_flag_out[i];
+			weight_in    [i] = c.weight_in    [i];
+			weight_out   [i] = c.weight_out   [i];
+		}
+	}
+
+    update_datalinks();
+}
+
 Chunk::~Chunk()
 {
 	delete[] inVis;

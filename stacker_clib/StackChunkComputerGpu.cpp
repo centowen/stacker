@@ -73,9 +73,9 @@ void StackChunkComputerGpu::preCompute(DataIO* dataio)/*{{{*/
 		if(coords->nStackPoints[i] > nmaxcoords)
 			nmaxcoords = coords->nStackPoints[i];
 
-	allocate_cuda_data_stack(dev_data, dev_coords, dataio->nChan(),
-	                   dataio->nStokes(), CHUNK_SIZE, 
-					   nmaxcoords, dataio->nSpw());
+	allocate_cuda_data(dev_data, dataio->nChan(), dataio->nStokes(), CHUNK_SIZE);
+	allocate_cuda_data_stack(dev_coords, dataio->nChan(),
+	                         nmaxcoords, dataio->nSpw());
 
 	nspw = dataio->nSpw();
     freq = new float[dataio->nChan()*dataio->nSpw()];

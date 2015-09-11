@@ -74,8 +74,8 @@ void ModsubChunkComputerGpu::preCompute(DataIO* dataio)/*{{{*/
 			nmax_model_comp = model->nStackPoints[i];
 		}
 
-	allocate_cuda_data_modsub(dev_data, dev_model, dataio->nChan(),
-	                          dataio->nStokes(), CHUNK_SIZE, 
+	allocate_cuda_data(dev_data, dataio->nChan(), dataio->nStokes(), CHUNK_SIZE);
+	allocate_cuda_data_modsub(dev_model, dataio->nChan(),
 					          nmax_model_comp, dataio->nSpw());
 
 	nspw = dataio->nSpw();

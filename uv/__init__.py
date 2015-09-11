@@ -27,6 +27,12 @@ c_stack.argtype = [c_int, c_char_p, c_int,
                    c_int, c_char_p, POINTER(c_double), c_int,
                    POINTER(c_double), POINTER(c_double), POINTER(c_double),
                    c_int, c_bool]
+c_stack_mc = stacker.libstacker.stack_mc
+c_stack_mc.argtype = [c_int, c_char_p, c_int,
+                      c_int, c_char_p, POINTER(c_double), c_int,
+                      POINTER(c_double), POINTER(c_double), POINTER(c_double),
+                      c_int, c_int, POINTER(c_char_p), 
+                      POINTER(c_double), POINTER(c_double), c_int, c_bool]
 
 
 def stack(coords, vis, outvis='', imagename='', cell='1arcsec', stampsize=32,
@@ -153,3 +159,59 @@ def noise(coords, vis, weighting='sigma2', imagenames=[], beam=None, nrand=50,
         dist.append(stack(random_coords, vis))
 
     return np.std(np.real(np.array(dist)))
+
+
+def noise_fast(coords, models, vis, datacolumn='corrected',
+               primarybeam='guess', use_cuda=True, 
+               nbin=None, bins=None):
+    """ Calculate noise using a Monte Carlo method, can be time consuming. """
+    import stacker
+
+    if not use_cuda:
+        raise NotImplementedError
+    if len(coords) != len(models):
+        raise RuntimeError('Number of coordinate objects does not match number of models.')
+    nmc = len(coords)
+    infiletype, infilename, infileoptions = stacker._checkfile(vis, datacolumn)
+
+    if primarybeam == 'guess':
+        primarybeam = stacker.pb.guesspb(vis)
+    elif primarybeam in ['constant', 'none'] or primarybeam is None:
+        primarybeam = stacker.pb.PrimaryBeamModel()
+    pbtype, pbfile, pbnpars, pbpars = primarybeam.cdata()
+
+    coordlistlen = len(coords[0])
+    for coordlist in coords:
+        if coordlistlen != len(coordlist):
+            raise RuntimeError('Number of coordinates must be same in all samples.')
+    x = []
+    y = []
+    weight = []
+    for coordlist in coords:
+        x.extend([p.x for p in coordlist])
+        y.extend([p.y for p in coordlist])
+        weight.extend([p.weight for p in coordlist])
+    print('len(x) = {}'.format(len(x)))
+
+    x = (c_double*len(x))(*x)
+    y = (c_double*len(y))(*y)
+    weight = (c_double*len(weight))(*weight)
+
+    c_models = (c_char_p*len(models))(*models)
+
+    if bins is None or nbin is None:
+        raise 'No bins given!'
+    if len(bins) != nbin+1:
+        raise 'Number of bins must match nbin!'
+    c_bins = (c_double*(nbin+1))(*bins)
+    res_flux   = (c_double*(nmc*nbin))(*([0]*(nmc*nbin)))
+    res_weight = (c_double*(nmc*nbin))(*([0]*(nmc*nbin)))
+
+    c_stack_mc(infiletype, c_char_p(infilename), infileoptions,
+               pbtype, c_char_p(pbfile), pbpars, pbnpars,
+               x, y, weight, c_int(len(coords[0])), c_int(nmc),
+               c_models,
+               res_flux, res_weight, c_bins, c_int(nbin),
+               use_cuda)
+
+    return np.array(list(res_flux)), np.array(list(res_weight))

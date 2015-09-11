@@ -36,10 +36,8 @@ typedef struct _CoordContainer
 	float* dev_weight;
 } CoordContainer;
 
-void allocate_cuda_data_stack(DataContainer& data, CoordContainer& dev_coords,
-                              const size_t nchan, const size_t nstokes,
-                              const size_t chunk_size, const size_t nmaxcoords,
-                              const size_t nspw);
+void allocate_cuda_data_stack(CoordContainer& dev_coords, const size_t nchan,
+                              const size_t nmaxcoords, const size_t nspw);
 void copy_coords_to_cuda(Coords& coords, CoordContainer& dev_coords, 
                          float* freq, PrimaryBeam& pb, 
                          const int field, const size_t nchan,

@@ -30,10 +30,8 @@ typedef struct _ModelContainer
     float* pb; 
 } ModelContainer;
 
-void allocate_cuda_data_modsub(DataContainer& data, ModelContainer& dev_model,
-                              const size_t nchan, const size_t nstokes,
-                              const size_t chunk_size, const size_t nmax_mod_comp,
-                              const size_t nspw);
+void allocate_cuda_data_modsub(ModelContainer& dev_model, const size_t nchan, 
+                               const size_t nmax_mod_comp, const size_t nspw);
 void copy_model_to_cuda(Model& model, ModelContainer& dev_model, 
                          float* freq, PrimaryBeam& pb, 
                          const int field, const size_t nchan,

@@ -16,6 +16,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 //
 // Library to stack and modsub ms data.
+#include <cuda.h>
 #include "StackChunkComputerGpu_cuda.h"
 #include "DataIO.h"
 #include "PrimaryBeam.h"
@@ -108,19 +109,10 @@ __global__ void cuVisStack(DataContainer data, CoordContainer coords, /*{{{*/
     }
 };/*}}}*/
 
-void allocate_cuda_data_stack(DataContainer& data, CoordContainer& dev_coords,/*{{{*/
-                              const size_t nchan, const size_t nstokes,
-                              const size_t chunk_size, const size_t nmaxcoords,
-                              const size_t nspw)
+void allocate_cuda_data_stack(CoordContainer& dev_coords,/*{{{*/
+                              const size_t nchan, const size_t nmaxcoords,
+							  const size_t nspw)
 {
-    CudaSafeCall(cudaMalloc( (void**)&data.u, sizeof(float)*chunk_size));
-    CudaSafeCall(cudaMalloc( (void**)&data.v, sizeof(float)*chunk_size));
-    CudaSafeCall(cudaMalloc( (void**)&data.w, sizeof(float)*chunk_size));
-    CudaSafeCall(cudaMalloc( (void**)&data.data_real, sizeof(float)*chunk_size*nchan*nstokes));
-    CudaSafeCall(cudaMalloc( (void**)&data.data_imag, sizeof(float)*chunk_size*nchan*nstokes));
-    CudaSafeCall(cudaMalloc( (void**)&data.data_weight, sizeof(float)*chunk_size*nstokes));
-    CudaSafeCall(cudaMalloc( (void**)&data.spw, sizeof(int)*chunk_size));
-    CudaSafeCall(cudaMalloc( (void**)&data.field, sizeof(int)*chunk_size));
 	size_t pb_size = sizeof(float)*nmaxcoords*nchan*nspw;
 	cudaError err;
 	err = cudaMalloc( (void**)&dev_coords.pb, pb_size);
@@ -146,8 +138,8 @@ void allocate_cuda_data_stack(DataContainer& data, CoordContainer& dev_coords,/*
 		if(err == cudaErrorMemoryAllocation)
 		{
 			fprintf(stderr, "Insuficient memory for coords on device!\n");
-			fprintf(stderr, "n_coords: %zu, nchan: %zu, nspw: %zu, size: %zu\n",
-					nmaxcoords, nchan, nspw, sizeof(float)*dev_coords.n_coords*3);
+			fprintf(stderr, "n_coords: %zu, size: %zu\n",
+					nmaxcoords, sizeof(float)*dev_coords.n_coords*4);
 		}
 		else
 		{

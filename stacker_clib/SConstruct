@@ -150,6 +150,8 @@ if do_cuda:
     env.Append(LIBPATH = [cuda_lib_path])
     env.Append(CPPPATH = [cuda_inc_path])
     env.Append(LIBS=['cuda', 'cudart'])
+    env.Append(NVCCFLAGS = ['-arch=sm_20'])
+    env.Append(SHNVCCFLAGS = ['-arch=sm_20'])
 
 do_pthreads = GetOption('do_pthreads')
 build_header(env, do_pthreads=do_pthreads, do_cuda=do_cuda)
@@ -256,7 +258,8 @@ if link_against_casa:
         env.Append(LIBS=File(os.path.join(casalibpath, 'libcfitsio.so.0')))
 else:
     env.Append(LIBS=['gfortran', 'lapack', 'blas', 'wcs', 'cfitsio'])
-env.Append(CCFLAGS = ['-fPIC','-O3'])
+# env.Append(CCFLAGS = ['-fPIC','-O3'])
+env.Append(CCFLAGS = ['-O3'])
 
 Sources = []
 Sources.append("Coords.cpp")
@@ -276,6 +279,8 @@ if do_cuda:
     Sources.append("StackChunkComputerGpu_cuda.cu")
     Sources.append("ModsubChunkComputerGpu.cpp")
     Sources.append("ModsubChunkComputerGpu_cuda.cu")
+    Sources.append("StackMCCCGpu.cpp")
+    Sources.append("StackMCCCGpu_cuda.cu")
 
 Sources.append("MSComputer.cpp")
 Sources.append('stacker.cpp')

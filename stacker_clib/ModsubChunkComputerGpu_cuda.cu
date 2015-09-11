@@ -91,19 +91,11 @@ __global__ void cu_modsub(DataContainer data, ModelContainer model, /*{{{*/
     }
 };/*}}}*/
 
-void allocate_cuda_data_modsub(DataContainer& data, ModelContainer& dev_model,/*{{{*/
-                               const size_t nchan, const size_t nstokes,
-                               const size_t chunk_size, const size_t nmax_mod_comp,
+void allocate_cuda_data_modsub(ModelContainer& dev_model,/*{{{*/
+                               const size_t nchan,
+                               const size_t nmax_mod_comp,
                                const size_t nspw)
 {
-    CudaSafeCall(cudaMalloc( (void**)&data.u, sizeof(float)*chunk_size));
-    CudaSafeCall(cudaMalloc( (void**)&data.v, sizeof(float)*chunk_size));
-    CudaSafeCall(cudaMalloc( (void**)&data.w, sizeof(float)*chunk_size));
-    CudaSafeCall(cudaMalloc( (void**)&data.data_real, sizeof(float)*chunk_size*nchan*nstokes));
-    CudaSafeCall(cudaMalloc( (void**)&data.data_imag, sizeof(float)*chunk_size*nchan*nstokes));
-    CudaSafeCall(cudaMalloc( (void**)&data.data_weight, sizeof(float)*chunk_size*nstokes));
-    CudaSafeCall(cudaMalloc( (void**)&data.spw, sizeof(int)*chunk_size));
-    CudaSafeCall(cudaMalloc( (void**)&data.field, sizeof(int)*chunk_size));
 	size_t pb_size = sizeof(float)*nmax_mod_comp*nchan*nspw;
 	cudaError err;
 	err = cudaMalloc( (void**)&dev_model.pb, pb_size);

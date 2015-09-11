@@ -70,6 +70,7 @@ public:
 	Visibility *inVis, *outVis;
 
 	Chunk(size_t size);
+	Chunk(const Chunk& c);
 	~Chunk();
 
 	size_t size();
