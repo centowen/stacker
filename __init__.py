@@ -343,38 +343,57 @@ def _getPixelCoords1ImSimpleProj(coords, imagename):
 
 
 def _getPixelCoords1Im(coords, imagename):
-    from taskinit import ia
     from interval import interval
     import math
 
-    ia.open(imagename)
-    cs = ia.coordsys()
-    imshape = ia.shape()
-    ia.done()
-
-    pixcoords = []
-    for coord in coords:
-        tmpx = coord.x
-#         if tmpx < 0:
-#             tmpx += 2*math.pi
+    try:
+        from taskinit import ia
+        ia.open(imagename)
+        cs = ia.coordsys()
+        Nx = ia.shape()[0]
+        Ny = ia.shape()[1]
+        ia.done()
         x0 = cs.referencevalue()['numeric'][0]
         y0 = cs.referencevalue()['numeric'][1]
-        dx = (tmpx - x0)*math.cos(coord.y)
-        dy = math.asin(math.sin(coord.y)/math.cos(dx)) - y0
         x_pix_ref = cs.referencepixel()['numeric'][0]
         y_pix_ref = cs.referencepixel()['numeric'][1]
         x_pix_inc = cs.increment()['numeric'][0]
         y_pix_inc = cs.increment()['numeric'][1]
+
+# If we fail to load ia, we will use pyrap instead.
+# This probably means stacker was loaded from outside casapy.
+    except ImportError:
+        from pyrap.images import image
+        im = image(imagename)
+        cs = im.coordinates().get_coordinate('direction')
+        imshape = im.shape()
+        try:
+            x_axis_index = cs.get_axes().index('Right Ascension')
+        except ValueError:
+            raise ValueError('Could not find direction coordinate: '\
+                              'RightAscension')
+        try:
+            y_axis_index = cs.get_axes().index('Declination')
+        except ValueError:
+            raise ValueError('Could not find direction coordinate: '\
+                              'Declination')
+        Nx = im.shape()[cs.get_image_axis()+x_axis_index]
+        Ny = im.shape()[cs.get_image_axis()+y_axis_index]
+        x0 = cs.get_referencevalue()[x_axis_index]
+        y0 = cs.get_referencevalue()[y_axis_index]
+        x_pix_ref = cs.get_referencepixel()[x_axis_index]
+        y_pix_ref = cs.get_referencepixel()[y_axis_index]
+        x_pix_inc = cs.get_increment()[x_axis_index]
+        y_pix_inc = cs.get_increment()[y_axis_index]
+
+    pixcoords = []
+    for coord in coords:
+        dx = (coord.x - x0)*math.cos(coord.y)
+        dy = math.asin(math.sin(coord.y)/math.cos(dx)) - y0
         x = dx/x_pix_inc+x_pix_ref
         y = dy/y_pix_inc+y_pix_ref
 
-#         p = cs.convert(coordin=[coord.x, coord.y,0,0], absin = [True]*4,
-#                        unitsin=[coords.unit,coords.unit, 'pix', 'pix'],
-#                        absout = [True]*4, unitsout=['pix']*4)
-#         x = p[0]
-#         y = p[1]
-
-        if x in interval[0, imshape[0]-1] and y in interval[0., imshape[1]-1]:
+        if x in interval[0, Nx-1] and y in interval[0., Ny-1]:
 #             pixcoords.append(Coord(x,y, coord.weight))
             c = Coord(x, y, coord.weight)
 

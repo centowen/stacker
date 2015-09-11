@@ -66,7 +66,7 @@ def calculate_pb_weights(coords, primarybeam, imagenames=[]):
     return coords
 
 
-def calculate_sigma2_weights(coords, imagenames=[], stampsize=32, maskradius=None):
+def calculate_sigma2_weights(coords, imagenames=[], stampsize=32, maskradius=0):
     for i, coord in enumerate(coords):
         coord.index = i
 
@@ -322,22 +322,10 @@ def _calculate_flux_weights(coords):
     return coords
 
 
-def _calculate_sigma2_weights(coords, maxmaskradius=None):
+def _calculate_sigma2_weights(coords, maskradius=0.):
     import numpy as np
-    from taskinit import ia,qa
+#     from taskinit import ia,qa
     global stampsize
-
-    masksize=10
-    if coords.coord_type == 'pixel' and coords.imagenames[0]:
-        ia.open(coords.imagenames[0])
-#         beam = qa.convert(ia.restoringbeam()['major'], 'rad')['value']
-        if ia.restoringbeam() == {}:
-            masksize = 10
-        else:
-            masksize = int(2*np.abs(qa.convert(ia.restoringbeam()['major'],'rad')['value']/ ia.coordsys().increment()['numeric'][0]))
-        ia.done()
-    if maxmaskradius and maxmaskradius < masksize:
-        masksize = maxmaskradius
 
     X = np.arange(0, stampsize)-int(stampsize/2)
     Y = np.arange(0, stampsize)-int(stampsize/2)
@@ -347,7 +335,7 @@ def _calculate_sigma2_weights(coords, maxmaskradius=None):
         tmpdata = np.copy(data[i,:,:,:,:])
         for j in range(tmpdata.shape[2]):
             for k in range(tmpdata.shape[3]):
-                tmpdata[:,:,j,k]  = (tmpdata[:,:,j,k]*np.double( X**2+Y**2>masksize**2))
+                tmpdata[:,:,j,k]  = (tmpdata[:,:,j,k]*np.double( X**2+Y**2>maskradius**2))
         sigma = np.std(tmpdata[np.nonzero(tmpdata)])
         if sigma == 0:
             coord.weight = 0.
@@ -359,7 +347,12 @@ def _calculate_sigma2_weights(coords, maxmaskradius=None):
 
 def _allocate_buffers( imagenames, new_stampsize, nstackpos):
     import numpy as np
-    from taskinit import ia
+    try:
+        from taskinit import ia
+        dataread = 'casa'
+    except ImportError:
+        from pyrap.images import image
+        dataread = 'pyrap'
 
     global skymap
     global data
@@ -367,11 +360,17 @@ def _allocate_buffers( imagenames, new_stampsize, nstackpos):
     global stampsize
     global imagesizes
 
-    ia.open(imagenames[0])
-    cs = ia.coordsys()
-    outnchans = ia.boundingbox()['trc'][2]+1
-    outnstokes = ia.boundingbox()['trc'][3]+1
-    ia.done()
+    if dataread == 'casa':
+        ia.open(imagenames[0])
+        cs = ia.coordsys()
+        outnchans = ia.boundingbox()['trc'][2]+1
+        outnstokes = ia.boundingbox()['trc'][3]+1
+        ia.done()
+    elif dataread == 'pyrap':
+        im = image(imagenames[0])
+        cs = im.coordinates()
+        outnchans = im.shape()[cs.get_coordinate('spectral').get_image_axis()]
+        outnstokes = im.shape()[cs.get_coordinate('stokes').get_image_axis()]
     
 # To improve performance this module will keep buffers between run.
 # This following code resets these buffers if they have grown obsolete.
@@ -407,15 +406,45 @@ def _allocate_buffers( imagenames, new_stampsize, nstackpos):
 # Reading a skymap from disk is a time consuming task and we don't want to do this too much.
     if skymap == []:
         for imagename in imagenames:
-            ia.open(imagename)
-            skymap.append(ia.getregion())
-            ia.done()
+            if dataread == 'casa':
+                ia.open(imagename)
+                skymap.append(ia.getregion())
+                ia.done()
+            elif dataread == 'pyrap':
+                buff = im.getdata()
+                dir_axis = cs.get_coordinate('direction').get_image_axis()
+                x_axis = dir_axis+cs.get_coordinate('direction').get_axes().index('Right Ascension')
+                y_axis = dir_axis+cs.get_coordinate('direction').get_axes().index('Declination')
+                specax = cs.get_coordinate('spectral').get_image_axis()
+                stokesax = cs.get_coordinate('stokes').get_image_axis()
+                axis_order = [x_axis, y_axis, stokesax, specax]
+
+                for i in range(len(axis_order)-1):
+                    if axis_order[i] != i:
+                        target = axis_order.index(i)
+                        origin = i
+                        buff = buff.swapaxes(axis_order[origin], axis_order[target])
+                        axis_order[origin], axis_order[target] =\
+                            axis_order[target], axis_order[origin]
+                skymap.append(buff)
 
     imagesizes = []
     for imagename in imagenames:
-        ia.open(imagename)
-        imagesizes.append((ia.shape()[0], ia.shape()[1]))
-        ia.done()
+        if dataread == 'casa':
+            ia.open(imagename)
+            imagesizes.append((ia.shape()[0], ia.shape()[1]))
+            ia.done()
+        elif dataread == 'pyrap':
+            dir_axis = cs.get_coordinate('direction').get_image_axis()
+            x_axis_index = dir_axis+cs.get_coordinate('direction').get_axes().index('Right Ascension')
+            y_axis_index = dir_axis+cs.get_coordinate('direction').get_axes().index('Declination')
+            imagesizes.append((im.shape()[x_axis_index], im.shape()[y_axis_index]))
+
+#     if dataread == 'pyrap':
+#         im.close()
+
+
+
 
 
 def _load_stack(coords, psfmode='point'):
