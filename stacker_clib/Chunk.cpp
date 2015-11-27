@@ -67,6 +67,31 @@ Chunk::Chunk(const Chunk& c)
 
 	if(nchan > 0 and nstokes > 0 and nvis > 0)
 	{
+		for(int i = 0; i < nvis; i++)
+		{
+			inVis[i].freq = c.inVis[i].freq;
+			inVis[i].u = c.inVis[i].u;
+			inVis[i].v = c.inVis[i].v;
+			inVis[i].w = c.inVis[i].w;
+
+			inVis[i].nstokes = c.inVis[i].nstokes;
+			inVis[i].nchan = c.inVis[i].nchan;
+			inVis[i].fieldID = c.inVis[i].fieldID;
+			inVis[i].index = c.inVis[i].index;
+			inVis[i].spw = c.inVis[i].spw;
+			inVis[i].freq = c.inVis[i].freq;
+
+			outVis[i].u = c.inVis[i].u;
+			outVis[i].v = c.inVis[i].v;
+			outVis[i].w = c.inVis[i].w;
+
+			outVis[i].nstokes = c.inVis[i].nstokes;
+			outVis[i].nchan = c.inVis[i].nchan;
+			outVis[i].fieldID = c.inVis[i].fieldID;
+			outVis[i].index = c.inVis[i].index;
+			outVis[i].spw = c.inVis[i].spw;
+		}
+
 		data_real_in  = new float[nvis*nchan*nstokes];
 		data_real_out = new float[nvis*nchan*nstokes];
 		data_imag_in  = new float[nvis*nchan*nstokes];
