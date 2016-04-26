@@ -48,15 +48,33 @@ MSComputer::MSComputer(ChunkComputer* cc,
 	{
 		if(infileoptions & MS_DATACOLUMN_DATA)
 		{
+#ifdef DEBUG
+			cout << "Creating msio (data column) object." << endl;
+#endif
 			data = (DataIO*)(new msio(infilename, outfilename, msio::col_data, selectField, field));
+#ifdef DEBUG
+			cout << "Created msio (data column) object." << endl;
+#endif
 		}
 		else if(infileoptions & MS_MODELCOLUMN_DATA)
 		{
+#ifdef DEBUG
+			cout << "Creating msio (model column) object." << endl;
+#endif
 			data = (DataIO*)(new msio(infilename, outfilename, msio::col_model_data, selectField, field));
+#ifdef DEBUG
+			cout << "Created msio (model column) object." << endl;
+#endif
 		}
 		else
 		{
+#ifdef DEBUG
+			cout << "Creating msio (cor. data column) object." << endl;
+#endif
 			data = (DataIO*)(new msio(infilename, outfilename, msio::col_corrected_data, selectField, field));
+#ifdef DEBUB
+			cout << "Created msio (cor. data column) object." << endl;
+#endif
 		}
 	}
 	else
@@ -115,7 +133,13 @@ float MSComputer::run()/*{{{*/
 		freeChunks.push(i);
 	}
 
+#ifdef DEBUG
+	cout << "Running pre compute." << endl;
+#endif
 	cc->preCompute(data);
+#ifdef DEBUG
+	cout << "Creating threads." << endl;
+#endif
 
 	pthread_t threads[n_thread_];
 

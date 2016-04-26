@@ -46,4 +46,6 @@ const int FILE_TYPE_FITS = 2;
 const int MS_DATACOLUMN_DATA = 1;
 const int MS_MODELCOLUMN_DATA = 2;
 
+// #define DEBUG
+
 #endif

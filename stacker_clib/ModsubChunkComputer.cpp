@@ -56,17 +56,28 @@ void ModsubChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 					float extent = 1.;
 
 // 					d = - freq*(u*omega_x[fieldID][i_p]+v*omega_y[fieldID][i_p]);
-					d = freq*(u*model->omega_x[inVis.fieldID][i_p]+
-						v*model->omega_y[inVis.fieldID][i_p]+
-						w*model->omega_z[inVis.fieldID][i_p]);
-					if( model->size[inVis.fieldID][i_p] > 1e-10)
+					phase = freq*(u*model->omega_x[inVis.fieldID][i_p]+
+					              v*model->omega_y[inVis.fieldID][i_p]+
+					              w*model->omega_z[inVis.fieldID][i_p]);
+
+					if(model->size[inVis.fieldID][i_p] > 1e-10 and
+					   model->model_type[inVis.fieldID][i_p] == mod_gaussian)
+					{
 						extent = exp(-freq*freq*(u*u + v*v)*model->omega_size[inVis.fieldID][i_p]);
+					}
+					else if(model->size[inVis.fieldID][i_p] > 1e-10 and 
+							model->model_type[inVis.fieldID][i_p] == mod_disk)
+					{
+						float uvdist = sqrt(u*u+v*v);
+						extent = 2.*j1(freq*uvdist*model->omega_size[inVis.fieldID][i_p]) /
+							          (freq*uvdist*model->omega_size[inVis.fieldID][i_p]);
+					}
 
 					float pbcor = float(pb->calc(model->dx[fieldID][i_p], 
 								                 model->dy[fieldID][i_p], 
 												 freq));
- 					dd_real += pbcor*model->flux[fieldID][i_p]*extent*cos(d);
- 					dd_imag += pbcor*model->flux[fieldID][i_p]*extent*sin(d);
+ 					dd_real += pbcor*model->flux[fieldID][i_p]*extent*cos(phase);
+ 					dd_imag += pbcor*model->flux[fieldID][i_p]*extent*sin(phase);
 
 				}
 

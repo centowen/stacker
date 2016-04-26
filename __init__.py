@@ -366,6 +366,7 @@ def _getPixelCoords1Im(coords, imagename):
         from pyrap.images import image
         im = image(imagename)
         cs = im.coordinates().get_coordinate('direction')
+        dir_axis_index = im.coordinates().get_axes().index(cs.get_axes())
         imshape = im.shape()
         try:
             x_axis_index = cs.get_axes().index('Right Ascension')
@@ -377,8 +378,11 @@ def _getPixelCoords1Im(coords, imagename):
         except ValueError:
             raise ValueError('Could not find direction coordinate: '\
                               'Declination')
-        Nx = im.shape()[cs.get_image_axis()+x_axis_index]
-        Ny = im.shape()[cs.get_image_axis()+y_axis_index]
+
+
+
+        Nx = im.shape()[dir_axis_index+x_axis_index]
+        Ny = im.shape()[dir_axis_index+y_axis_index]
         x0 = cs.get_referencevalue()[x_axis_index]
         y0 = cs.get_referencevalue()[y_axis_index]
         x_pix_ref = cs.get_referencepixel()[x_axis_index]
