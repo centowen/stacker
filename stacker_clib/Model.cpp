@@ -30,6 +30,7 @@
 #include <casarest/components/ComponentModels/ComponentList.h>
 #include <casarest/components/ComponentModels/SkyComponent.h>
 #include <casarest/components/ComponentModels/ComponentShape.h>
+#include <casarest/components/ComponentModels/ComponentType.h>
 #include <casarest/components/ComponentModels/Flux.h>
 #else
 #include <casa/Arrays/Array.h>
@@ -126,6 +127,7 @@ void Model::compute(DataIO* ms, PrimaryBeam* pb)
     vector<float>* cy = new vector<float>[nPointings];
     vector<float>* cflux = new vector<float>[nPointings];
     vector<float>* csize = new vector<float>[nPointings];
+    vector<int>*   cmodel_type = new vector<int>[nPointings];
 
 	nStackPoints = new int[nPointings];
 	for(int i = 0; i < nPointings; i++)
@@ -140,13 +142,24 @@ void Model::compute(DataIO* ms, PrimaryBeam* pb)
 		SkyComponent sc(cl.component(i));
 		MDirection dir(sc.shape().refDirection());
 		float x, y, flux, size;
+		int model_type;
 
 		x = float(dir.getAngle().getValue("rad")[0]);
 		y = float(dir.getAngle().getValue("rad")[1]);
 		flux = float(sc.flux().value(casa::Stokes::I, false).getValue(Unit("Jy")));
 		size = float(0.);
-		if(sc.shape().type() == 1)
+		model_type = mod_point;
+
+		if(sc.shape().type() == casa::ComponentType::GAUSSIAN)
+		{
 			size = float(sc.shape().parameters()[0]);
+			model_type = mod_gaussian;
+		}
+		else if(sc.shape().type() == casa::ComponentType::DISK)
+		{
+			size = float(sc.shape().parameters()[0]);
+			model_type = mod_disk;
+		}
 		totFlux += flux;
 
 		for(int fieldID = 0; fieldID < nPointings; fieldID++)
@@ -165,6 +178,7 @@ void Model::compute(DataIO* ms, PrimaryBeam* pb)
 				cy[fieldID].push_back(y);
 				cflux[fieldID].push_back(flux);
 				csize[fieldID].push_back(size);
+				cmodel_type[fieldID].push_back(model_type);
 				nStackPoints[fieldID] ++;
 			}
 		}
@@ -181,6 +195,7 @@ void Model::compute(DataIO* ms, PrimaryBeam* pb)
 	dy = new float*[nPointings];
 	flux = new float*[nPointings];
 	size = new float*[nPointings];
+	model_type = new int*[nPointings];
 
 	for(int fieldID = 0; fieldID < nPointings; fieldID++)
 	{
@@ -194,6 +209,7 @@ void Model::compute(DataIO* ms, PrimaryBeam* pb)
 		omega_size[fieldID] = new float[nStackPoints[fieldID]];
 		flux[fieldID] = new float[nStackPoints[fieldID]];
 		size[fieldID] = new float[nStackPoints[fieldID]];
+		model_type[fieldID] = new int[nStackPoints[fieldID]];
 
 		for(int i = 0; i < nStackPoints[fieldID]; i++)
 		{
@@ -204,6 +220,7 @@ void Model::compute(DataIO* ms, PrimaryBeam* pb)
 			else
 				flux[fieldID][i] = -1.*cflux[fieldID][i];
 			size[fieldID][i] = csize[fieldID][i];
+			model_type[fieldID][i] = cmodel_type[fieldID][i];
 
 // 			dx[fieldID][i] = (x[fieldID][i] - float(ms->xPhaseCentre(fieldID)))*cos(y[fieldID][i]);
 // 			dy[fieldID][i] = asin(sin(y[fieldID][i])/cos(dx[fieldID][i])) - float(ms->yPhaseCentre(fieldID));
@@ -216,7 +233,12 @@ void Model::compute(DataIO* ms, PrimaryBeam* pb)
 			omega_y[fieldID][i] = 2*M_PI*sin(dy[fieldID][i])/casa::C::c;
 // 			omega_z[fieldID][i] = 2*M_PI*(cos(sqrt(dx[fieldID][i]*dx[fieldID][i]+dy[fieldID][i]*dy[fieldID][i]))-1)/casa::C::c;
 			omega_z[fieldID][i] = 2*M_PI*(sqrt(1-dx[fieldID][i]*dx[fieldID][i]-dy[fieldID][i]*dy[fieldID][i])-1)/casa::C::c;
-			omega_size[fieldID][i] = pow(M_PI*size[fieldID][i]/casa::C::c, 2) / (4 * log(2));
+			if(model_type[fieldID][i] == mod_gaussian)
+				omega_size[fieldID][i] = pow(M_PI*size[fieldID][i]/casa::C::c, 2) / (4 * log(2));
+			else if(model_type[fieldID][i] == mod_disk)
+				omega_size[fieldID][i] = M_PI*size[fieldID][i]/casa::C::c;
+
+
 		}
 	}
 
