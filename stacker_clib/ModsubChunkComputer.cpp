@@ -48,7 +48,7 @@ void ModsubChunkComputer::computeChunk(Chunk* chunk) /*{{{*/
 			for(int i = 0; i < inVis.nstokes; i++)
 			{
 				float dd_real = 0., dd_imag = 0.;
-				float d;
+				float phase;
 				float freq = float(inVis.freq[j]);
 
 				for(int i_p = 0; i_p < model->nStackPoints[inVis.fieldID]; i_p++)
