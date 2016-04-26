@@ -213,7 +213,7 @@ def readCoords(coordfile, unit='deg'):
         else:
             weight = 1.
 
-        if x > math.pi:
+        if x > 2*math.pi:
             x -= 2*math.pi
         if y > math.pi:
             y -= 2*math.pi
