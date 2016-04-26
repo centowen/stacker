@@ -41,25 +41,10 @@ def modsub(model, vis, outvis='', datacolumn='corrected', primarybeam='guess', s
 
 # primary beam
     if primarybeam == 'guess':
-        from taskinit import ms,tb,qa
-        ms.open(vis)
-        freq = int(np.mean(ms.range('chan_freq')['chan_freq'])/1e9*100)/100.
-        ms.done()
-        tb.open(vis+'/OBSERVATION')
-        telescope = tb.getcol('TELESCOPE_NAME')[0]
-        tb.done()
-        pbtype = stacker.PB_MS
-        pbfile = '{0}-{1}GHz.pb'.format(telescope, freq)
-        pbnpars = 0
-        pbpars = None
-
-        if not os.access(pbfile, os.F_OK):
-            stacker.make_pbfile(vis, pbfile)
-    else:
-        pbtype = stacker.PB_CONST
-        pbfile = ''
-        pbnpars = 0
-        pbpars = None
+        primarybeam = stacker.pb.guesspb(vis)
+    elif primarybeam in ['constant', 'none'] or primarybeam is None:
+        primarybeam = stacker.pb.PrimaryBeamModel()
+    pbtype, pbfile, pbnpars, pbpars = primarybeam.cdata()
 
     if field is not None:
         select_field = True
