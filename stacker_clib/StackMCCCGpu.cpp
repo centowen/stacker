@@ -35,9 +35,11 @@ StackMCCCGpu::StackMCCCGpu(Coords** coordlists, Model** models, PrimaryBeam* pb,
 	nspw = 0;
 	this->nmc = nmc;
 	this->nbin = nbin;
-	this->bins = new float[nbin];
+	this->bins = new float[nbin+1];
 	for(int i = 0; i < nbin+1; i++)
-		this->bins[i] = bins[i];
+    {
+		this->bins[i] = (float)bins[i];
+    }
 	res_flux = new float[nmc*nbin];
 	res_weight = new float[nmc*nbin];
 	for(int i = 0; i < nbin*nmc; i++)
@@ -48,7 +50,6 @@ StackMCCCGpu::StackMCCCGpu(Coords** coordlists, Model** models, PrimaryBeam* pb,
 }/*}}}*/
 void StackMCCCGpu::computeChunk(Chunk* chunk)/*{{{*/
 {
-
 	for(int i = 0; i < nmc; i++)
 	{
 // 		Chunk local_chunk(*chunk);
@@ -58,7 +59,7 @@ void StackMCCCGpu::computeChunk(Chunk* chunk)/*{{{*/
 		visStack(dev_data, dev_coords, chunk->size(), 
 				 chunk->nChan(), chunk->nStokes());
 // 		copy_data_to_host(dev_data, local_chunk);
-		zero_results_stack_mc(dev_results);
+		zero_results_stack_mc(dev_results, bins);
 		compute_results_stack_mc(dev_results, dev_data, chunk->size(),
 		                         chunk->nChan(), chunk->nStokes());
 		copy_results_to_host(dev_results, res_flux, res_weight, i);
