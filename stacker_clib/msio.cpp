@@ -213,7 +213,8 @@ msio::msio(const char* msinfile,
 
 msio::~msio()
 {
-// 	msin.flush();
+	msin->flush();
+	msin->closeSubTables();
 	delete msincols;
 	delete msin;
 	if(msout)
