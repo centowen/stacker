@@ -55,12 +55,19 @@ clib_path = os.path.join(os.path.abspath(__path__[0]),
 def _casa_svnversion(casapath):
     import re
     import os.path
-    casapyinfofile = open(os.path.join(casapath, 'casapyinfo'))
-    svnversion = None
-    for line in casapyinfofile:
-        match = re.match('SVNVERSION="([0-9]*)"', line)
-        if match:
-            svnversion = match.groups()[0]
+    try:
+        casapyinfofile = open(os.path.join(casapath, 'casapyinfo'))
+        svnversion = None
+        for line in casapyinfofile:
+            match = re.match('SVNVERSION="([0-9]*)"', line)
+            if match:
+                svnversion = match.groups()[0]
+    except IOError:
+        casaconfigfile = open(os.path.join(casapath, 'bin', 'casa-config'))
+        for line in casaconfigfile:
+            match = re.match('.*\$revision="([0-9]*)";.*', line)
+            if match:
+                svnversion = match.groups()[0]
 
     if svnversion is None:
         raise IOError('Can not find casa version.')

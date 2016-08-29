@@ -1,6 +1,7 @@
 import os
 import os.path
 import platform
+import shutil
 
 # try:
 #     Import('env')
@@ -56,21 +57,44 @@ def build_header(env, do_pthreads = True, do_cuda = False):
     header_file.close()
 
 
+def casa_svnpath_post46(casapath):
+    import re
+    import os.path
+    svnpath = None
+    casaconfigfile = open(os.path.join(casapath, 'bin', 'casa-config'))
+    for line in casaconfigfile:
+        match = re.match('.*\$srcurl="(.*)";.*', line)
+        if match:
+            svnpath = match.groups()[0]
+
+    if svnpath is None:
+        raise IOError('Can not find casa svnpath.')
+
+    return svnpath
+
+
 def casa_svnversion(casapath):
     import re
     import os.path
-    casapyinfofile = open(os.path.join(casapath, 'casapyinfo'))
     svnversion = None
-    for line in casapyinfofile:
-        match = re.match('SVNVERSION="([0-9]*)"', line)
-        if match:
-            svnversion = match.groups()[0]
+    try:
+        casapyinfofile = open(os.path.join(casapath, 'casapyinfo'))
+        for line in casapyinfofile:
+            match = re.match('SVNVERSION="([0-9]*)"', line)
+            if match:
+                svnversion = match.groups()[0]
+    except IOError:
+        casaconfigfile = open(os.path.join(casapath, 'bin', 'casa-config'))
+        for line in casaconfigfile:
+            match = re.match('.*\$revision="([0-9]*)";.*', line)
+            if match:
+                svnversion = match.groups()[0]
 
     if svnversion is None:
         raise IOError('Can not find casa version.')
 
     return svnversion
-        
+
 
 def whichpath(file):
     import os
@@ -180,7 +204,35 @@ if link_against_casa:
 
 if link_against_casa and int(svnversion) > 33600:
 	env['CPPDEFINES'] = {'LINKING_2_CASA_43': None}
-if link_against_casa and int(svnversion) > 36000:
+if link_against_casa and int(svnversion) >= 36590:
+    import pysvn
+    print('Downloading casacore headers matching casapy svn revision {0}'.format(svnversion))
+    client = pysvn.Client()
+    casacore_svnpath = casa_svnpath_post46(casapath)
+    print(casacore_svnpath)
+    dl_casacore_path = 'casacore-for-casapy-r{0}'.format(svnversion)
+    if not os.access(dl_casacore_path, os.F_OK):
+        os.mkdir(dl_casacore_path)
+    svnrevision=pysvn.Revision(pysvn.opt_revision_kind.number, svnversion)
+    rev = client.checkout(os.path.join(casacore_svnpath, 'casacore'),
+                          os.path.join(dl_casacore_path, 'casacore'),
+                          svnrevision, svnrevision)
+    rev2 = client.checkout(os.path.join(casacore_svnpath, 'code'),
+                           os.path.join(dl_casacore_path, 'casacode'),
+                           svnrevision, svnrevision)
+
+    # Temporary hack to solve issue with casacore version in casapy.
+    shutil.copyfile(os.path.join(dl_casacore_path, 'casacore', 'casa', 'config.h.in'),
+            os.path.join(dl_casacore_path, 'casacore', 'casa', 'config.h'))
+    with open(os.path.join(dl_casacore_path, 'casacore', 'casa', 'config.h')) as tmpfile:
+        lines = list(tmpfile.readlines())
+    with open(os.path.join(dl_casacore_path, 'casacore', 'casa', 'config.h'), 'w') as tmpfile:
+        for line in lines:
+            if line == '#define CASA_DEFAULT_ALIGNMENT (@CASA_DEFAULT_ALIGNMENT@UL)\n':
+                line = '#define CASA_DEFAULT_ALIGNMENT (32UL)\n'
+            tmpfile.write(line)
+    print('done')
+elif link_against_casa and int(svnversion) > 36000:
 	pass
 elif link_against_casa and int(svnversion) > 33600:
     import pysvn
@@ -205,8 +257,26 @@ elif link_against_casa and int(svnversion) > 22889:
     rev = client.checkout(casacore_svnpath, dl_casacore_path, svnrevision, svnrevision)
     print('done')
 
+if int(svnversion) > 32000:
+    casacorelibs = ['casa_scimath', 'casa_casa', 'casa_tables', 'casa_images', 
+                    'casa_ms', 'components', 'casa_coordinates',
+                    'casa_lattices','casa_measures', 'casa_scimath_f', 
+                    'casa_fits', 'casa_msfits', 'casa_mirlib']
+else:
+    casacorelibs = ['casa_scimath', 'casa_casa', 'casa_tables', 'casa_images', 
+                    'casa_ms', 'casa_components', 'casa_coordinates',
+                    'casa_lattices','casa_measures', 'casa_scimath_f',
+                    'casa_fits', 'casa_msfits', 'casa_derivedmscal',
+                    'casa_mirlib']
+
 if link_against_casa :
-    if int(svnversion) > 36000:
+    if int(svnversion) >= 36590:
+        env.Append(CPPPATH = [dl_casacore_path,
+                              os.path.join(dl_casacore_path, 'casacore'),
+                              os.path.join(dl_casacore_path, 'casacode'),
+                              casapyinclude,
+                             ])
+    elif int(svnversion) > 36000:
         env.Append(CPPPATH = [casapyinclude,
                               os.path.join(casapyinclude, 'casacore'),
                               os.path.join(casapyinclude, 'casacode')
@@ -231,6 +301,29 @@ if link_against_casa :
         env.Append(CPPPATH = [casapyinclude, os.path.join(casapyinclude, 'casacore')])
     env.Append(LIBPATH = [casalibpath])
 
+    casacoresoversion = None
+    casalibs = os.listdir(casalibpath)
+    if not 'libcasa_casa.so' in casalibs:
+        import re
+        for lib in casalibs:
+            match= re.match('libcasa_casa\.so((?:\.[0-9]*)*)', lib)
+            if match:
+                casacoresoversion = match.group(1)
+
+                casalibpath_local = 'libs'
+                if not os.access(casalibpath_local, os.F_OK):
+                    os.mkdir(casalibpath_local)
+
+                for lib in casacorelibs:
+                    oldpath = os.path.join(casalibpath, 
+                            'lib'+lib+'.so' +casacoresoversion)
+                    newpath = os.path.join(casalibpath_local, 'lib'+lib+'.so')
+                    if not os.access(newpath, os.F_OK):
+                        os.symlink(oldpath,newpath)
+                env.Append(LIBPATH = [casalibpath_local])
+
+
+
 conf = Configure(env, custom_tests = {'CheckPKGConfig': CheckPKGConfig, 'CheckPKG': CheckPKG})
 
 if not link_against_casa and conf.CheckPKGConfig('0.15.0') and conf.CheckPKG('casacore >= 2.0.0'):
@@ -240,15 +333,9 @@ elif not link_against_casa and conf.CheckPKGConfig('0.15.0') and conf.CheckPKG('
     env.ParseConfig('pkg-config --cflags --libs casacore')
 elif conf.CheckLib('casa_casa'):
     if int(svnversion) > 32000:
-        env.Append(LIBS = ['casa_scimath', 'casa_casa', 'casa_tables', 'casa_images', 
-                        'casa_ms', 'components', 'casa_coordinates',
-                        'casa_lattices','casa_measures', 'casa_scimath_f', 'casa_fits', 
-                        'casa_msfits', 'casa_derivedmscal', 'casa_mirlib'])
+        env.Append(LIBS = casacorelibs)
     else:
-        env.Append(LIBS = ['casa_scimath', 'casa_casa', 'casa_tables', 'casa_images', 
-                        'casa_ms', 'casa_components', 'casa_coordinates',
-                        'casa_lattices','casa_measures', 'casa_scimath_f', 'casa_fits', 
-                        'casa_msfits', 'casa_derivedmscal', 'casa_mirlib'])
+        env.Append(LIBS = casacorelibs)
 elif conf.CheckLib('casacore'):
     env.Append(LIBS = ['casacore'])
 else:
