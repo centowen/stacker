@@ -285,15 +285,19 @@ double cpp_stack(int infiletype, const char* infile, int infileoptions, /*{{{*/
 	{
 		std::cerr << e.what() << std::endl;
 	}
-// 	double averageFlux =  (double)cc->flux();
+	double averageFlux = 0.;
+	if(not use_cuda)
+	{
+		averageFlux = ((StackChunkComputer*)cc)->flux();
+	}
 
 	delete computer;
 	delete cc;
 	delete pb;
 
 
-// 	return averageFlux;
-	return 0.;
+	return averageFlux;
+// 	return 0.;
 }/*}}}*/
 
 // Subtract a cl model from measurement set.
