@@ -194,14 +194,14 @@ void Chunk::reshape_data(size_t nchan, size_t nstokes)
 
 	if(nchan > 0 and nstokes > 0 and nvis > 0)
 	{
-		data_real_in  = new float[nvis*nchan*nstokes];
-		data_real_out = new float[nvis*nchan*nstokes];
-		data_imag_in  = new float[nvis*nchan*nstokes];
-		data_imag_out = new float[nvis*nchan*nstokes];
-		data_flag_in  = new int[nvis*nchan*nstokes];
-		data_flag_out = new int[nvis*nchan*nstokes];
-		weight_in     = new float[nvis*nchan*nstokes];
-		weight_out    = new float[nvis*nchan*nstokes];
+		data_real_in  = new float[max_nvis*nchan*nstokes];
+		data_real_out = new float[max_nvis*nchan*nstokes];
+		data_imag_in  = new float[max_nvis*nchan*nstokes];
+		data_imag_out = new float[max_nvis*nchan*nstokes];
+		data_flag_in  = new int[max_nvis*nchan*nstokes];
+		data_flag_out = new int[max_nvis*nchan*nstokes];
+		weight_in     = new float[max_nvis*nchan*nstokes];
+		weight_out    = new float[max_nvis*nchan*nstokes];
 		this->nchan  = nchan;
 		this->nstokes = nstokes;
 	}

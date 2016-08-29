@@ -48,15 +48,15 @@ MSComputer::MSComputer(ChunkComputer* cc,
 	{
 		if(infileoptions & MS_DATACOLUMN_DATA)
 		{
-			data = (DataIO*)(new msio(infilename, outfilename, msio::col_data, selectField, field));
+			data = (DataIO*)(new msio(infilename, outfilename, msio::col_data, selectField, field, false));
 		}
 		else if(infileoptions & MS_MODELCOLUMN_DATA)
 		{
-			data = (DataIO*)(new msio(infilename, outfilename, msio::col_model_data, selectField, field));
+			data = (DataIO*)(new msio(infilename, outfilename, msio::col_model_data, selectField, field, false));
 		}
 		else
 		{
-			data = (DataIO*)(new msio(infilename, outfilename, msio::col_corrected_data, selectField, field));
+			data = (DataIO*)(new msio(infilename, outfilename, msio::col_corrected_data, selectField, field, false));
 		}
 	}
 	else

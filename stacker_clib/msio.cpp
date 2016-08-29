@@ -144,7 +144,8 @@ msio::msio(const char* msinfile,
 	// First figure out the largest nchan value.
 	for(size_t row =0 ; row < nspw; row++)
 	{
-		casa::Vector<double> freqbuff = msincols->spectralWindow().chanFreq().getColumn()[row];
+		casa::Vector<double> freqbuff;
+		msincols->spectralWindow().chanFreq().get(row, freqbuff);
 		if((size_t)freqbuff.shape()(0) > nchan)
 			nchan = (size_t)freqbuff.shape()(0);
 	}
@@ -156,7 +157,8 @@ msio::msio(const char* msinfile,
 	// Now we can read the frequency information.
 	for(size_t row =0 ; row < nspw; row++)
 	{
-		casa::Vector<double> freqbuff = msincols->spectralWindow().chanFreq().getColumn()[row];
+		casa::Vector<double> freqbuff;
+		msincols->spectralWindow().chanFreq().get(row, freqbuff);
 		size_t c_nchan = (size_t) freqbuff.shape()(0);
 
 		for(size_t col = 0; col < nchan; col++)
@@ -300,9 +302,6 @@ int msio::readChunkIteratorbased(Chunk& chunk)
 int msio::readChunkSimple(Chunk& chunk)
 {
 	Vector<double> uvw;
-	Matrix<Complex> data;
-	Matrix<bool> flag;
-	Vector<float> weight;
 
 	chunk.resetSize();
 	chunk.set_dataset_id(dataset_id);
@@ -350,22 +349,26 @@ int msio::readChunkSimple(Chunk& chunk)
 	int uvrow = 0, nchan, nstokes;
 	for(size_t i = 0; i < chunk.size(); i++)
 	{
+		Matrix<Complex> data;
+		Matrix<bool> flag;
+		Vector<float> weight;
+
 		uvrow = i+currentVisibility;
 		if(datacolumn_ == col_data)
 		{
-			data = msincols->data()(uvrow);
+			msincols->data().get(uvrow, data);
 		}
 		else if(datacolumn_ == col_model_data)
 		{
-			data = msincols->modelData()(uvrow);
+			msincols->modelData().get(uvrow, data);
 		}
 		else if(datacolumn_ == col_corrected_data)
 		{
-			data = msincols->correctedData()(uvrow);
+			msincols->correctedData().get(uvrow, data);
 		}
-		flag = msincols->flag()(uvrow);
-		weight = msincols->weight()(uvrow);
-		uvw = msincols->uvw()(uvrow);
+		msincols->flag().get(uvrow, flag);
+		msincols->weight().get(uvrow, weight);
+		msincols->uvw().get(uvrow, uvw);
 
 		chunk.inVis[i].index = uvrow;
 		chunk.outVis[i].index = uvrow;
