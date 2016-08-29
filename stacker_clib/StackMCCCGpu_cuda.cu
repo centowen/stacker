@@ -44,12 +44,14 @@ void allocate_cuda_data_stack_mc(MCResultContainer& results, float* bins, int nb
 	delete[] zeros;
 	results.nbin = nbin;
 };/*}}}*/
-void zero_results_stack_mc(MCResultContainer& results)/*{{{*/
+void zero_results_stack_mc(MCResultContainer& results, float* bins)/*{{{*/
 {
 	float* zeros = new float[results.nbin];
 	for(int i = 0; i < results.nbin; i++)
 		zeros[i] = 0.;
 
+    CudaSafeCall(cudaMemcpy(results.bins, bins, sizeof(float)*(results.nbin+1),
+                            cudaMemcpyHostToDevice));
     CudaSafeCall(cudaMemcpy(results.flux, zeros, sizeof(float)*(results.nbin),
                             cudaMemcpyHostToDevice));
     CudaSafeCall(cudaMemcpy(results.weight, zeros, sizeof(float)*(results.nbin),
@@ -62,11 +64,36 @@ __global__ void cu_compute_results_stack_mc(MCResultContainer results, DataConta
     size_t uvrow = threadIdx.x + blockIdx.x*blockDim.x;
     while(uvrow < chunk_size)
     {
-		int uvbin = 1;
-		float uvdist2 = data.u[uvrow]*data.u[uvrow] + data.v[uvrow]*data.v[uvrow];
-// 		while(uvbin <= results.nbin && uvdist2 < results.bins[uvbin]*results.bins[uvbin])
+		int uvbin = 0;
+		float uvdist = sqrt(data.u[uvrow]*data.u[uvrow] + data.v[uvrow]*data.v[uvrow]);
+// 		if(uvdist < 6963.47)
+// 			uvbin = 1;
+// 		else if(uvdist < 13510.8)
+// 			uvbin = 2;
+// 		else if(uvdist < 35232.3)
+// 			uvbin = 3;
+// 		if(uvdist < results.bins[1])
+// 			uvbin = 1;
+// 		else if(uvdist < results.bins[2])
+// 			uvbin = 2;
+// 		else if(uvdist < results.bins[3])
+// 			uvbin = 3;
+		for(size_t i = 0; i < results.nbin+1; i++)
+		{
+			if(uvdist < results.bins[i])
+			{
+				uvbin = i;
+				break;
+			}
+		}
+// 		while((uvbin <= 3) && (uvdist < results.bins[uvbin]))
 // 			uvbin++;
-		if(uvbin > 0 && uvbin <= results.nbin)
+// 		while((uvbin <= results.nbin) && (uvdist < results.bins[uvbin]))
+// 			uvbin++;
+// 		while( (uvbin <= results.nbin) && (uvdist2 < (results.bins[uvbin]*results.bins[uvbin])))
+// 			uvbin++;
+// 		if(uvbin > 0 && uvbin <= results.nbin)
+		if(uvbin > 0 && uvbin <= 3)
 		{
 			uvbin -= 1;
 			float weight = 0.;
@@ -90,7 +117,6 @@ __global__ void cu_compute_results_stack_mc(MCResultContainer results, DataConta
 					  weighteddata);
 			atomicAdd(&results.weight[uvbin],
 					  weight);
-
 		}
         uvrow += blockDim.x*gridDim.x;
 	}

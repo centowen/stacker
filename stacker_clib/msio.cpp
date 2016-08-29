@@ -53,10 +53,16 @@ msio::msio(const char* msinfile,
 		   const bool select_field, const char* field,
 		   bool one_ptg_per_chunk) : DataIO()
 {
+#ifdef DEBUG
+	cout << "Creating MeasurementSet object with msinfile = \"" << msinfile << "\"." << endl;
+#endif
 	msin = new MeasurementSet(msinfile);
 	msin_nonsorted = NULL;
 	if(select_field)
 	{
+#ifdef DEBUG
+		cout << "Selecting field." << endl;
+#endif
 		MSSelection select;
 		select.setFieldExpr(field);
 		TableExprNode node = select.toTableExprNode(msin);
@@ -64,6 +70,9 @@ msio::msio(const char* msinfile,
 		msin_nonsorted = msin;
 		msin = new MeasurementSet(tablesel(node, node.nrow()));
 	}
+#ifdef DEBUG
+	cout << "Creating ROMSColumns object." << endl;
+#endif
 	msincols = new ROMSColumns(*msin);
 	one_ptg_per_chunk_ = one_ptg_per_chunk;
 	ptg_warning_done = false;
@@ -87,6 +96,9 @@ msio::msio(const char* msinfile,
 	}
 	else
 	{
+#ifdef DEBUG
+		cout << "Checking for CORRECTED_DATA column." << endl;
+#endif
 		datacolumn_ = col_corrected_data;
 		try
 		{
@@ -99,8 +111,14 @@ msio::msio(const char* msinfile,
 		}
 	}
 
+#ifdef DEBUG
+	cout << "Open msoutfile if necessary." << endl;
+#endif
 	if(strlen(msoutfile) > 0)
 	{
+#ifdef DEBUG
+		cout << "Creating msout as MeasurementSet object." << endl;
+#endif
 		msout = new MeasurementSet(msoutfile, casa::Table::Update);
 		if(select_field)
 		{
@@ -138,6 +156,9 @@ msio::msio(const char* msinfile,
 	}
 	currentVisibility = 0;
 
+#ifdef DEBUG
+	cout << "Find number of spectral windows and channels." << endl;
+#endif
 	nspw = (size_t)msincols->spectralWindow().nrow();
 	nchan = 0;
 
@@ -192,7 +213,8 @@ msio::msio(const char* msinfile,
 
 msio::~msio()
 {
-// 	msin.flush();
+	msin->flush();
+	msin->closeSubTables();
 	delete msincols;
 	delete msin;
 	if(msout)

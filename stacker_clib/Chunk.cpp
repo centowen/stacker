@@ -57,16 +57,41 @@ Chunk::Chunk(const Chunk& c)
 {
 	dataset_id = c.dataset_id;
 	nvis = c.nvis;
-	max_nvis = c.max_nvis;
+	max_nvis = c.nvis;
 
-	inVis = new Visibility[this->max_nvis];
-	outVis = new Visibility[this->max_nvis];
+	inVis = new Visibility[this->nvis];
+	outVis = new Visibility[this->nvis];
 
 	nchan = c.nchan;
 	nstokes = c.nstokes;
 
 	if(nchan > 0 and nstokes > 0 and nvis > 0)
 	{
+		for(int i = 0; i < nvis; i++)
+		{
+			inVis[i].freq = c.inVis[i].freq;
+			inVis[i].u = c.inVis[i].u;
+			inVis[i].v = c.inVis[i].v;
+			inVis[i].w = c.inVis[i].w;
+
+			inVis[i].nstokes = c.inVis[i].nstokes;
+			inVis[i].nchan = c.inVis[i].nchan;
+			inVis[i].fieldID = c.inVis[i].fieldID;
+			inVis[i].index = c.inVis[i].index;
+			inVis[i].spw = c.inVis[i].spw;
+			inVis[i].freq = c.inVis[i].freq;
+
+			outVis[i].u = c.inVis[i].u;
+			outVis[i].v = c.inVis[i].v;
+			outVis[i].w = c.inVis[i].w;
+
+			outVis[i].nstokes = c.inVis[i].nstokes;
+			outVis[i].nchan = c.inVis[i].nchan;
+			outVis[i].fieldID = c.inVis[i].fieldID;
+			outVis[i].index = c.inVis[i].index;
+			outVis[i].spw = c.inVis[i].spw;
+		}
+
 		data_real_in  = new float[nvis*nchan*nstokes];
 		data_real_out = new float[nvis*nchan*nstokes];
 		data_imag_in  = new float[nvis*nchan*nstokes];
@@ -130,6 +155,7 @@ void Chunk::setSize(size_t size)
 	}
 	else
 	{
+		std::cout << "setSize called with larger size!" << std::endl;
 		delete[] inVis;
 		delete[] outVis;
 		inVis = new Visibility[size];
@@ -166,17 +192,25 @@ void Chunk::reshape_data(size_t nchan, size_t nstokes)
 	delete[] data_flag_out;
 	delete[] weight_in;
 	delete[] weight_out;
+	data_real_in  = NULL;
+	data_real_out = NULL;
+	data_imag_in  = NULL;
+	data_imag_out = NULL;
+	data_flag_in  = NULL;
+	data_flag_out = NULL;
+	weight_in     = NULL;
+	weight_out    = NULL;
 
 	if(nchan > 0 and nstokes > 0 and nvis > 0)
 	{
-		data_real_in  = new float[nvis*nchan*nstokes];
-		data_real_out = new float[nvis*nchan*nstokes];
-		data_imag_in  = new float[nvis*nchan*nstokes];
-		data_imag_out = new float[nvis*nchan*nstokes];
-		data_flag_in  = new int[nvis*nchan*nstokes];
-		data_flag_out = new int[nvis*nchan*nstokes];
-		weight_in     = new float[nvis*nchan*nstokes];
-		weight_out    = new float[nvis*nchan*nstokes];
+		data_real_in  = new float[max_nvis*nchan*nstokes];
+		data_real_out = new float[max_nvis*nchan*nstokes];
+		data_imag_in  = new float[max_nvis*nchan*nstokes];
+		data_imag_out = new float[max_nvis*nchan*nstokes];
+		data_flag_in  = new int[max_nvis*nchan*nstokes];
+		data_flag_out = new int[max_nvis*nchan*nstokes];
+		weight_in     = new float[max_nvis*nchan*nstokes];
+		weight_out    = new float[max_nvis*nchan*nstokes];
 		this->nchan  = nchan;
 		this->nstokes = nstokes;
 	}

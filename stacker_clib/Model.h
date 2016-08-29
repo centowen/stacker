@@ -44,6 +44,9 @@ using std::log;
 using std::cerr;
 using std::cout;
 using std::endl;
+const int mod_point = 0;
+const int mod_gaussian = 1;
+const int mod_disk = 2;
 
 class Model
 {
@@ -62,7 +65,10 @@ public:
 	float** omega_x;
 	float** omega_y;
 	float** omega_z;
+
+	int** model_type;
 	float** omega_size;
+
 	float** dx;
 	float** dy;
 	float** x;

@@ -369,8 +369,8 @@ def _allocate_buffers( imagenames, new_stampsize, nstackpos):
     elif dataread == 'pyrap':
         im = image(imagenames[0])
         cs = im.coordinates()
-        outnchans = im.shape()[cs.get_coordinate('spectral').get_image_axis()]
-        outnstokes = im.shape()[cs.get_coordinate('stokes').get_image_axis()]
+        outnchans = im.shape()[cs.get_axes().index(cs.get_coordinate('spectral').get_axes())]
+        outnstokes = im.shape()[cs.get_axes().index(cs.get_coordinate('stokes').get_axes())]
     
 # To improve performance this module will keep buffers between run.
 # This following code resets these buffers if they have grown obsolete.
@@ -412,11 +412,11 @@ def _allocate_buffers( imagenames, new_stampsize, nstackpos):
                 ia.done()
             elif dataread == 'pyrap':
                 buff = im.getdata()
-                dir_axis = cs.get_coordinate('direction').get_image_axis()
+                dir_axis = cs.get_axes().index(cs.get_coordinate('direction').get_axes())
                 x_axis = dir_axis+cs.get_coordinate('direction').get_axes().index('Right Ascension')
                 y_axis = dir_axis+cs.get_coordinate('direction').get_axes().index('Declination')
-                specax = cs.get_coordinate('spectral').get_image_axis()
-                stokesax = cs.get_coordinate('stokes').get_image_axis()
+                specax = cs.get_axes().index(cs.get_coordinate('spectral').get_axes())
+                stokesax = cs.get_axes().index(cs.get_coordinate('stokes').get_axes())
                 axis_order = [x_axis, y_axis, stokesax, specax]
 
                 for i in range(len(axis_order)-1):
@@ -435,7 +435,7 @@ def _allocate_buffers( imagenames, new_stampsize, nstackpos):
             imagesizes.append((ia.shape()[0], ia.shape()[1]))
             ia.done()
         elif dataread == 'pyrap':
-            dir_axis = cs.get_coordinate('direction').get_image_axis()
+            dir_axis = cs.get_axes().index(cs.get_coordinate('direction').get_axes())
             x_axis_index = dir_axis+cs.get_coordinate('direction').get_axes().index('Right Ascension')
             y_axis_index = dir_axis+cs.get_coordinate('direction').get_axes().index('Declination')
             imagesizes.append((im.shape()[x_axis_index], im.shape()[y_axis_index]))

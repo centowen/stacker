@@ -180,7 +180,9 @@ if link_against_casa:
 
 if link_against_casa and int(svnversion) > 33600:
 	env['CPPDEFINES'] = {'LINKING_2_CASA_43': None}
-if link_against_casa and int(svnversion) > 33600:
+if link_against_casa and int(svnversion) > 36000:
+	pass
+elif link_against_casa and int(svnversion) > 33600:
     import pysvn
     print('Downloading casacore headers matching casapy svn revision {0}'.format(svnversion))
     client = pysvn.Client()
@@ -204,7 +206,12 @@ elif link_against_casa and int(svnversion) > 22889:
     print('done')
 
 if link_against_casa :
-    if int(svnversion) > 33600:
+    if int(svnversion) > 36000:
+        env.Append(CPPPATH = [casapyinclude,
+                              os.path.join(casapyinclude, 'casacore'),
+                              os.path.join(casapyinclude, 'casacode')
+                             ])
+    elif int(svnversion) > 33600:
         env.Append(CPPPATH = [dl_casacore_path,
                               os.path.join(dl_casacore_path, 'casacore'),
                               casapyinclude,
