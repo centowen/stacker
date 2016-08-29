@@ -27,7 +27,7 @@ typedef struct _MC_ResultContainer
 } MCResultContainer;
 
 void allocate_cuda_data_stack_mc(MCResultContainer& results, float* bins, int nbin);
-void zero_results_stack_mc(MCResultContainer& results);
+void zero_results_stack_mc(MCResultContainer& results, float* bins);
 void compute_results_stack_mc(MCResultContainer& results, DataContainer& data,
                                          size_t chunk_size, size_t nchan,
                                          size_t nstokes);

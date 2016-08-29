@@ -57,10 +57,10 @@ Chunk::Chunk(const Chunk& c)
 {
 	dataset_id = c.dataset_id;
 	nvis = c.nvis;
-	max_nvis = c.max_nvis;
+	max_nvis = c.nvis;
 
-	inVis = new Visibility[this->max_nvis];
-	outVis = new Visibility[this->max_nvis];
+	inVis = new Visibility[this->nvis];
+	outVis = new Visibility[this->nvis];
 
 	nchan = c.nchan;
 	nstokes = c.nstokes;
@@ -155,6 +155,7 @@ void Chunk::setSize(size_t size)
 	}
 	else
 	{
+		std::cout << "setSize called with larger size!" << std::endl;
 		delete[] inVis;
 		delete[] outVis;
 		inVis = new Visibility[size];
@@ -191,6 +192,14 @@ void Chunk::reshape_data(size_t nchan, size_t nstokes)
 	delete[] data_flag_out;
 	delete[] weight_in;
 	delete[] weight_out;
+	data_real_in  = NULL;
+	data_real_out = NULL;
+	data_imag_in  = NULL;
+	data_imag_out = NULL;
+	data_flag_in  = NULL;
+	data_flag_out = NULL;
+	weight_in     = NULL;
+	weight_out    = NULL;
 
 	if(nchan > 0 and nstokes > 0 and nvis > 0)
 	{

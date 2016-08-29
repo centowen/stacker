@@ -34,6 +34,7 @@ def guesspb(vis):
     telescope = tb.getcol('TELESCOPE_NAME')[0]
     tb.done()
     pbfile = '{0}-{1:.1f}GHz.pb'.format(telescope, freq)
+    print(pbfile)
     if not os.access(pbfile, os.F_OK):
         stacker.make_pbfile(vis, pbfile)
     return MSPrimaryBeamModel(pbfile)
@@ -147,27 +148,49 @@ class MSPrimaryBeamModel(PrimaryBeamModel):
         """
         super(MSPrimaryBeamModel, self).__init__(*args, **kwargs)
 
-        from taskinit import ia
         self.imagename = imagename
-        ia.open(imagename)
-        self.cs = ia.coordsys()
-
-        self.nx = ia.shape()[0]
-        self.ny = ia.shape()[1]
-        self.refpix_x    = self.cs.referencepixel()['numeric'][0]
-        self.refpix_y    = self.cs.referencepixel()['numeric'][1]
-        self.increment_x = self.cs.increment()['numeric'][0]
-        self.increment_y = self.cs.increment()['numeric'][1]
 
         try:
-            self.frequencyaxis = self.cs.findaxisbyname('frequency')
-            self.nu0 = self.cs.referencevalue()['numeric'][self.frequencyaxis]
-        except Exception:
-            self.nu0 = None
-            print('Some stuff!')
+            from taskinit import ia
+            ia.open(imagename)
+            self.cs = ia.coordsys()
 
-        self.data = ia.getregion()[:,:,0,0]
-        ia.done()
+            self.nx = ia.shape()[0]
+            self.ny = ia.shape()[1]
+            self.refpix_x    = self.cs.referencepixel()['numeric'][0]
+            self.refpix_y    = self.cs.referencepixel()['numeric'][1]
+            self.increment_x = self.cs.increment()['numeric'][0]
+            self.increment_y = self.cs.increment()['numeric'][1]
+
+            try:
+                self.frequencyaxis = self.cs.findaxisbyname('frequency')
+                self.nu0 = self.cs.referencevalue()['numeric'][self.frequencyaxis]
+            except Exception:
+                self.nu0 = None
+                print('Some stuff!')
+
+            self.data = ia.getregion()[:,:,0,0]
+            ia.done()
+        except ImportError:
+            from pyrap.images import image
+            im = image(imagename)
+            self.nx = im.shape()[-1]
+            self.nx = im.shape()[-2]
+            self.cs = im.coordinates()
+            self.cs_dir = self.cs.get_coordinate('direction')
+
+            self.refpix_x = self.cs_dir.get_referencepixel()[1]
+            self.refpix_y = self.cs_dir.get_referencepixel()[0]
+            self.increment_x = self.cs_dir.get_increment()[1]
+            self.increment_y = self.cs_dir.get_increment()[0]
+            try:
+                self.nu0 = self.cs.get_coordinate('spectral').get_referencevalue()
+            except Exception:
+                self.nu0 = None
+                print('Warning! No frequency information in primary beam model.')
+
+            self.data = im.getdata()[0,0]
+
 
     def __call__(self, dx, dy, nu = None):
         """
