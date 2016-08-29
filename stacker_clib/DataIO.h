@@ -62,7 +62,7 @@ class DataIO
 		const int dataset_id;
 
 		virtual size_t nvis() = 0;
-		virtual int readChunk(Chunk& chunk) = 0;
+		virtual size_t readChunk(Chunk& chunk) = 0;
 		virtual void writeChunk(Chunk& chunk) = 0;
 		virtual int nPointings() = 0;
 		virtual float xPhaseCentre(int fieldID) = 0;

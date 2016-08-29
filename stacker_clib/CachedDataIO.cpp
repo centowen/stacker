@@ -64,7 +64,7 @@ void CachedDataIO::writeChunk(Chunk& chunk)/*{{{*/
 { 
 } /*}}}*/
 
-int CachedDataIO::readChunk(Chunk& chunk)/*{{{*/
+size_t CachedDataIO::readChunk(Chunk& chunk)/*{{{*/
 {
 	// FIXME: I have no idea what I am doing here !!!
 	if(cache_iterator == cache.end())

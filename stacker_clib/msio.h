@@ -78,9 +78,9 @@ class msio : public DataIO
 		MeasurementSet* msout_nonsorted;
 		MSColumns* msoutcols;
 		size_t currentVisibility;
-		int readChunkDummy(Chunk& chunk);
-		int readChunkSimple(Chunk& chunk);
-		int readChunkIteratorbased(Chunk& chunk);
+		size_t readChunkDummy(Chunk& chunk);
+		size_t readChunkSimple(Chunk& chunk);
+		size_t readChunkIteratorbased(Chunk& chunk);
 
 		int nfields;
 		float* x_phase_centre;
@@ -103,7 +103,7 @@ class msio : public DataIO
 		~msio();
 		size_t nvis();
 
-		int readChunk(Chunk& chunk);
+		size_t readChunk(Chunk& chunk);
 		void writeChunk(Chunk& chunk);
 
 		int nPointings();

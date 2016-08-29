@@ -234,13 +234,13 @@ size_t msio::nvis()
 	return (size_t)msincols->data().nrow();
 }
 
-int msio::readChunk(Chunk& chunk)
+size_t msio::readChunk(Chunk& chunk)
 {
 // 	readChunkIteratorbased(chunk);
 	return readChunkSimple(chunk);
 }
 
-int msio::readChunkDummy(Chunk& chunk)
+size_t msio::readChunkDummy(Chunk& chunk)
 {
 	if(currentVisibility >= nvis()-1)
 		return 0;
@@ -260,7 +260,7 @@ int msio::readChunkDummy(Chunk& chunk)
 	return chunk.size();
 }
 
-int msio::readChunkIteratorbased(Chunk& chunk)
+size_t msio::readChunkIteratorbased(Chunk& chunk)
 {
 	return readChunkDummy(chunk);
 }
@@ -321,7 +321,7 @@ int msio::readChunkIteratorbased(Chunk& chunk)
 // 	return chunk.size();
 // }/*}}}*/
 //
-int msio::readChunkSimple(Chunk& chunk)
+size_t msio::readChunkSimple(Chunk& chunk)
 {
 	Vector<double> uvw;
 
