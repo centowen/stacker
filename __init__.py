@@ -223,6 +223,25 @@ def readCoords(coordfile, unit='deg'):
     return coords
 
 
+def writeCoords(coordpath, coords, unit='deg'):
+    import csv
+
+    with open(coordpath, 'wb') as coordfile:
+        coordwriter = csv.writer(coordfile, delimiter=',')
+        for coord in coords:
+            x = coord.x
+            y = coord.y
+            weight = coord.weight
+
+            if unit == 'deg':
+                x = x*180./math.pi
+                y = y*180./math.pi
+
+            coordwriter.writerow([str(x), str(y), str(weight)])
+
+
+
+
 def _checkfile(filename, datacolumn):
     import re
     # Currently this supports only ms files
