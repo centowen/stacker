@@ -66,18 +66,6 @@ __global__ void cu_compute_results_stack_mc(MCResultContainer results, DataConta
     {
 		int uvbin = 0;
 		float uvdist = sqrt(data.u[uvrow]*data.u[uvrow] + data.v[uvrow]*data.v[uvrow]);
-// 		if(uvdist < 6963.47)
-// 			uvbin = 1;
-// 		else if(uvdist < 13510.8)
-// 			uvbin = 2;
-// 		else if(uvdist < 35232.3)
-// 			uvbin = 3;
-// 		if(uvdist < results.bins[1])
-// 			uvbin = 1;
-// 		else if(uvdist < results.bins[2])
-// 			uvbin = 2;
-// 		else if(uvdist < results.bins[3])
-// 			uvbin = 3;
 		for(size_t i = 0; i < results.nbin+1; i++)
 		{
 			if(uvdist < results.bins[i])
@@ -86,14 +74,11 @@ __global__ void cu_compute_results_stack_mc(MCResultContainer results, DataConta
 				break;
 			}
 		}
-// 		while((uvbin <= 3) && (uvdist < results.bins[uvbin]))
-// 			uvbin++;
 // 		while((uvbin <= results.nbin) && (uvdist < results.bins[uvbin]))
 // 			uvbin++;
 // 		while( (uvbin <= results.nbin) && (uvdist2 < (results.bins[uvbin]*results.bins[uvbin])))
 // 			uvbin++;
-// 		if(uvbin > 0 && uvbin <= results.nbin)
-		if(uvbin > 0 && uvbin <= 3)
+		if(uvbin > 0 && uvbin <= results.nbin)
 		{
 			uvbin -= 1;
 			float weight = 0.;

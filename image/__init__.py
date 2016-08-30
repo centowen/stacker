@@ -66,6 +66,37 @@ def calculate_pb_weights(coords, primarybeam, imagenames=[]):
     return coords
 
 
+def calculate_peak_fluxes(coords, imagenames=[], stampsize=32, searchradius=None):
+    for i, coord in enumerate(coords):
+        coord.index = i
+
+    if coords.coord_type == 'physical':
+        pixcoords = stacker.getPixelCoords(coords, imagenames)
+    else:
+        pixcoords = coords
+
+    _allocate_buffers(pixcoords.imagenames, stampsize, len(pixcoords))
+    _load_stack(pixcoords)
+    pixcoords = _calculate_peak_fluxes(pixcoords, searchradius)
+
+    if coords.coord_type == 'physical':
+        for coord in coords:
+            norm_peak_flux = 0.
+            coord.peak_flux = 0.
+            for pixcoord in pixcoords:
+                if coord.index == pixcoord.index:
+                    norm_peak_flux += pixcoord.weight
+                    coord.peak_flux += pixcoord.peak_flux*pixcoord.weight
+            if norm_peak_flux > 0.:
+                coord.peak_flux /= norm_peak_flux
+            else:
+                coord.peak_flux = 0.
+    else:
+        coords = pixcoords
+
+    return coords
+
+
 def calculate_sigma2_weights(coords, imagenames=[], stampsize=32, maskradius=0):
     for i, coord in enumerate(coords):
         coord.index = i
@@ -262,6 +293,29 @@ def _write_stacked_image(imagename, pixels, template_image, stampsize):
     ia.open(imagename)
     ia.setrestoringbeam(beam=beam)
     ia.done()
+
+
+def _calculate_peak_fluxes(coords, searchradius=None):
+    import numpy as np
+    global stampsize
+
+    X = np.arange(0, stampsize)-stampsize/2
+    Y = np.arange(0, stampsize)-stampsize/2
+    X,Y = np.meshgrid(X,Y)
+
+    for i,coord in enumerate(coords):
+        tmpdata = data[i,:,:,:,:]
+        if searchradius is not None:
+            for j in range(tmpdata.shape[2]):
+                for k in range(tmpdata.shape[3]):
+                    tmpdata[:,:,j,k]  = (tmpdata[:,:,j,k]*np.double( np.sqrt(X**2+Y**2)<searchradius))
+        peak_flux = np.max(tmpdata)
+        if peak_flux <= 0:
+            coord.peak_flux = 0.
+        else:
+            coord.peak_flux = peak_flux
+
+    return coords
 
 
 def _calculate_sigma_weights(coords, maxmaskradius=None):
