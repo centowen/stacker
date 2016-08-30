@@ -232,7 +232,7 @@ if link_against_casa and int(svnversion) >= 36590:
                 line = '#define CASA_DEFAULT_ALIGNMENT (32UL)\n'
             tmpfile.write(line)
     print('done')
-elif link_against_casa and int(svnversion) > 36000:
+elif link_against_casa and int(svnversion) >= 35147:
 	pass
 elif link_against_casa and int(svnversion) > 33600:
     import pysvn
@@ -276,7 +276,7 @@ if link_against_casa :
                               os.path.join(dl_casacore_path, 'casacode'),
                               casapyinclude,
                              ])
-    elif int(svnversion) > 36000:
+    elif int(svnversion) >= 35147:
         env.Append(CPPPATH = [casapyinclude,
                               os.path.join(casapyinclude, 'casacore'),
                               os.path.join(casapyinclude, 'casacode')

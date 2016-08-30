@@ -1,3 +1,4 @@
+from __future__ import division
 import stacker
 import stacker.image
 import stacker.uv
@@ -5,7 +6,7 @@ import stacker.modsub
 import numpy as np
 
 # --- Constants ---
-donoise = True # Do Monte Carlo noise estimate, can be time consuming.
+donoise = False # Do Monte Carlo noise estimate, can be time consuming.
 
 
 # --- First define some useful functions. ---
@@ -16,7 +17,7 @@ def estimate_flux_and_noise(vis):
     ms.open(vis)
     # This selection is not needed here, but required for mosaiced data sets
     # (and it does no harm here).
-    ms.select({'field': 0}) 
+    ms.select({'field_id': 0}) 
     corrected_data = ms.getdata(['corrected_data'])['corrected_data']
     weight = ms.getdata(['weight'])['weight']
     flag = ms.getdata(['flag'])['flag']
