@@ -204,6 +204,9 @@ if link_against_casa:
 
 if link_against_casa and int(svnversion) > 33600:
 	env['CPPDEFINES'] = {'LINKING_2_CASA_43': None}
+
+# Add code to support new casa version here, do not
+# forget to change the other if to elif.
 if link_against_casa and int(svnversion) >= 36590:
     import pysvn
     print('Downloading casacore headers matching casapy svn revision {0}'.format(svnversion))
@@ -270,6 +273,7 @@ else:
                     'casa_mirlib']
 
 if link_against_casa :
+# Also add code here.
     if int(svnversion) >= 36590:
         env.Append(CPPPATH = [dl_casacore_path,
                               os.path.join(dl_casacore_path, 'casacore'),

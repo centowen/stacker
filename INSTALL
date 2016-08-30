@@ -7,19 +7,43 @@ make install # Should work in most cases.
 This is compiled for several casa versions.  Copy stacker folder to a python
 library path, typically "~/.casa/ipython/" is a good place.
 
-In case the library does not work you will need to manually compile. This requires
-casacore of the same version as your casa version uses.
+In case the library does not work you will need to manually compile. 
+This is best done using scons. Typically as:
+cd stacker_clib; scons --link2casa; cd ..; make install
 
-1. Download and compile casacore (v. 1.2.35.29 works for version 4.2.0 of CASA).
+# --- Details on compiling from source ---
+Build scripts are designed using scons. Requirements:
+* scons
+* casa or casacore
+* pysvn -- Required for most versions of casa, used to download casacore 
+           headers for a matching version of casa.
+* pkgconfig -- Simplifies the finding of casacore includes and libs when
+	           compiling to casacore.
 
-For version 4.X of casa it should work to run 
-$ svn co https://svn.cv.nrao.edu/svn/casa/trunk/casacore/ <destination> -r <your casa version>
-to download the right version of casacore headers. And (in "stacker_clib/Makefile") set
-CASACORE_INCLUDE=-I$(CASABASE)/include -I<destination>
 
-For version 3.X of casa it should work to set 
-CASACORE_INCLUDE=-I$(CASABASE)/include -I$(CASABASE)/include/casacore
-in "stacker_clib/Makefile".
+Linking to casa the scons script can be used as follows:
+$ scons --link2casa
 
-2. $ make
-3. $ make install
+Linking to casacore 
+$ scons
+Will use pkgconfig to locate casacore, ensure that casacore.pc or
+equivalent is located is PKG_CONFIG_PATH
+
+Several other flags exist to control the compilation and linking:
+--casapath: specify an alternate path to casapy
+--cuda: Compile cuda support, requires cuda libraries on the system.
+        Requires an NVidia GPU to work.
+
+
+Binding to casa and casacore are not always stable across releases. The
+scons script includes code to deal with such changes. Changes are typically
+in the location of casacore includes in the casa release.
+The script used by scons is located in "SConstruct". Compilation against casa is controlled
+against the svnrevision number. This ensures that the script can properly
+identify the correct version of casa. For most versions of casa the 
+casacore headers are not distributed with the binary release. However,
+the headers are in the casa svn repository, as they may not exactly match
+the github version of casacore. If modifying "SConstruct" it is recomended 
+to add a new clause to "if link_against_casa and int(svnversion) >= 36590:"
+if block. Note that code may need to be added in two places. First where
+casa headers are downloaded and secondly where they are added to CPPPATH.
