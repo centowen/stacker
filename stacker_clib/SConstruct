@@ -123,6 +123,21 @@ def add_options():
             metavar='DIR',
             help='Path of casa installation. Can be used when linking against casa.')
 
+    AddOption('--wcspath',
+            dest='wcspath',
+            type='string',
+            nargs = 1,
+            action='store',
+            metavar='DIR',
+            help='Path of wcslib headers. This directory should contain wcslib/wcs.h')
+
+    AddOption('--tag',
+            dest='tag',
+            type='string',
+            nargs = 1,
+            action='store',
+            help='string to append to name of libstacker.')
+
     AddOption('--casasvnversion',
             dest='casasvnversion',
             type='int',
@@ -176,6 +191,10 @@ if do_cuda:
     env.Append(LIBS=['cuda', 'cudart'])
     env.Append(NVCCFLAGS = ['-arch=sm_20'])
     env.Append(SHNVCCFLAGS = ['-arch=sm_20'])
+    
+wcspath = GetOption('wcspath')
+if wcspath is not None:
+    env.Append(CPPPATH = [wcspath])
 
 do_pthreads = GetOption('do_pthreads')
 build_header(env, do_pthreads=do_pthreads, do_cuda=do_cuda)
@@ -205,8 +224,9 @@ if link_against_casa:
 if link_against_casa and int(svnversion) > 33600:
 	env['CPPDEFINES'] = {'LINKING_2_CASA_43': None}
 
-# Add code to support new casa version here, do not
-# forget to change the other if to elif.
+# Add code to support new casa version here
+if link_against_casa and int(svnversion) >= 38335:
+    env.Append(CXXFLAGS = ['-std=c++11'])
 if link_against_casa and int(svnversion) >= 36590:
     import pysvn
     print('Downloading casacore headers matching casapy svn revision {0}'.format(svnversion))
@@ -296,6 +316,12 @@ if link_against_casa :
                               casapyinclude,
                               'casacode-for-casapy-r32491'
                              ])
+    elif int(svnversion) >= 31966:
+        env.Append(CPPPATH = [casapyinclude,
+                              os.path.join(casapyinclude, 'casacore'),
+                              os.path.join(casapyinclude, 'casacode'),
+                             ])
+
     elif int(svnversion) > 22889:
         env.Append(CPPPATH = [dl_casacore_path,
                               os.path.join(dl_casacore_path, 'casacore'),
@@ -336,10 +362,7 @@ if not link_against_casa and conf.CheckPKGConfig('0.15.0') and conf.CheckPKG('ca
 elif not link_against_casa and conf.CheckPKGConfig('0.15.0') and conf.CheckPKG('casacore >= 1.0'):
     env.ParseConfig('pkg-config --cflags --libs casacore')
 elif conf.CheckLib('casa_casa'):
-    if int(svnversion) > 32000:
-        env.Append(LIBS = casacorelibs)
-    else:
-        env.Append(LIBS = casacorelibs)
+    env.Append(LIBS = casacorelibs)
 elif conf.CheckLib('casacore'):
     env.Append(LIBS = ['casacore'])
 else:
@@ -351,7 +374,10 @@ if link_against_casa:
         env.Append(LIBS=File(os.path.join(casalibpath, 'libgfortran.so.1')))
     env.Append(LIBS=File(os.path.join(casalibpath, 'liblapack.so.3')))
     env.Append(LIBS=File(os.path.join(casalibpath, 'libblas.so.3')))
-    env.Append(LIBS=File(os.path.join(casalibpath, 'libwcs.so.4.7')))
+    if int(svnversion) >= 38335:
+        env.Append(LIBS=File(os.path.join(casalibpath, 'libwcs.so.5')))
+    else:
+        env.Append(LIBS=File(os.path.join(casalibpath, 'libwcs.so.4.7')))
     if os.access(os.path.join(casalibpath, 'libcfitsio.so.0'), os.F_OK):
         env.Append(LIBS=File(os.path.join(casalibpath, 'libcfitsio.so.0')))
 else:
@@ -383,9 +409,15 @@ if do_cuda:
 Sources.append("MSComputer.cpp")
 Sources.append('stacker.cpp')
 
+tag = GetOption('tag')
+if tag is None:
+    tag = ''
+else:
+    tag = '-' + tag
+
 object_list = env.SharedObject(Sources)
 if link_against_casa:
-    target_name = 'stacker-r{0}'.format(svnversion)
+    target_name = 'stacker-r{0}{tag}'.format(svnversion, tag=tag)
 else:
-    target_name = 'stacker'
+    target_name = 'stacker{tag}'.format(tag=tag)
 env.SharedLibrary(target=target_name, source=object_list)

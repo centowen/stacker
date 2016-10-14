@@ -24,6 +24,8 @@
 import math
 import os
 from ctypes import cdll
+import re
+import glob
 
 __author__ = 'Lukas Lindroos'
 __copyright__ = 'Copyright 2014'
@@ -74,43 +76,64 @@ def _casa_svnversion(casapath):
 
     return svnversion
 
-try:
-    # If this was imported from casa we need to ensure that the version
-    # of stacker is compatible with the version of casa.
-    from taskinit import casa
-    _svnversion = _casa_svnversion(casa['dirs']['root'])
-    _libpath = os.path.join(clib_path, 'libstacker-r{0}.so'.format(_svnversion))
-    in_casapy = True
-except ImportError:
-    # We are in a pure python session.
-    # Not that there is anything wrong with that.
-    _libname = 'libstacker.so'
-    _libpath = os.path.join(clib_path, _libname)
-    in_casapy = False
 
-import os
-
-if in_casapy and _svnversion is not None and os.access(_libpath, os.F_OK):
-    print('Loading stacking library for casapy svn revision {0}'.format(
-        _svnversion))
-elif in_casapy:
-    print('warning, no precompiled library compatible with your version of casa exists.')
-    print('It is recommended to recompile stacker for your casa version.')
-    import re
-    stacker_clib_ls = os.listdir(clib_path)
-    stackerlibs = [((re.match('libstacker-r([0-9]*).so', f).group(1)), f)
-                   for f in stacker_clib_ls
-                   if re.match('libstacker-r[0-9]*.so', f)]
-    print(stackerlibs)
-    vdiff = [(abs(int(_svnversion)-int(v)), lib, v)
-             for (v, lib) in stackerlibs]
-    vdiff.sort()
-    print(vdiff)
-    print('Trying to use svn revision {0}.'.format(vdiff[0][2]))
-    _libpath = os.path.join(clib_path, vdiff[0][1])
+def _libs_matching_svn_version(svnversion):
+    """Return the list of stacker versions for the specified svn version"""
+    return sorted(glob.glob(os.path.join(clib_path, 'libstacker-r{0}*.so'.format(svnversion))), reverse=True)
 
 
-libstacker = cdll.LoadLibrary(_libpath)
+def _load_stacker_casa_svn_version(svnversion):
+    """Sequentially attempt to load the options for the supplied svn version until successful"""
+    libpath_options = _libs_matching_svn_version(svnversion)
+    print('Loading stacking library for casapy svn revision {0}'.format(svnversion))
+    for libpath in libpath_options:
+        try:
+            libstacker = cdll.LoadLibrary(libpath)
+            print("{0} loaded".format(libpath))
+            return libstacker
+        except OSError:
+            continue
+    else:
+        print("Could not load library for svn version {0}".format(svnversion))
+
+def _load_stacker_lib():
+    """Attempt to load a suitable stacker lib"""
+    try:
+        # If we are inside CASA - use libs linked against NRAO's CASA releases
+        from taskinit import casa
+        svnversion = _casa_svnversion(casa['dirs']['root'])
+        lib_list = _libs_matching_svn_version(svnversion)
+        if len(lib_list) > 0:
+            libstacker = _load_stacker_casa_svn_version(svnversion)
+        else:
+            print('warning, no precompiled library compatible with your version of casa exists.')
+            print('It is recommended to recompile stacker for your casa version.')
+            stacker_clib_ls = os.listdir(clib_path)
+            stackerlibs = [((re.match('libstacker-r([0-9]*).*.so', f).group(1)), f)
+                           for f in stacker_clib_ls
+                           if re.match('libstacker-r[0-9]*.so', f)]
+            print(stackerlibs)
+            vdiff = [(abs(int(svnversion)-int(v)), lib, v)
+                     for (v, lib) in stackerlibs]
+            vdiff.sort()
+            print(vdiff)
+            print('Trying to use svn revision {0}.'.format(vdiff[0][2]))
+            libpath = os.path.join(clib_path, vdiff[0][1])
+            try:
+                libstacker = cdll.LoadLibrary(libpath)
+            except OSError, e:
+                print(e)
+                print("Loading libstacker failed. You may need to build stacker for your version of CASA.")
+                return
+    except ImportError:
+        # We are in a pure python session.
+        # Not that there is anything wrong with that.
+        libpath = os.path.join(clib_path, 'libstacker.so')
+        libstacker = cdll.LoadLibrary(libpath)
+    return libstacker
+
+
+libstacker = _load_stacker_lib()
 
 
 class CoordList(list):

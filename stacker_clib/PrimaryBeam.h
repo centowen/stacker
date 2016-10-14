@@ -23,7 +23,11 @@
 class PrimaryBeam
 {
 	private:
+#if __cplusplus < 201103
 		static const double pi = 3.141592653589793238462;
+#else
+		static constexpr double pi = 3.141592653589793238462;
+#endif
 
 	public:
 		PrimaryBeam();
