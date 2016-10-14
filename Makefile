@@ -1,17 +1,12 @@
-THIS_MAKEFILE_PATH:=$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
-THIS_DIR:=$(shell cd $(dir $(THIS_MAKEFILE_PATH));pwd)
-
 all:
-	cd stacker_clib && make all
+	@echo
+	@echo "cd stacker_clib and use scons to build"
+	@echo "or \"make install\" to install prebuilt version for CASA"
+	@echo
 
 install:
-	if [ ! -d ~/.casa/ipython ]; then mkdir -p ~/.casa/ipython; fi
 	if [ -d ~/.casa/ipython/stacker ]; then rm -rf ~/.casa/ipython/stacker; fi
-	cp -r $(THIS_DIR) ~/.casa/ipython
-
-clean:
-	git checkout -f example/testdata.ms
-	rm example/output -rf
-	rm example/*.log example/*.last -f
-	rm documentation/*.aux documentation/*.log -f
-	cd stacker_clib && make clean
+	mkdir -p ~/.casa/ipython/stacker
+	cp -r  image __init__.py interval modsub pb uv ~/.casa/ipython/stacker
+	mkdir -p ~/.casa/ipython/stacker/stacker_clib
+	cp stacker_clib/*.so ~/.casa/ipython/stacker/stacker_clib
