@@ -131,6 +131,13 @@ def add_options():
             metavar='DIR',
             help='Path of wcslib headers. This directory should contain wcslib/wcs.h')
 
+    AddOption('--cxx',
+            dest='cxx_version',
+            type='string',
+            nargs = 1,
+            action='store',
+            help='c++ complier to use')
+
     AddOption('--tag',
             dest='tag',
             type='string',
@@ -192,6 +199,10 @@ if do_cuda:
     env.Append(NVCCFLAGS = ['-arch=sm_20'])
     env.Append(SHNVCCFLAGS = ['-arch=sm_20'])
     
+cxx_version = GetOption('cxx_version')
+if cxx_version is not None:
+    env.Replace(CXX = cxx_version)
+
 wcspath = GetOption('wcspath')
 if wcspath is not None:
     env.Append(CPPPATH = [wcspath])
