@@ -63,6 +63,8 @@ def read_casadef(casapath, param):
     print casapath
     if platform.system() == 'Linux':
         casadef = casapath + '/lib/python2.7/casadef.py'
+    elif platform.system() == 'Darwin':
+        casadef = casapath + '/Resources/python/casadef.py'
     else:
         raise ValueError('Unsupported platform: ' + platform,system())
     try:
@@ -220,7 +222,7 @@ link_against_casa = GetOption('link_against_casa')
 if link_against_casa is None:
     link_against_casa = False
 
-if link_against_casa:
+if link_against_casa or platform.system() == 'Darwin':
     casapath = GetOption('casapath')
     if casapath is None:
         casapath = os.path.normpath(whichpath('casapy') + '/..')
@@ -230,8 +232,12 @@ if link_against_casa:
         print('Can not locate casa. Please specify --casapath.')
         Exit(1)
 
-    casalibpath = os.path.join(casapath, 'lib')
-    casapyinclude = os.path.join(casapath, 'include')
+    if platform.system() == 'Linux':
+        casalibpath = os.path.join(casapath, 'lib')
+        casapyinclude = os.path.join(casapath, 'include')
+    elif platform.system() == 'Darwin':
+        casalibpath = os.path.join(casapath, 'MacOS/lib')
+        casapyinclude = os.path.join(casapath, 'Frameworks/Python.framework/Versions/2.7/include')
 
     svnversion = GetOption('casasvnversion')
     if svnversion is None:
@@ -243,7 +249,7 @@ if link_against_casa and int(svnversion) > 33600:
 # Add code to support new casa version here
 if link_against_casa and int(svnversion) >= 38335:
     env.Append(CXXFLAGS = ['-std=c++11'])
-if link_against_casa and int(svnversion) >= 36590:
+if link_against_casa and int(svnversion) >= 36590 or platform.system() == 'Darwin':
     import pysvn
     print('Downloading casacore headers matching casapy svn revision {0}'.format(svnversion))
     client = pysvn.Client()
@@ -310,7 +316,7 @@ else:
 
 if link_against_casa :
 # Also add code here.
-    if int(svnversion) >= 36590:
+    if int(svnversion) >= 36590 or platform.system() == 'Darwin':
         env.Append(CPPPATH = [dl_casacore_path,
                               os.path.join(dl_casacore_path, 'casacore'),
                               os.path.join(dl_casacore_path, 'casacode'),
@@ -348,11 +354,20 @@ if link_against_casa :
     env.Append(LIBPATH = [casalibpath])
 
     casacoresoversion = None
+
+    if platform.system() == 'Linux':
+        lib_pre_suffix = '.so'
+        lib_post_suffix = ''
+    elif platform.system() == 'Darwin':
+        lib_pre_suffix = ''
+        lib_post_suffix = '.dylib'
+    lib_suffix = lib_pre_suffix + lib_post_suffix
+
     casalibs = os.listdir(casalibpath)
-    if not 'libcasa_casa.so' in casalibs:
+    if not 'libcasa_casa' + lib_suffix in casalibs:
         import re
         for lib in casalibs:
-            match= re.match('libcasa_casa\.so((?:\.[0-9]*)*)', lib)
+            match= re.match('libcasa_casa' + lib_pre_suffix +'((?:\.[0-9]*)*)' + lib_post_suffix, lib)
             if match:
                 casacoresoversion = match.group(1)
 
@@ -362,8 +377,8 @@ if link_against_casa :
 
                 for lib in casacorelibs:
                     oldpath = os.path.join(casalibpath, 
-                            'lib'+lib+'.so' +casacoresoversion)
-                    newpath = os.path.join(casalibpath_local, 'lib'+lib+'.so')
+                            'lib'+lib+lib_pre_suffix+casacoresoversion+lib_post_suffix)
+                    newpath = os.path.join(casalibpath_local, 'lib'+lib+lib_suffix)
                     if not os.access(newpath, os.F_OK):
                         os.symlink(oldpath,newpath)
                 env.Append(LIBPATH = [casalibpath_local])
@@ -385,19 +400,35 @@ else:
     print('Did not find casacore libraries!')
     Exit(1)
 
-if link_against_casa:
-    if os.access(os.path.join(casalibpath, 'libgfortran.so.1'), os.F_OK):
-        env.Append(LIBS=File(os.path.join(casalibpath, 'libgfortran.so.1')))
-    env.Append(LIBS=File(os.path.join(casalibpath, 'liblapack.so.3')))
-    env.Append(LIBS=File(os.path.join(casalibpath, 'libblas.so.3')))
-    if int(svnversion) >= 38335:
-        env.Append(LIBS=File(os.path.join(casalibpath, 'libwcs.so.5')))
+if platform.system() == 'Linux':
+    if link_against_casa:
+        if os.access(os.path.join(casalibpath, 'libgfortran.so.1'), os.F_OK):
+            env.Append(LIBS=File(os.path.join(casalibpath, 'libgfortran.so.1')))
+        env.Append(LIBS=File(os.path.join(casalibpath, 'liblapack.so.3')))
+        env.Append(LIBS=File(os.path.join(casalibpath, 'libblas.so.3')))
+        if int(svnversion) >= 38335:
+            env.Append(LIBS=File(os.path.join(casalibpath, 'libwcs.so.5')))
+        else:
+            env.Append(LIBS=File(os.path.join(casalibpath, 'libwcs.so.4.7')))
+        if os.access(os.path.join(casalibpath, 'libcfitsio.so.0'), os.F_OK):
+            env.Append(LIBS=File(os.path.join(casalibpath, 'libcfitsio.so.0')))
     else:
-        env.Append(LIBS=File(os.path.join(casalibpath, 'libwcs.so.4.7')))
-    if os.access(os.path.join(casalibpath, 'libcfitsio.so.0'), os.F_OK):
-        env.Append(LIBS=File(os.path.join(casalibpath, 'libcfitsio.so.0')))
-else:
-    env.Append(LIBS=['gfortran', 'lapack', 'blas', 'wcs', 'cfitsio'])
+        env.Append(LIBS=['gfortran', 'lapack', 'blas', 'wcs', 'cfitsio'])
+elif platform.system() == 'Darwin':
+    if link_against_casa:
+        if int(svnversion) >= 33623:
+            env.Append(LIBS=File(os.path.join(casalibpath, 'libgfortran.3.dylib')))
+        else:
+            env.Append(LIBS=File(os.path.join(casalibpath, 'libgfortran.2.dylib')))
+        if int(svnversion) >= 38335:
+            env.Append(LIBS=File(os.path.join(casalibpath, 'libwcs.5.15.dylib')))
+        else:
+            env.Append(LIBS=File(os.path.join(casalibpath, 'libwcs.4.17.dylib')))
+        env.Append(LIBS=File(os.path.join(casalibpath, 'libcfitsio.dylib')))
+    else:
+        env.Append(LIBS=['gfortran', 'lapack', 'blas', 'wcs', 'cfitsio'])
+
+
 # env.Append(CCFLAGS = ['-fPIC','-O3'])
 env.Append(CCFLAGS = ['-O3'])
 
@@ -436,4 +467,23 @@ if link_against_casa:
     target_name = 'stacker-r{0}{tag}'.format(svnversion, tag=tag)
 else:
     target_name = 'stacker{tag}'.format(tag=tag)
-env.SharedLibrary(target=target_name, source=object_list)
+lib_target = env.SharedLibrary(target=target_name, source=object_list)
+
+
+def fixOSXlibpaths(target, source, env):
+    import subprocess
+    print "Fixing library paths for OSX..."
+    otool = os.popen("otool -L " +  str(target[0])).readlines()
+    for o_lib in otool:
+        o_lib = o_lib.split()[0]
+        for lib in env["LIBS"]:
+            lib = os.path.basename(str(lib)).split('.')[0]
+            if lib[:3] != "lib":
+                lib = "lib" + lib
+            if re.match("(" + lib + "\..*dylib)", o_lib):
+                os.system("install_name_tool -change " + o_lib + " " + "@executable_path/../../../../../../../" + o_lib + " " + str(target[0]))
+                break
+
+
+if platform.system() == 'Darwin':
+    env.AddPostAction(lib_target, fixOSXlibpaths)

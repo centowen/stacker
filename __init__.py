@@ -54,12 +54,19 @@ MS_MODELCOLUMN_DATA = 2
 clib_path = os.path.join(os.path.abspath(__path__[0]),
                          'stacker_clib')
 
+if platform.system() == 'Linux':
+    lib_suffix = '.so'
+elif platform.system() == 'Darwin':
+    lib_suffix = '.dylib'
+
 
 def _read_casadef(casapath, param):
     """Read and return param from casadef.py inside specified casapath"""
     import re
     if platform.system() == 'Linux':
-      casadef = casapath + '/lib/python2.7/casadef.py'
+        casadef = casapath + '/lib/python2.7/casadef.py'
+    elif platform.system() == 'Darwin':
+        casadef = casapath + '/Resources/python/casadef.py'
     else:
         raise ValueError('Unsupported platform: ' + platform,system())
     try:
@@ -86,7 +93,7 @@ def _casa_svnversion(casapath):
 
 def _libs_matching_svn_version(svnversion):
     """Return the list of stacker versions for the specified svn version"""
-    return sorted(glob.glob(os.path.join(clib_path, 'libstacker-r{0}*.so'.format(svnversion))), reverse=True)
+    return sorted(glob.glob(os.path.join(clib_path, 'libstacker-r{0}*{1}'.format(svnversion, lib_suffix))), reverse=True)
 
 
 def _load_stacker_casa_svn_version(svnversion):
