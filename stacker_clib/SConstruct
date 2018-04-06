@@ -57,15 +57,30 @@ def build_header(env, do_pthreads = True, do_cuda = False):
     header_file.close()
 
 
+def read_casadef(casapath, param):
+    """Read and return param from casadef.py inside specified casapath"""
+    import re
+    print casapath
+    if platform.system() == 'Linux':
+        casadef = casapath + '/lib/python2.7/casadef.py'
+    else:
+        raise ValueError('Unsupported platform: ' + platform,system())
+    try:
+        casadeffile = open(casadef)
+        for line in casadeffile:
+            match = re.match(param.strip() + ' *= *"(.*)"', line)
+            if match:
+                return match.groups()[0]
+    except IOError:
+        raise ValueError('Could not open ' + casadef)
+
+
 def casa_svnpath_post46(casapath):
     import re
     import os.path
     svnpath = None
-    casaconfigfile = open(os.path.join(casapath, 'bin', 'casa-config'))
-    for line in casaconfigfile:
-        match = re.match('.*\$srcurl="(.*)";.*', line)
-        if match:
-            svnpath = match.groups()[0]
+
+    svnpath = read_casadef(casapath, "subversion_url")
 
     if svnpath is None:
         raise IOError('Can not find casa svnpath.')
@@ -77,18 +92,8 @@ def casa_svnversion(casapath):
     import re
     import os.path
     svnversion = None
-    try:
-        casapyinfofile = open(os.path.join(casapath, 'casapyinfo'))
-        for line in casapyinfofile:
-            match = re.match('SVNVERSION="([0-9]*)"', line)
-            if match:
-                svnversion = match.groups()[0]
-    except IOError:
-        casaconfigfile = open(os.path.join(casapath, 'bin', 'casa-config'))
-        for line in casaconfigfile:
-            match = re.match('.*\$revision="([0-9]*)";.*', line)
-            if match:
-                svnversion = match.groups()[0]
+
+    svnversion = read_casadef(casapath, "subversion_revision")
 
     if svnversion is None:
         raise IOError('Can not find casa version.')
@@ -218,7 +223,7 @@ if link_against_casa is None:
 if link_against_casa:
     casapath = GetOption('casapath')
     if casapath is None:
-        casapath = whichpath('casapy')
+        casapath = os.path.normpath(whichpath('casapy') + '/..')
         print('Found casa - {}'.format(casapath))
 
     if casapath is None:

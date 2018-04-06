@@ -26,6 +26,7 @@ import os
 from ctypes import cdll
 import re
 import glob
+import platform
 
 __author__ = 'Lukas Lindroos'
 __copyright__ = 'Copyright 2014'
@@ -54,22 +55,28 @@ clib_path = os.path.join(os.path.abspath(__path__[0]),
                          'stacker_clib')
 
 
+def _read_casadef(casapath, param):
+    """Read and return param from casadef.py inside specified casapath"""
+    import re
+    if platform.system() == 'Linux':
+      casadef = casapath + '/lib/python2.7/casadef.py'
+    else:
+        raise ValueError('Unsupported platform: ' + platform,system())
+    try:
+        casadeffile = open(casadef)
+        for line in casadeffile:
+            match = re.match(param.strip() + ' *= *"(.*)"', line)
+            if match:
+                return match.groups()[0]
+    except IOError:
+        raise ValueError('Could not open ' + casadef)
+
+
 def _casa_svnversion(casapath):
     import re
-    import os.path
-    try:
-        casapyinfofile = open(os.path.join(casapath, 'casapyinfo'))
-        svnversion = None
-        for line in casapyinfofile:
-            match = re.match('SVNVERSION="([0-9]*)"', line)
-            if match:
-                svnversion = match.groups()[0]
-    except IOError:
-        casaconfigfile = open(os.path.join(casapath, 'bin', 'casa-config'))
-        for line in casaconfigfile:
-            match = re.match('.*\$revision="([0-9]*)";.*', line)
-            if match:
-                svnversion = match.groups()[0]
+    svnversion = None
+
+    svnversion = _read_casadef(casapath, "subversion_revision")
 
     if svnversion is None:
         raise IOError('Can not find casa version.')
